@@ -1,0 +1,185 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
+import JustGoHealth from "@/components/logo-purple";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import useGetSearchParams from "@/hooks/useGetSearchParams";
+import { useEffect, useState, Suspense } from "react";
+import { ROUTES } from "@/constants/routes";
+import { api } from "@/lib/api";
+
+const LoginSchema = z.object({
+  email: z
+    .email({ message: "Please enter a valid email" })
+    .min(1, "Please enter your email address"),
+  password: z.string().min(1, { message: "Please enter password" }),
+});
+
+const CuratorSignInContent = () => {
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const router = useRouter();
+
+  const email = useGetSearchParams("email");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email,
+      password: "",
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
+    setIsLoading(true);
+    setErrorMessage("");
+    
+    // Temporary credentials for testing
+    const TEMP_CURATOR_EMAIL = "jgohealth@gmail.com";
+    const TEMP_CURATOR_PASSWORD = "J4$1bFrs!re3zb@sz&";
+    
+    // Check if credentials match the temporary ones
+    if (values.email === TEMP_CURATOR_EMAIL && values.password === TEMP_CURATOR_PASSWORD) {
+      // Store a temporary token
+      localStorage.setItem('curatorToken', 'temp-curator-token-' + Date.now());
+      router.push(ROUTES.curator.dashboard);
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      const response = await api.curatorSignIn(values);
+      
+      if (response.success) {
+        // Store curator token
+        if (response.data?.token) {
+          localStorage.setItem('curatorToken', response.data.token);
+        }
+        router.push(ROUTES.curator.dashboard);
+      } else {
+        setErrorMessage(response.message || "Sign in failed");
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || "Sign in failed. Please try again.";
+      setErrorMessage(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  };
+
+  useEffect(() => {
+    if (!email) {
+      router.push(ROUTES.curator.checkEmail);
+    }
+  }, [email, router]);
+
+  return (
+    <div className="h-full flex flex-col justify-between">
+      <div className="flex items-center px-8 justify-between w-full">
+        <JustGoHealth />
+        <button className="bg-gray-300 text-red-500 rounded-full px-4 py-1">
+          Switch to Providers
+        </button>
+      </div>
+      
+      <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="px-12">
+        <h1 className="text-5xl font-extrabold">Curator Sign In</h1>
+        <div className="my-16">
+          <div className="flex flex-col">
+            <label className="text-2xl font-bold text-gray-500 pl-4">
+              Email
+            </label>
+            <input
+              {...register("email")}
+              value={email as string}
+              placeholder={email as string}
+              disabled
+              className={`font-bold w-full rounded-xl border-gray-300 border-4 text-2xl text-gray-500 p-4 bg-gray-200/50`}
+            />
+          </div>
+          <div className="mt-4 flex flex-col">
+            <label className="text-2xl font-bold text-gray-500 pl-4">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                {...register("password")}
+                onChange={handlePasswordChange}
+                placeholder="********"
+                type={showPassword ? "text" : "password"}
+                className={`font-bold w-full rounded-xl border-4 ${
+                  errors?.password?.message ? "border-red-500 text-red-500" : "text-green-600 border-green-600"
+                } text-2xl text-gray-500 p-4 bg-gray-200/50`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute top-1/2 right-0.5 transform -translate-x-1/2 -translate-y-1/2"
+              >
+                {!showPassword ? <span>SHOW</span> : <span>HIDE</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {errorMessage && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <p className="text-red-600 text-center font-medium">{errorMessage}</p>
+          </div>
+        )}
+      </form>
+      
+      <div className="flex border-t border-gray-500 px-10 pt-10 items-center justify-between">
+        <Button
+          onClick={() => router.back()}
+          className="rounded-full px-6 border-4 bg-white text-[#955aa4] text-xl font-bold border-[#955aa4] uppercase"
+        >
+          Back
+        </Button>
+        <button
+          form="login-form"
+          type="submit"
+          disabled={!password.trim() || isLoading}
+          className={`text-xl px-6 py-2 border-4 font-bold rounded-md flex items-center gap-2 ${
+            !password.trim() || isLoading
+              ? "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
+              : "border-[#2b3990] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
+          }`}
+        >
+          {isLoading && (
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-2 h-2 border-2 border-white border-t-transparent rounded-full animate-spin" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-1 h-1 border-2 border-white border-t-transparent rounded-full animate-spin" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          )}
+          {isLoading ? "Signing In..." : "Sign In"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const CuratorSignIn = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CuratorSignInContent />
+    </Suspense>
+  );
+};
+
+export default CuratorSignIn;
