@@ -1,7 +1,9 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://justgo-api.up.railway.app";
+
 export const axiosInstance = axios.create({
-  baseURL: "https://justgo-api.up.railway.app",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-type": "application/json",
     Accept: "application/json",
@@ -10,7 +12,7 @@ export const axiosInstance = axios.create({
 });
 
 export const axiosFormData = axios.create({
-  baseURL: "https://justgo-api.up.railway.app",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "multipart/form-data",
     "Access-Control-Allow-Origin": "*",
