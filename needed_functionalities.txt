@@ -1,0 +1,1 @@
+- GET schools should accept an optional status query to get "ACTIVE" | "INACTIVE" and ALL schools

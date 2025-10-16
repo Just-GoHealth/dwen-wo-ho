@@ -64,6 +64,8 @@ const SignInContent = () => {
           localStorage.setItem("authToken", response.data.token);
         }
 
+        console.log(response.data);
+
         // Check if user is verified
         if (response.data?.isVerified === false) {
           setUserInfo({
@@ -73,6 +75,7 @@ const SignInContent = () => {
           });
           setShowPendingModal(true);
         } else {
+          console;
           router.push("/provider/profile");
         }
       } else {

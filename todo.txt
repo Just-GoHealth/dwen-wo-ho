@@ -1,0 +1,7 @@
+-Form validation on get-started page
+- Profile page
+- Incomplete profile (Says Pending)
+- Pending page design changes 
+
+
+- Curator signing in indicator

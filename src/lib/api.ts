@@ -47,11 +47,15 @@ export const api = {
   async addPhoto(file: File, opts?: WithAuth) {
     const formData = new FormData();
     formData.append("image", file);
-    const response = await axiosFormData.post("/api/v1/auth/add-photo", formData, {
-      headers: {
-        ...authHeader(opts?.token),
-      },
-    });
+    const response = await axiosFormData.post(
+      "/api/v1/auth/add-photo",
+      formData,
+      {
+        headers: {
+          ...authHeader(opts?.token),
+        },
+      }
+    );
     return response.data;
   },
 
@@ -145,13 +149,19 @@ export const api = {
 
   // Curator: Check email
   async curatorCheckEmail(payload: { email: string; password: string }) {
-    const response = await axiosInstance.post("/api/v1/auth/curator/check-email", payload);
+    const response = await axiosInstance.post(
+      "/api/v1/auth/curator/check-email",
+      payload
+    );
     return response.data;
   },
 
   // Curator: Sign in
   async curatorSignIn(payload: { email: string; password: string }) {
-    const response = await axiosInstance.post("/api/v1/auth/curator/sign-in", payload);
+    const response = await axiosInstance.post(
+      "/api/v1/auth/curator/sign-in",
+      payload
+    );
     return response.data;
   },
 
@@ -177,25 +187,65 @@ export const api = {
 
   // Curator: Approve provider
   async approveProvider(email: string, opts?: WithAuth) {
-    const response = await axiosInstance.put(`/api/v1/providers/${email}/approve`, {}, {
-      headers: {
-        ...authHeader(opts?.token),
-      },
-    });
+    const response = await axiosInstance.put(
+      `/api/v1/providers/${email}/approve`,
+      {},
+      {
+        headers: {
+          ...authHeader(opts?.token),
+        },
+      }
+    );
     return response.data;
   },
 
   // Curator: Reject provider
   async rejectProvider(email: string, opts?: WithAuth) {
-    const response = await axiosInstance.put(`/api/v1/providers/${email}/reject`, {}, {
+    const response = await axiosInstance.put(
+      `/api/v1/providers/${email}/reject`,
+      {},
+      {
+        headers: {
+          ...authHeader(opts?.token),
+        },
+      }
+    );
+    return response.data;
+  },
+
+  // Schools: Get all schools
+  async getSchools(opts?: WithAuth) {
+    const response = await axiosInstance.get("/api/v1/schools", {
       headers: {
         ...authHeader(opts?.token),
       },
     });
     return response.data;
   },
+
+  // Schools: Get single school
+  async getSchool(schoolId: string, opts?: WithAuth) {
+    const response = await axiosInstance.get(`/api/v1/schools/${schoolId}`, {
+      headers: {
+        ...authHeader(opts?.token),
+      },
+    });
+    return response.data;
+  },
+
+  // Schools: Disable school
+  async disableSchool(schoolId: string, opts?: WithAuth) {
+    const response = await axiosInstance.put(
+      `/api/v1/schools/${schoolId}/disable`,
+      {},
+      {
+        headers: {
+          ...authHeader(opts?.token),
+        },
+      }
+    );
+    return response.data;
+  },
 };
 
 export type Api = typeof api;
-
-
