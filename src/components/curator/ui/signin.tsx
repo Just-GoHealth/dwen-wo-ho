@@ -37,22 +37,6 @@ const CuratorSignInContent = ({ email, onBack }: CuratorSignInProps) => {
     setIsLoading(true);
     setErrorMessage("");
 
-    // Temporary credentials for testing
-    const TEMP_CURATOR_EMAIL = "jgohealth@gmail.com";
-    const TEMP_CURATOR_PASSWORD = "J4$1bFrs!re3zb@sz&";
-
-    // Check if credentials match the temporary ones
-    if (
-      values.email === TEMP_CURATOR_EMAIL &&
-      values.password === TEMP_CURATOR_PASSWORD
-    ) {
-      // Store a temporary token
-      localStorage.setItem("curatorToken", "temp-curator-token-" + Date.now());
-      router.push(ROUTES.curator.dashboard);
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const response = await api.curatorSignIn(values);
 

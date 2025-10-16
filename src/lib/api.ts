@@ -150,7 +150,7 @@ export const api = {
   // Curator: Check email
   async curatorCheckEmail(payload: { email: string; password: string }) {
     const response = await axiosInstance.post(
-      "/api/v1/auth/curator/check-email",
+      "/api/v1/auth/check-email",
       payload
     );
     return response.data;
@@ -158,10 +158,7 @@ export const api = {
 
   // Curator: Sign in
   async curatorSignIn(payload: { email: string; password: string }) {
-    const response = await axiosInstance.post(
-      "/api/v1/auth/curator/sign-in",
-      payload
-    );
+    const response = await axiosInstance.post("/api/v1/auth/sign-in", payload);
     return response.data;
   },
 

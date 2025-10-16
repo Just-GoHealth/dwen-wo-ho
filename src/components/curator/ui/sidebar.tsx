@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import JustGoHealth from "@/components/logo-purple";
 import {
-  FiX,
   FiFileText,
   FiPlus,
   FiLogOut,
@@ -87,11 +86,11 @@ export const CuratorSidebar = ({
         <div className="flex-1 px-4 py-6">
           <nav className="space-y-3">
             <Link
-              href="/curator/dashboard/schools"
+              href="/curator/schools"
               onClick={() => setIsMobileSidebarOpen(false)}
               className={cn(
                 "block px-4 py-3 font-bold transition-all duration-200 rounded-lg",
-                isActive("/curator/dashboard/schools")
+                isActive("/curator/schools")
                   ? "bg-white/20 text-white shadow-md"
                   : "text-white/80 hover:bg-white/10 hover:text-white"
               )}
@@ -107,11 +106,11 @@ export const CuratorSidebar = ({
               </div>
             </Link>
             <Link
-              href="/curator/dashboard/providers"
+              href="/curator/providers"
               onClick={() => setIsMobileSidebarOpen(false)}
               className={cn(
                 "block px-4 py-3 font-bold transition-all duration-200 rounded-lg",
-                isActive("/curator/dashboard/providers")
+                isActive("/curator/providers")
                   ? "bg-white/20 text-white shadow-md"
                   : "text-white/80 hover:bg-white/10 hover:text-white"
               )}
@@ -127,11 +126,11 @@ export const CuratorSidebar = ({
               </div>
             </Link>
             <Link
-              href="/curator/dashboard/pages"
+              href="/curator/pages"
               onClick={() => setIsMobileSidebarOpen(false)}
               className={cn(
                 "block px-4 py-3 font-bold transition-all duration-200 rounded-lg",
-                isActive("/curator/dashboard/pages")
+                isActive("/curator/pages")
                   ? "bg-white/20 text-white shadow-md"
                   : "text-white/80 hover:bg-white/10 hover:text-white"
               )}

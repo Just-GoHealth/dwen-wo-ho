@@ -17,7 +17,6 @@ export const ROUTES = {
   },
   curator: {
     signIn: "/curator/signin",
-    checkEmail: "/curator/check-email",
     dashboard: "/curator/dashboard",
     providerDetails: "/curator/provider",
   },
