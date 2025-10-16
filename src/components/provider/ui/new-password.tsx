@@ -22,7 +22,7 @@ const SignUpSchema = z.object({
   repeatPassword: z.string().min(6, { message: "Please enter your password" }),
 });
 
-const SignUpContent = () => {
+const NewPasswordContent = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const email = useGetSearchParams("email");
@@ -143,12 +143,12 @@ const SignUpContent = () => {
   );
 };
 
-const SignUp = () => {
+const NewPassword = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <SignUpContent />
+      <NewPasswordContent />
     </Suspense>
   );
 };
 
-export default SignUp;
+export default NewPassword;
