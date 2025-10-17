@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Image from "next/image";
-import { api } from "@/lib/api";
 import { ROUTES } from "@/constants/routes";
 import LoadingOverlay from "@/components/ui/loading-overlay";
 import { useSelectedValuesFromReactHookForm } from "@/hooks/forms/useSelectedValuesFromReactHookForm";
@@ -14,21 +13,21 @@ import {
   ProviderEmailFormData,
 } from "@/schemas/provider.auth.schema";
 import Link from "next/link";
+import useAuthQuery from "@/hooks/queries/useAuthQuery";
 
 interface CheckEmailProps {
   onEmailSubmit: (email: string, emailExists: boolean) => void;
 }
 
 const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+  const { checkEmailMutation } = useAuthQuery();
 
   const checkEmailExists = async (email: string) => {
     try {
-      setIsLoading(true);
       setErrorMessage("");
-      const response = await api.checkEmail(email);
+      const response = await checkEmailMutation.mutateAsync({ email });
 
       if (response.success) {
         onEmailSubmit(email, response.data?.emailExists || false);
@@ -40,8 +39,6 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
       setErrorMessage(
         error.response?.data?.message || "Failed to verify email"
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -58,7 +55,10 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
 
   return (
     <>
-      <LoadingOverlay text="Verifying email..." isVisible={isLoading} />
+      <LoadingOverlay
+        text="Verifying email..."
+        isVisible={checkEmailMutation.isPending}
+      />
       <div className="min-h-screen h-full flex flex-col justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 via-purple-500/10 to-pink-400/20"></div>
         <div className="absolute inset-0 backdrop-blur-[100px]"></div>
@@ -104,14 +104,14 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                     <Button
                       type="submit"
                       variant="ghost"
-                      disabled={isLoading || !!errors?.email}
+                      disabled={checkEmailMutation.isPending || !!errors?.email}
                       className={`px-6 h-auto transition-all duration-300 ${
-                        !errors?.email && !isLoading
+                        !errors?.email && !checkEmailMutation.isPending
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                           : "bg-gray-400/50 text-gray-500 cursor-not-allowed"
                       }`}
                     >
-                      {isLoading ? (
+                      {checkEmailMutation.isPending ? (
                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <Image

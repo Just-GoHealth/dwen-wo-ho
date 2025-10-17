@@ -5,7 +5,7 @@ import { InputOTP, InputOTPSlot } from "@/components/ui/input-otp";
 import { useEffect, useState } from "react";
 import { formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
+import useAuthQuery from "@/hooks/queries/useAuthQuery";
 
 interface SignUpVerificationProps {
   email: string;
@@ -22,8 +22,9 @@ const SignUpVerification = ({
 }: SignUpVerificationProps) => {
   const [isRunning, setIsRunning] = useState(true);
   const [seconds, setSeconds] = useState(120); // 2 minutes
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const { verifyEmailMutation, checkEmailMutation } = useAuthQuery();
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -40,28 +41,26 @@ const SignUpVerification = ({
   }, [isRunning, seconds]);
 
   const handleOTPComplete = async (value: string) => {
-    setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const response = await api.submitSignupCode({
+      const response = await verifyEmailMutation.mutateAsync({
         code: value,
         email: email,
       });
 
-      if (response.success) {
-        // Move to profile setup step
-        onNext();
-      } else {
-        setErrorMessage(response.message || "Verification failed");
+      // Store the token for authenticated requests in profile setup
+      if (response.token) {
+        localStorage.setItem("token", response.token);
       }
+
+      // Move to profile setup step
+      onNext();
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message ||
         "Verification failed. Please try again.";
       setErrorMessage(errorMsg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -79,7 +78,7 @@ const SignUpVerification = ({
       </div>
       {/* OTP Input Section */}
       <div className="text-center space-y-6">
-        {isLoading ? (
+        {verifyEmailMutation.isPending ? (
           <div className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
             <p className="text-gray-600 font-medium">Verifying your code...</p>
@@ -104,14 +103,23 @@ const SignUpVerification = ({
 
             <div className="flex items-center justify-center gap-4">
               <Button
-                disabled={seconds > 0}
-                onClick={() => {
-                  setSeconds(120);
-                  setIsRunning(true);
+                disabled={seconds > 0 || checkEmailMutation.isPending}
+                onClick={async () => {
+                  try {
+                    await checkEmailMutation.mutateAsync({ email });
+                    setSeconds(120);
+                    setIsRunning(true);
+                    setErrorMessage("");
+                  } catch (error: any) {
+                    const errorMsg =
+                      error.response?.data?.message ||
+                      "Failed to resend code. Please try again.";
+                    setErrorMessage(errorMsg);
+                  }
                 }}
                 className="rounded-lg px-4 py-2 text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
               >
-                Resend code →
+                {checkEmailMutation.isPending ? "Sending..." : "Resend code →"}
               </Button>
               <span className="text-sm text-gray-500 bg-gray-100 rounded-full px-3 py-1">
                 {formatTime(seconds)}

@@ -7,13 +7,13 @@ import { ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { api } from "@/lib/api";
 import PendingVerificationModal from "@/components/modals/pending-verification";
 import { useSelectedValuesFromReactHookForm } from "@/hooks/forms/useSelectedValuesFromReactHookForm";
 import {
   ProviderLoginSchema,
   ProviderLoginFormData,
 } from "@/schemas/provider.auth.schema";
+import useAuthQuery from "@/hooks/queries/useAuthQuery";
 
 interface ProviderSignInProps {
   email: string;
@@ -22,7 +22,6 @@ interface ProviderSignInProps {
 
 const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showPendingModal, setShowPendingModal] = useState(false);
   const [userInfo, setUserInfo] = useState({
@@ -31,6 +30,7 @@ const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
     timeAgo: "2 hours ago",
   });
   const router = useRouter();
+  const { loginMutation } = useAuthQuery();
 
   const { register, handleSubmit, errors, watch } =
     useSelectedValuesFromReactHookForm(ProviderLoginSchema, {
@@ -42,11 +42,13 @@ const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
     });
 
   const onSubmit = async (values: ProviderLoginFormData) => {
-    setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const response = await api.signIn(values);
+      const response = await loginMutation.mutateAsync({
+        email: values.email,
+        password: values.password,
+      });
 
       if (response.success) {
         // Store provider token
@@ -73,8 +75,6 @@ const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
       const errorMsg =
         error.response?.data?.message || "Sign in failed. Please try again.";
       setErrorMessage(errorMsg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -168,28 +168,24 @@ const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
           form="login-form"
           type="submit"
           disabled={
-            !password?.length || isLoading || Object.keys(errors).length > 0
+            !password?.length ||
+            loginMutation.isPending ||
+            Object.keys(errors).length > 0
           }
           className={`text-xl px-6 py-2 border-4 font-bold rounded-md flex items-center gap-2 ${
-            !password?.length || isLoading || Object.keys(errors).length > 0
+            !password?.length ||
+            loginMutation.isPending ||
+            Object.keys(errors).length > 0
               ? "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
               : "border-[#2b3990] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
           }`}
         >
-          {isLoading && (
+          {loginMutation.isPending && (
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <div
-                className="w-2 h-2 border-2 border-white border-t-transparent rounded-full animate-spin"
-                style={{ animationDelay: "0.1s" }}
-              ></div>
-              <div
-                className="w-1 h-1 border-2 border-white border-t-transparent rounded-full animate-spin"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
             </div>
           )}
-          {isLoading ? "Signing In..." : "Sign In"}
+          {loginMutation.isPending ? "Signing In..." : "Sign In"}
         </button>
       </div>
 

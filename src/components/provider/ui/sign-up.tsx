@@ -20,11 +20,11 @@ interface ProviderSignUpProps {
 type SignUpStep = "create" | "verify" | "profile";
 
 const SignUpContent = ({ email: propEmail, onBack }: ProviderSignUpProps) => {
-  const [currentStep, setCurrentStep] = useState<SignUpStep>("create");
+  const [currentStep, setCurrentStep] = useState<SignUpStep>("profile");
   const [signUpData, setSignUpData] = useState({
     email: propEmail || "",
-    fullName: "",
-    title: "",
+    fullName: "Asare Foster",
+    title: "Dr.",
   });
 
   const handleCreateAccountNext = (data: {
@@ -58,6 +58,8 @@ const SignUpContent = ({ email: propEmail, onBack }: ProviderSignUpProps) => {
         return "Verify";
       case "profile":
         return "Profile";
+      default:
+        return "Create";
     }
   };
 
@@ -68,6 +70,8 @@ const SignUpContent = ({ email: propEmail, onBack }: ProviderSignUpProps) => {
         return (
           <CreateAccount
             email={signUpData.email}
+            fullName={signUpData.fullName}
+            title={signUpData.title}
             onNext={handleCreateAccountNext}
           />
         );
@@ -88,6 +92,7 @@ const SignUpContent = ({ email: propEmail, onBack }: ProviderSignUpProps) => {
             email={signUpData.email}
             fullName={signUpData.fullName}
             title={signUpData.title}
+            onBack={() => setCurrentStep("verify")}
           />
         );
 
@@ -107,27 +112,39 @@ const SignUpContent = ({ email: propEmail, onBack }: ProviderSignUpProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-center p-6">
+      <div className="flex-1 flex flex-col justify-center px-6">
         {renderStepContent()}
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="flex flex-col sm:flex-row border-t border-gray-500 px-4 sm:px-6 lg:px-10 pt-4 sm:pt-6 items-center justify-between space-y-4 sm:space-y-0">
-        <Button
-          onClick={handleBack}
-          className="rounded-full px-3 sm:px-4 lg:px-6 border-2 sm:border-4 bg-white text-[#955aa4] text-sm sm:text-base lg:text-xl font-bold border-[#955aa4] uppercase w-full sm:w-auto"
-        >
-          Back
-        </Button>
+      {/* Bottom Navigation - Hidden on Profile Step */}
+      {currentStep !== "profile" && (
+        <div className="flex flex-col sm:flex-row border-t border-gray-500 px-4 sm:px-6 lg:px-10 py-4 sm:pt-6 items-center justify-between space-y-4 sm:space-y-0">
+          <Button
+            onClick={handleBack}
+            className="rounded-full px-3 sm:px-4 lg:px-6 border-2 sm:border-4 bg-white text-[#955aa4] text-sm sm:text-base lg:text-xl font-bold border-[#955aa4] uppercase w-full sm:w-auto"
+          >
+            Back
+          </Button>
 
-        <div className="flex-1 flex justify-center">
-          <Stepper steps={signUpSteps} step={getCurrentStepLabel()} />
+          <div className="flex-1 flex justify-center">
+            <Stepper steps={signUpSteps} step={getCurrentStepLabel()} />
+          </div>
+
+          {currentStep === "create" ? (
+            <button
+              form="create-account-form"
+              type="submit"
+              className="rounded-full px-3 sm:px-4 lg:px-6 border-2 sm:border-4 bg-purple-600 text-white text-sm sm:text-base lg:text-xl font-bold border-purple-600 uppercase w-full sm:w-auto hover:bg-purple-700 transition-colors"
+            >
+              Next
+            </button>
+          ) : (
+            <Button className="invisible rounded-full px-3 sm:px-4 lg:px-6 border-2 sm:border-4 bg-white text-[#955aa4] text-sm sm:text-base lg:text-xl font-bold border-[#955aa4] uppercase w-full sm:w-auto">
+              Next
+            </Button>
+          )}
         </div>
-
-        <Button className="invisible rounded-full px-3 sm:px-4 lg:px-6 border-2 sm:border-4 bg-white text-[#955aa4] text-sm sm:text-base lg:text-xl font-bold border-[#955aa4] uppercase w-full sm:w-auto">
-          Next
-        </Button>
-      </div>
+      )}
     </div>
   );
 };

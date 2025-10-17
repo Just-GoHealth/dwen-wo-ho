@@ -10,13 +10,17 @@ const useAuthQuery = () => {
 
   const signupMutation = useMutation({
     mutationKey: ["auth", "signup"],
-    mutationFn: (data: { email: string; password: string; fullName: string }) =>
-      signup(data),
+    mutationFn: (data: {
+      email: string;
+      password: string;
+      fullName: string;
+      professionalTitle: string;
+    }) => signup(data),
   });
 
   const verifyEmailMutation = useMutation({
     mutationKey: ["auth", "verifyEmail"],
-    mutationFn: (data: { email: string }) => verifyEmail(data),
+    mutationFn: (data: { email: string; code: string }) => verifyEmail(data),
   });
 
   const checkEmailMutation = useMutation({
@@ -51,6 +55,7 @@ const useAuthQuery = () => {
     email: string;
     password: string;
     fullName: string;
+    professionalTitle: string;
   }) {
     return axiosInstance.post(ENDPOINTS.signup, data).then((response) => {
       return checkResponse(response, 200);
@@ -58,12 +63,12 @@ const useAuthQuery = () => {
   }
 
   async function checkEmail(data: { email: string }) {
-    return axiosInstance.post(ENDPOINTS.verifyEmail, data).then((response) => {
+    return axiosInstance.post(ENDPOINTS.checkEmail, data).then((response) => {
       return checkResponse(response, 200);
     });
   }
 
-  async function verifyEmail(data: { email: string }) {
+  async function verifyEmail(data: { email: string; code: string }) {
     return axiosInstance.post(ENDPOINTS.verifyEmail, data).then((response) => {
       return checkResponse(response, 200);
     });

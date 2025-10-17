@@ -6,9 +6,9 @@ import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormSelect } from "@/components/ui/form-select";
 import { SelectItem } from "@/components/ui/select";
-import { api } from "@/lib/api";
 import LoadingOverlay from "@/components/ui/loading-overlay";
 import { useSelectedValuesFromReactHookForm } from "@/hooks/forms/useSelectedValuesFromReactHookForm";
+import useAuthQuery from "@/hooks/queries/useAuthQuery";
 import {
   ProviderSignUpSchema,
   ProviderSignUpFormData,
@@ -16,22 +16,30 @@ import {
 
 interface CreateAccountProps {
   email?: string;
+  fullName?: string;
+  title?: string;
   onNext: (data: { email: string; fullName: string; title: string }) => void;
 }
 
-const CreateAccount = ({ email: propEmail, onNext }: CreateAccountProps) => {
+const CreateAccount = ({
+  email: propEmail,
+  fullName: propFullName,
+  title: propTitle,
+  onNext,
+}: CreateAccountProps) => {
   const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  const { signupMutation } = useAuthQuery();
 
   const { register, handleSubmit, errors, watch, setValue } =
     useSelectedValuesFromReactHookForm(ProviderSignUpSchema, {
       mode: "onChange",
       defaultValues: {
         email: propEmail || "",
-        title: "",
-        fullName: "",
+        title: propTitle || "",
+        fullName: propFullName || "",
         password: "",
       },
     });
@@ -42,11 +50,10 @@ const CreateAccount = ({ email: propEmail, onNext }: CreateAccountProps) => {
       return;
     }
 
-    setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const response = await api.createAccount({
+      const response = await signupMutation.mutateAsync({
         email: values.email,
         fullName: values.fullName,
         professionalTitle: values.title,
@@ -68,8 +75,6 @@ const CreateAccount = ({ email: propEmail, onNext }: CreateAccountProps) => {
         error.response?.data?.message ||
         "Account creation failed. Please try again.";
       setErrorMessage(errorMsg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -85,7 +90,10 @@ const CreateAccount = ({ email: propEmail, onNext }: CreateAccountProps) => {
 
   return (
     <>
-      <LoadingOverlay text="Creating your account..." isVisible={isLoading} />
+      <LoadingOverlay
+        text="Creating your account..."
+        isVisible={signupMutation.isPending}
+      />
       <form
         id="create-account-form"
         onSubmit={handleSubmit(onSubmit)}

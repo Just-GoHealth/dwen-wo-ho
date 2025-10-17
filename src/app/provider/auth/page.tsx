@@ -6,13 +6,11 @@ import SignIn from "@/components/provider/ui/signin";
 import SignUp from "@/components/provider/ui/sign-up";
 
 type AuthStep = "check-email" | "sign-in" | "sign-up";
-import { useRouter } from "next/navigation";
 
 const ProviderAuthPage = () => {
   const [step, setStep] = useState<AuthStep>("sign-up");
-  const [email, setEmail] = useState<string>("asare4ster@gmail.com");
+  const [email, setEmail] = useState<string>("dead_alnix2@gmail.com");
 
-  const router = useRouter();
   const handleEmailSubmit = (submittedEmail: string, emailExists: boolean) => {
     setEmail(submittedEmail);
     if (emailExists) {
@@ -31,7 +29,7 @@ const ProviderAuthPage = () => {
   ) : step == "sign-in" ? (
     <SignIn email={email} onBack={handleBackToEmail} />
   ) : (
-    <SignUp email={email} onBack={handleBackToEmail} />
+    <SignUp email={email} onBack={() => setStep("check-email")} />
   );
 };
 
