@@ -13,10 +13,19 @@ import Stepper from "@/components/stepper";
 import { ArrowRightIcon } from "lucide-react";
 import { api } from "@/lib/api";
 
-const VerifyContent = () => {
+interface VerifyPasswordResetProps {
+  email: string;
+  onBack?: () => void;
+}
+
+const VerifyContent = ({
+  email: propEmail,
+  onBack,
+}: VerifyPasswordResetProps) => {
   const [isRunning, setIsRunning] = useState(true);
   const [seconds, setSeconds] = useState(120); // 2 minutes
-  const email = useGetSearchParams("email");
+  const searchParamEmail = useGetSearchParams("email");
+  const email = propEmail || searchParamEmail;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -62,7 +71,7 @@ const VerifyContent = () => {
 
   return (
     <div className="h-full flex flex-col justify-between">
-      <div className="flex items-center px-8 justify-between w-full">
+      <div className="flex items-center p-6 justify-between w-full">
         <JustGoHealth />
         <Link
           href={ROUTES.provider.singIn}
@@ -113,7 +122,7 @@ const VerifyContent = () => {
       </div>
       <div className="flex border-t border-gray-500 px-10 pt-5 items-center justify-between">
         <Button
-          onClick={() => router.back()}
+          onClick={() => (onBack ? onBack() : router.back())}
           className="rounded-full px-6 border-4 bg-white text-[#955aa4] text-xl font-bold border-[#955aa4] uppercase"
         >
           Back
@@ -127,10 +136,10 @@ const VerifyContent = () => {
   );
 };
 
-const Verify = () => {
+const Verify = (props: VerifyPasswordResetProps) => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <VerifyContent />
+      <VerifyContent {...props} />
     </Suspense>
   );
 };

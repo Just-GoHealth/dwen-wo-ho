@@ -18,19 +18,25 @@ import useAuthQuery from "@/hooks/queries/useAuthQuery";
 interface ProviderSignInProps {
   email: string;
   onBack: () => void;
+  onForgotPassword?: () => void;
 }
 
-const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
+const SignInContent = ({
+  email,
+  onBack,
+  onForgotPassword,
+}: ProviderSignInProps) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showPendingModal, setShowPendingModal] = useState(false);
+  const router = useRouter();
   const [userInfo, setUserInfo] = useState({
     name: "Dr. Amanda Gorman",
     title: "Clinical Psychologist",
     timeAgo: "2 hours ago",
   });
-  const router = useRouter();
-  const { loginMutation } = useAuthQuery();
+
+  const { loginMutation, recoverAccountMutation } = useAuthQuery();
 
   const { register, handleSubmit, errors, watch } =
     useSelectedValuesFromReactHookForm(ProviderLoginSchema, {
@@ -56,6 +62,18 @@ const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
           localStorage.setItem("providerToken", response.data.token);
         }
 
+        if (response.data?.userData) {
+          console.log(response.data?.token);
+          if (response.data?.token) {
+            localStorage.setItem("token", response.data.token);
+          }
+          // Set user data and route to appropriate dashboard
+          console.log(response.data?.userData);
+          if (response.data.userData?.userRole == "ROLE_CURATOR") {
+            router.replace(ROUTES.curator.schools);
+          }
+        }
+
         // Check if user is verified
         if (response.data?.isVerified === false) {
           setUserInfo({
@@ -74,6 +92,30 @@ const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message || "Sign in failed. Please try again.";
+      setErrorMessage(errorMsg);
+    }
+  };
+
+  const handleRecoverAccount = async () => {
+    setErrorMessage("");
+
+    try {
+      const response = await recoverAccountMutation.mutateAsync({
+        email: email,
+      });
+
+      if (response.success) {
+        // Navigate to reset password step after email is sent
+        onForgotPassword?.();
+      } else {
+        setErrorMessage(
+          response.message || "Failed to send recovery email. Please try again."
+        );
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.message ||
+        "Failed to send recovery email. Please try again.";
       setErrorMessage(errorMsg);
     }
   };
@@ -148,12 +190,25 @@ const SignInContent = ({ email, onBack }: ProviderSignInProps) => {
         )}
 
         <div className="text-center mt-4">
-          <Link
-            href={`${ROUTES.provider.verifyPasswordReset}?email=${email}`}
-            className="text-purple-600 hover:text-purple-700 text-sm font-medium transition-colors"
-          >
-            Don&apos;t remember your password? Recover account →
-          </Link>
+          {onForgotPassword ? (
+            <button
+              type="button"
+              onClick={handleRecoverAccount}
+              disabled={recoverAccountMutation.isPending}
+              className="text-purple-600 hover:text-purple-700 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {recoverAccountMutation.isPending
+                ? "Sending email..."
+                : "Don't remember your password? Recover account →"}
+            </button>
+          ) : (
+            <Link
+              href={`${ROUTES.provider.verifyPasswordReset}?email=${email}`}
+              className="text-purple-600 hover:text-purple-700 text-sm font-medium transition-colors"
+            >
+              Don&apos;t remember your password? Recover account →
+            </Link>
+          )}
         </div>
       </form>
 
