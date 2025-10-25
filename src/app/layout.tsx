@@ -27,8 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${brHendrix.variable} antialiased`}>
-        <Toaster richColors />
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${brHendrix.variable} antialiased`}
+      >
+        <Toaster richColors position="top-right" />
         <Providers>{children}</Providers>
       </body>
     </html>

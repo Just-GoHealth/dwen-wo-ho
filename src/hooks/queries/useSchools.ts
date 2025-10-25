@@ -1,24 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance } from "@/configs/axiosInstance";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { School } from "@/types/school";
 
 // API functions
 const getSchools = async (): Promise<School[]> => {
-  const response = await axiosInstance.get("/api/v1/schools");
-  return response.data;
+  return api("/api/v1/schools");
 };
 
 const getSchool = async (schoolId: string): Promise<School> => {
-  const response = await axiosInstance.get(`/api/v1/schools/${schoolId}`);
-  return response.data;
+  return api(`/api/v1/schools/${schoolId}`);
 };
 
 const disableSchool = async (schoolId: string): Promise<School> => {
-  const response = await axiosInstance.put(
-    `/api/v1/schools/${schoolId}/disable`
-  );
-  return response.data;
+  return api(`/api/v1/schools/${schoolId}/disable`, { method: "PUT" });
 };
 
 const SCHOOLS_QUERY_KEY = "schools";

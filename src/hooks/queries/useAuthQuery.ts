@@ -1,8 +1,4 @@
-import {
-  axiosInstance,
-  axiosFormData,
-  checkResponse,
-} from "@/configs/axiosInstance";
+import { api } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { useMutation } from "@tanstack/react-query";
 
@@ -69,9 +65,7 @@ const useAuthQuery = () => {
   });
 
   async function login(data: { email: string; password: string }) {
-    return axiosInstance.post(ENDPOINTS.login, data).then((response) => {
-      return checkResponse(response, 200);
-    });
+    return api(ENDPOINTS.login, { method: "POST", body: JSON.stringify(data) });
   }
 
   async function signup(data: {
@@ -80,57 +74,55 @@ const useAuthQuery = () => {
     fullName: string;
     professionalTitle: string;
   }) {
-    return axiosInstance.post(ENDPOINTS.signup, data).then((response) => {
-      return checkResponse(response, 200);
+    return api(ENDPOINTS.signup, {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 
   async function checkEmail(data: { email: string }) {
-    return axiosInstance.post(ENDPOINTS.checkEmail, data).then((response) => {
-      return checkResponse(response, 200);
+    return api(ENDPOINTS.checkEmail, {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 
   async function verifyEmail(data: { email: string; code: string }) {
-    return axiosInstance.post(ENDPOINTS.verifyEmail, data).then((response) => {
-      return checkResponse(response, 200);
+    return api(ENDPOINTS.verifyEmail, {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 
   async function recoverAccount(data: { email: string }) {
-    return axiosInstance
-      .post(ENDPOINTS.recoverAccount, data)
-      .then((response) => {
-        return checkResponse(response, 200);
-      });
+    return api(ENDPOINTS.recoverAccount, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 
   async function submitAccountRecoveryCode(data: {
     code: string;
     email: string;
   }) {
-    return axiosInstance
-      .post(ENDPOINTS.submitAccountRecoveryCode, data)
-      .then((response) => {
-        return checkResponse(response, 200);
-      });
+    return api(ENDPOINTS.submitAccountRecoveryCode, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 
   async function resetPassword(data: {
     password: string;
     confirmPassword: string;
   }) {
-    return axiosInstance
-      .post(ENDPOINTS.resetPassword, data)
-      .then((response) => {
-        return checkResponse(response, 200);
-      });
+    return api(ENDPOINTS.resetPassword, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 
   async function addPhoto(data: FormData) {
-    return axiosFormData.post(ENDPOINTS.addPhoto, data).then((response) => {
-      return checkResponse(response, 200);
-    });
+    return api(ENDPOINTS.addPhoto, { method: "POST", body: data });
   }
 
   async function updateProfile(data: {
@@ -138,16 +130,16 @@ const useAuthQuery = () => {
     status?: string;
     [key: string]: any;
   }) {
-    return axiosInstance
-      .post(ENDPOINTS.updateProfile, data)
-      .then((response) => {
-        return checkResponse(response, 200);
-      });
+    return api(ENDPOINTS.updateProfile, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 
   async function addSpecialty(data: { specialty: string }) {
-    return axiosInstance.post(ENDPOINTS.addSpecialty, data).then((response) => {
-      return checkResponse(response, 200);
+    return api(ENDPOINTS.addSpecialty, {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance } from "@/configs/axiosInstance";
+import { api } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { toast } from "sonner";
 
@@ -16,23 +16,19 @@ interface Provider {
 
 // API functions
 const getProviders = async (): Promise<Provider[]> => {
-  const response = await axiosInstance.get(ENDPOINTS.providers);
-  return response.data;
+  return api(ENDPOINTS.providers);
 };
 
 const getProvider = async (email: string): Promise<Provider> => {
-  const response = await axiosInstance.get(ENDPOINTS.provider(email));
-  return response.data;
+  return api(ENDPOINTS.provider(email));
 };
 
 const approveProvider = async (email: string): Promise<Provider> => {
-  const response = await axiosInstance.put(ENDPOINTS.approveProvider(email));
-  return response.data;
+  return api(ENDPOINTS.approveProvider(email), { method: "PUT" });
 };
 
 const rejectProvider = async (email: string): Promise<Provider> => {
-  const response = await axiosInstance.put(ENDPOINTS.rejectProvider(email));
-  return response.data;
+  return api(ENDPOINTS.rejectProvider(email), { method: "PUT" });
 };
 
 const PROVIDERS_QUERY_KEY = "providers";
