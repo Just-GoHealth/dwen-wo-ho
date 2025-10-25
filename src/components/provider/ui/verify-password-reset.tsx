@@ -74,7 +74,7 @@ const VerifyContent = ({
       <div className="flex items-center p-6 justify-between w-full">
         <JustGoHealth />
         <Link
-          href={ROUTES.provider.singIn}
+          href={ROUTES.provider.auth}
           className="bg-gray-300 text-[#ed1c24] rounded-full px-4 py-1"
         >
           Sign In
@@ -92,8 +92,9 @@ const VerifyContent = ({
           <InputOTP
             className="text-green-600"
             maxLength={6}
-            onComplete={() =>
-              router.push(`${ROUTES.provider.newPassword}?email=${email}`)
+            onComplete={
+              () => console.log("OTP complete")
+              // router.push(`${ROUTES.provider.newPassword}?email=${email}`)
             }
           >
             <InputOTPSlot index={0} className="otp-slot" />

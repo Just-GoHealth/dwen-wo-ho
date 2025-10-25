@@ -1,79 +1,54 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { MdSchool } from "react-icons/md";
-import { FiChevronDown } from "react-icons/fi";
 import Image from "next/image";
 import WidthConstraint from "@/components/ui/width-constraint";
-
-interface School {
-  id: string;
-  name: string;
-  nickname?: string;
-  status: "Active" | "Inactive";
-  lastActivity: string;
-  activityType: string;
-  avatar?: string;
-}
+import { useSchoolsQuery } from "@/hooks/queries/useSchoolsQuery";
+import { School } from "@/types/school";
 
 export default function SchoolsPage() {
-  const [filter, setFilter] = useState("All");
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  // Fetch schools using the query hook
+  const { schools, isLoading, isError, error } = useSchoolsQuery();
 
-  const mockSchools: School[] = [
-    {
-      id: "1",
-      name: "Achimota High School",
-      status: "Active",
-      lastActivity: "2m ago",
-      activityType: "New Visit",
-      avatar: "/auth/lawyer.jpg",
-    },
-    {
-      id: "2",
-      name: "Ashesi University",
-      status: "Active",
-      lastActivity: "2d ago",
-      activityType: "New Provider",
-    },
-    {
-      id: "3",
-      name: "Korle-Bu NMTC",
-      status: "Inactive",
-      lastActivity: "2h ago",
-      activityType: "New Screen",
-      avatar: "/auth/man.jpg",
-    },
-    {
-      id: "4",
-      name: "Accra Technical Uni.",
-      status: "Active",
-      lastActivity: "Now",
-      activityType: "New Results",
-    },
-    {
-      id: "5",
-      name: "KNUST",
-      status: "Inactive",
-      lastActivity: "2w ago",
-      activityType: "Provider Visit",
-    },
-    {
-      id: "6",
-      name: "Achimota High School",
-      status: "Active",
-      lastActivity: "2m ago",
-      activityType: "New Visit",
-      avatar: "/auth/lawyer.jpg",
-    },
-  ];
+  // Use schools data or empty array
+  const schoolsList = schools || [];
 
-  const [schools] = useState<School[]>(mockSchools);
+  console.log(schoolsList);
 
-  const filteredSchools = schools.filter((school) => {
-    if (filter === "All") return true;
-    return school.status.toLowerCase() === filter.toLowerCase();
-  });
+  // Loading state
+  if (isLoading) {
+    return (
+      <WidthConstraint>
+        <div className="flex flex-col gap-6 p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#955aa4] mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading schools...</p>
+            </div>
+          </div>
+        </div>
+      </WidthConstraint>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <WidthConstraint>
+        <div className="flex flex-col gap-6 p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-600 font-medium mb-2">
+              Failed to load schools
+            </p>
+            <p className="text-red-500 text-sm">
+              {error?.message || "An error occurred"}
+            </p>
+          </div>
+        </div>
+      </WidthConstraint>
+    );
+  }
 
   return (
     <WidthConstraint>
@@ -86,108 +61,88 @@ export default function SchoolsPage() {
                 <MdSchool className="text-xl lg:text-2xl" />
                 <span className="hidden sm:inline">All Schools</span>
                 <span className="sm:hidden">Schools</span>
-                <span>· {filteredSchools.length}</span>
+                <span>· {schoolsList.length}</span>
               </h1>
             </div>
-          </div>
-
-          {/* Filter Dropdown */}
-          <div className="relative ml-2 flex-shrink-0">
-            <button
-              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className="flex items-center gap-2 px-4 lg:px-6 py-2 lg:py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 justify-between min-w-[120px]"
-            >
-              <span>{filter}</span>
-              <FiChevronDown
-                className="w-4 h-4 transition-transform duration-200"
-                style={{
-                  transform: showFilterDropdown
-                    ? "rotate(180deg)"
-                    : "rotate(0deg)",
-                }}
-              />
-            </button>
-
-            {showFilterDropdown && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
-                <button
-                  onClick={() => {
-                    setFilter("All");
-                    setShowFilterDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between transition-colors"
-                >
-                  <span className="font-medium">All</span>
-                  {filter === "All" && (
-                    <span className="text-[#955aa4] text-lg">✓</span>
-                  )}
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter("Active");
-                    setShowFilterDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <span className="font-medium">Active</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter("Inactive");
-                    setShowFilterDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <span className="font-medium">Inactive</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Schools Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
-          {filteredSchools.map((school) => (
-            <div
-              key={school.id}
-              className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 hover:scale-[1.02]"
-            >
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
-                  {school.avatar ? (
-                    <Image
-                      width={48}
-                      height={48}
-                      src={school.avatar}
-                      alt={school.name}
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                  ) : (
-                    <MdSchool className="text-white text-xl" />
+          {schoolsList.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <MdSchool className="text-6xl text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg font-medium">
+                No schools found
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                Schools will appear here once they are added
+              </p>
+            </div>
+          ) : (
+            schoolsList?.map((school) => (
+              <div
+                key={school.id}
+                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 hover:scale-[1.02]"
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
+                    {school.logo ? (
+                      <Image
+                        width={48}
+                        height={48}
+                        src={school.logo}
+                        alt={school.name}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    ) : (
+                      <MdSchool className="text-white text-xl" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-900 text-base lg:text-lg truncate mb-1">
+                      {school.name}
+                    </h3>
+                    {school.nickname && (
+                      <p className="text-gray-500 text-xs lg:text-sm truncate font-medium mb-1">
+                        {school.nickname}
+                      </p>
+                    )}
+                    <p className="text-[#955aa4] text-xs lg:text-sm font-medium">
+                      {school.type}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Providers:</span>
+                    <span className="font-semibold text-gray-900">
+                      {school.totalProviders}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Partners:</span>
+                    <span className="font-semibold text-gray-900">
+                      {school.totalPartners}
+                    </span>
+                  </div>
+                  {school.campuses && school.campuses.length > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Campuses:</span>
+                      <span className="font-semibold text-gray-900">
+                        {school.campuses.length}
+                      </span>
+                    </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-gray-900 text-base lg:text-lg truncate mb-1">
-                    {school.name}
-                  </h3>
-                  <p className="text-orange-500 text-xs lg:text-sm truncate font-medium">
-                    {school.activityType} • {school.lastActivity}
-                  </p>
+                <div className="flex justify-center">
+                  <div className="px-4 py-2 rounded-full font-semibold text-sm shadow-sm bg-green-100 text-green-700 border border-green-200">
+                    Active
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-center">
-                <div
-                  className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${
-                    school.status === "Active"
-                      ? "bg-green-100 text-green-700 border border-green-200"
-                      : "bg-gray-100 text-gray-600 border border-gray-200"
-                  }`}
-                >
-                  {school.status}
-                </div>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </WidthConstraint>

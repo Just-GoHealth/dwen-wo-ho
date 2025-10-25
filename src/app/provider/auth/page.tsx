@@ -12,6 +12,9 @@ const ProviderAuthPage = () => {
   const [step, setStep] = useState<AuthStep>("check-email");
   const [email, setEmail] = useState<string>("asare4ster@gmail.com");
 
+  // This state is only used when there is an error during login because profile is incomplete
+  const [profileStep, setProfileStep] = useState<number>(0);
+
   const handleEmailSubmit = (submittedEmail: string, emailExists: boolean) => {
     setEmail(submittedEmail);
     if (emailExists) {
@@ -29,6 +32,11 @@ const ProviderAuthPage = () => {
     setStep("reset-password");
   };
 
+  const handleProfileIncomplete = (step: number) => {
+    // Handle profile incomplete steps if needed
+    setStep("sign-up");
+    setProfileStep(step);
+  };
   return step === "check-email" ? (
     <CheckEmail onEmailSubmit={handleEmailSubmit} />
   ) : step === "sign-in" ? (
@@ -36,11 +44,16 @@ const ProviderAuthPage = () => {
       email={email}
       onBack={handleBackToEmail}
       onForgotPassword={handleForgotPassword}
+      onProfileIncomplete={(step) => handleProfileIncomplete(step)}
     />
   ) : step === "reset-password" ? (
     <VerifyPasswordReset email={email} onBack={() => setStep("sign-in")} />
   ) : (
-    <SignUp email={email} onBack={() => setStep("check-email")} />
+    <SignUp
+      email={email}
+      onBack={() => setStep("check-email")}
+      profileStep={profileStep}
+    />
   );
 };
 

@@ -36,6 +36,10 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
       }
     } catch (error: any) {
       console.error("Error checking email:", error);
+      if (error.response?.data?.message == "User not found") {
+        // Proceed to create user
+        onEmailSubmit(email, false);
+      }
       setErrorMessage(
         error.response?.data?.message || "Failed to verify email"
       );

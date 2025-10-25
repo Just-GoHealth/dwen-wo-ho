@@ -8,13 +8,16 @@ import PhotoStep from "./steps/photo-step";
 import BioStep from "./steps/bio-step";
 import SpecialtyStep from "./steps/specialty-step";
 import Stepper from "@/components/stepper";
-import { profile } from "node:console";
+import useAuthQuery from "@/hooks/queries/useAuthQuery";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface SignUpProfileProps {
   email: string;
   fullName: string;
   title: string;
   onBack?: () => void;
+  startStep?: number;
 }
 
 const profileSteps = ["Photo", "Bio", "Specialty"];
@@ -24,9 +27,13 @@ const SignUpProfile = ({
   fullName,
   title,
   onBack,
+  startStep = 0,
 }: SignUpProfileProps) => {
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(startStep);
   const [showPendingModal, setShowPendingModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { addSpecialtyMutation, updateProfileMutation } = useAuthQuery();
 
   // Single state object for all profile data
   const [profileData, setProfileData] = useState({
@@ -60,7 +67,8 @@ const SignUpProfile = ({
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Validation
     if (currentStep === 0 && !profileData.photo) {
       alert("Please upload a profile photo");
       return;
@@ -77,23 +85,70 @@ const SignUpProfile = ({
       return;
     }
 
-    if (currentStep < profileSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Complete profile setup - update userInfo with specialty and show pending modal
-      setUserInfo((prev) => ({
-        ...prev,
-        specialty: profileData.specialty,
-        profileImage: profileData.photo || undefined,
-      }));
-      console.log("Profile setup complete", {
-        email,
-        fullName,
-        title,
-        ...profileData,
-      });
-      setShowPendingModal(true);
+    // Next button handles bio and profile submission
+    // Handle Bio step submission
+    if (currentStep === 1) {
+      setIsSubmitting(true);
+      try {
+        await updateProfileMutation.mutateAsync({
+          officePhoneNumber: profileData.phoneNumber,
+          status: profileData.bio,
+        });
+
+        toast.success("Profile updated successfully!");
+        setCurrentStep(currentStep + 1);
+      } catch (error: any) {
+        console.error("Profile update error:", error);
+        toast.error(
+          error?.message || "Failed to update profile. Please try again."
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
     }
+
+    // Handle Specialty step submission (final step)
+    if (currentStep === 2) {
+      setIsSubmitting(true);
+      try {
+        await addSpecialtyMutation.mutateAsync({
+          specialty: profileData.specialty,
+        });
+
+        toast.success("Specialty added successfully!");
+
+        // Update userInfo with specialty and show pending modal
+        setUserInfo((prev) => ({
+          ...prev,
+          specialty: profileData.specialty,
+          profileImage: profileData.photo || undefined,
+        }));
+
+        console.log("Profile setup complete", {
+          email,
+          fullName,
+          title,
+          ...profileData,
+        });
+
+        setShowPendingModal(true);
+      } catch (error: any) {
+        console.error("Specialty submission error:", error);
+        toast.error(
+          error?.message || "Failed to add specialty. Please try again."
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // if it is an image, move on to the next since we already uploaded image in the photo step
+    if (currentStep == 0) setCurrentStep((prev) => prev + 1);
+
+    // Move to next step (for Photo step only)
+    setCurrentStep(currentStep + 1);
   };
 
   const renderStepContent = () => {
@@ -150,9 +205,19 @@ const SignUpProfile = ({
 
         <Button
           onClick={handleNext}
-          className="rounded-full px-3 sm:px-4 lg:px-6 border-2 sm:border-4 bg-purple-600 text-white text-sm sm:text-base lg:text-xl font-bold border-purple-600 uppercase w-full sm:w-auto hover:bg-purple-700 transition-colors"
+          disabled={isSubmitting}
+          className="rounded-full px-3 sm:px-4 lg:px-6 border-2 sm:border-4 bg-purple-600 text-white text-sm sm:text-base lg:text-xl font-bold border-purple-600 uppercase w-full sm:w-auto hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {currentStep === profileSteps.length - 1 ? "Submit" : "Next"}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+              Submitting...
+            </>
+          ) : currentStep === profileSteps.length - 1 ? (
+            "Submit"
+          ) : (
+            "Next"
+          )}
         </Button>
       </div>
 

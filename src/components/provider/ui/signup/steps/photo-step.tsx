@@ -3,9 +3,11 @@
 
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
-import { CheckCircle2, Upload } from "lucide-react";
+import { CheckCircle2, Upload, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import useAuthQuery from "@/hooks/queries/useAuthQuery";
+import { toast } from "sonner";
 
 interface PhotoStepProps {
   profilePhoto: string | null;
@@ -18,12 +20,19 @@ const PhotoStep = ({ profilePhoto, onChange }: PhotoStepProps) => {
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { addPhotoMutation } = useAuthQuery();
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Store the actual file for upload
+      setSelectedFile(file);
+
+      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         const photoData = e.target?.result as string;
@@ -64,6 +73,28 @@ const PhotoStep = ({ profilePhoto, onChange }: PhotoStepProps) => {
   const resetImageTransform = () => {
     setZoomLevel(1);
     setImagePosition({ x: 0, y: 0 });
+  };
+
+  const handleAddPhoto = async () => {
+    if (!selectedFile) {
+      setIsPhotoModalOpen(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      await addPhotoMutation.mutateAsync(formData);
+
+      toast.success("Photo uploaded successfully!");
+      setIsPhotoModalOpen(false);
+    } catch (error: any) {
+      console.error("Photo upload error:", error);
+      toast.error(
+        error?.message || "Failed to upload photo. Please try again."
+      );
+    }
   };
 
   return (
@@ -220,18 +251,28 @@ const PhotoStep = ({ profilePhoto, onChange }: PhotoStepProps) => {
                       onClick={() => {
                         onChange("photo", null);
                         setIsPhotoModalOpen(false);
+                        setSelectedFile(null);
                         resetImageTransform();
                       }}
                       variant="outline"
                       className="px-6 py-2 border-2 border-[#955aa4] text-[#955aa4] hover:bg-[#955aa4] hover:text-white"
+                      disabled={addPhotoMutation.isPending}
                     >
                       CANCEL
                     </Button>
                     <Button
-                      onClick={() => setIsPhotoModalOpen(false)}
-                      className="px-6 py-2 bg-[#955aa4] hover:bg-[#955aa4]/90 text-white"
+                      onClick={handleAddPhoto}
+                      className="px-6 py-2 bg-[#955aa4] hover:bg-[#955aa4]/90 text-white disabled:opacity-50"
+                      disabled={addPhotoMutation.isPending}
                     >
-                      ADD
+                      {addPhotoMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        "ADD"
+                      )}
                     </Button>
                   </div>
                 </div>

@@ -19,12 +19,14 @@ interface ProviderSignInProps {
   email: string;
   onBack: () => void;
   onForgotPassword?: () => void;
+  onProfileIncomplete?: (step: number) => void;
 }
 
 const SignInContent = ({
   email,
   onBack,
   onForgotPassword,
+  onProfileIncomplete,
 }: ProviderSignInProps) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -57,11 +59,6 @@ const SignInContent = ({
       });
 
       if (response.success) {
-        // Store provider token
-        if (response.data?.token) {
-          localStorage.setItem("providerToken", response.data.token);
-        }
-
         if (response.data?.userData) {
           console.log(response.data?.token);
           if (response.data?.token) {
@@ -90,9 +87,24 @@ const SignInContent = ({
         setErrorMessage(response.message || "Sign in failed");
       }
     } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message || "Sign in failed. Please try again.";
+      const message = error?.response?.data?.message;
+      const errorMsg = message || "Sign in failed. Please try again.";
       setErrorMessage(errorMsg);
+      if (
+        message == "Profile is not complete. Please upload your profile photo."
+      ) {
+        // Change to the sign-in flow and skip to the profile step
+        onProfileIncomplete?.(0);
+      } else if (
+        message ==
+        "Profile is not complete. Please update your office phone number."
+      ) {
+        onProfileIncomplete?.(1);
+      } else if (
+        message == "Profile is not complete. Please add your specialty."
+      ) {
+        onProfileIncomplete?.(2);
+      }
     }
   };
 

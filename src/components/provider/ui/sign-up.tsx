@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import JustGoHealth from "@/components/logo-purple";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,17 @@ import SignUpProfile from "./signup/sign-up-profile";
 interface ProviderSignUpProps {
   email?: string;
   onBack?: () => void;
+  profileStep?: number;
 }
 
 type SignUpStep = "create" | "verify" | "profile";
 
-const SignUpContent = ({ email: propEmail, onBack }: ProviderSignUpProps) => {
-  const [currentStep, setCurrentStep] = useState<SignUpStep>("profile");
+const SignUpContent = ({
+  email: propEmail,
+  onBack,
+  profileStep,
+}: ProviderSignUpProps) => {
+  const [currentStep, setCurrentStep] = useState<SignUpStep>("create");
   const [signUpData, setSignUpData] = useState({
     email: propEmail || "",
     fullName: "Asare Foster",
@@ -63,6 +68,11 @@ const SignUpContent = ({ email: propEmail, onBack }: ProviderSignUpProps) => {
     }
   };
 
+  useEffect(() => {
+    if (profileStep == undefined) return;
+    setCurrentStep("profile");
+  }, [profileStep]);
+
   // Render step content
   const renderStepContent = () => {
     switch (currentStep) {
@@ -93,6 +103,7 @@ const SignUpContent = ({ email: propEmail, onBack }: ProviderSignUpProps) => {
             fullName={signUpData.fullName}
             title={signUpData.title}
             onBack={() => setCurrentStep("verify")}
+            startStep={profileStep || 0}
           />
         );
 

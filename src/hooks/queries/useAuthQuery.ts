@@ -1,4 +1,8 @@
-import { axiosInstance, checkResponse } from "@/configs/axiosInstance";
+import {
+  axiosInstance,
+  axiosFormData,
+  checkResponse,
+} from "@/configs/axiosInstance";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { useMutation } from "@tanstack/react-query";
 
@@ -43,6 +47,25 @@ const useAuthQuery = () => {
     mutationKey: ["auth", "resetPassword"],
     mutationFn: (data: { password: string; confirmPassword: string }) =>
       resetPassword(data),
+  });
+
+  const addPhotoMutation = useMutation({
+    mutationKey: ["auth", "addPhoto"],
+    mutationFn: (data: FormData) => addPhoto(data),
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationKey: ["auth", "updateProfile"],
+    mutationFn: (data: {
+      officePhoneNumber?: string;
+      status?: string;
+      [key: string]: any;
+    }) => updateProfile(data),
+  });
+
+  const addSpecialtyMutation = useMutation({
+    mutationKey: ["auth", "addSpecialty"],
+    mutationFn: (data: { specialty: string }) => addSpecialty(data),
   });
 
   async function login(data: { email: string; password: string }) {
@@ -104,6 +127,30 @@ const useAuthQuery = () => {
       });
   }
 
+  async function addPhoto(data: FormData) {
+    return axiosFormData.post(ENDPOINTS.addPhoto, data).then((response) => {
+      return checkResponse(response, 200);
+    });
+  }
+
+  async function updateProfile(data: {
+    officePhoneNumber?: string;
+    status?: string;
+    [key: string]: any;
+  }) {
+    return axiosInstance
+      .post(ENDPOINTS.updateProfile, data)
+      .then((response) => {
+        return checkResponse(response, 200);
+      });
+  }
+
+  async function addSpecialty(data: { specialty: string }) {
+    return axiosInstance.post(ENDPOINTS.addSpecialty, data).then((response) => {
+      return checkResponse(response, 200);
+    });
+  }
+
   return {
     loginMutation,
     signupMutation,
@@ -112,6 +159,9 @@ const useAuthQuery = () => {
     recoverAccountMutation,
     submitRecoveryCodeMutation,
     resetPasswordMutation,
+    addPhotoMutation,
+    updateProfileMutation,
+    addSpecialtyMutation,
   };
 };
 
