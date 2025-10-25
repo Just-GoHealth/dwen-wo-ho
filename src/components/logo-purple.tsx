@@ -4,7 +4,7 @@ const JustGoHealth = () => {
   return (
     <Image
       priority
-      src="/logos/logo-white.png"
+      src="/logos/logo-purple.png"
       alt="JustGo Health"
       className="bg-contain w-auto h-auto"
       width={180}

@@ -64,9 +64,7 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
         text="Verifying email..."
         isVisible={checkEmailMutation.isPending}
       />
-      <div className="min-h-screen h-full flex flex-col justify-between relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 via-[#993399]/10 to-pink-400/20"></div>
-        <div className="absolute inset-0 backdrop-blur-[100px]"></div>
+      <div className="min-h-screen h-full flex flex-col justify-between relative overflow-hidden bg-white">
 
         <div className="relative z-10 flex items-center px-8 justify-between w-full pt-8">
           <div className="transform hover:scale-105 transition-transform duration-300">
@@ -102,7 +100,7 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                   >
                     Email
                   </Label>
-                  <div className="flex items-center gap-3 rounded-xl border border-transparent bg-white px-3 py-1 shadow-sm transition-all focus-within:border-[#339933] focus-within:ring-1 focus-within:ring-[#339933]">
+                  <div className="flex items-center gap-3 rounded-xl border-2 border-gray-200 bg-white px-3 py-1 transition-all focus-within:border-[#339933]">
                     <input
                       id="email"
                       {...register("email")}
