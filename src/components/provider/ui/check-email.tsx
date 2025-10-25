@@ -3,6 +3,7 @@
 import JustGoHealth from "@/components/logo-purple";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import Image from "next/image";
 import { ROUTES } from "@/constants/routes";
@@ -64,7 +65,7 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
         isVisible={checkEmailMutation.isPending}
       />
       <div className="min-h-screen h-full flex flex-col justify-between relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 via-purple-500/10 to-pink-400/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 via-[#993399]/10 to-pink-400/20"></div>
         <div className="absolute inset-0 backdrop-blur-[100px]"></div>
 
         <div className="relative z-10 flex items-center px-8 justify-between w-full pt-8">
@@ -81,13 +82,11 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
 
         <div className="relative z-10 flex-1 flex items-center justify-center px-12">
           <div className="w-full max-w-xl">
-            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-10 shadow-2xl">
+            <div className="p-10">
               <div className="text-center mb-8">
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-                  Welcome to JustGo Health
-                </h1>
-                <p className="text-gray-600 text-xl font-medium">
-                  Enter your email to Sign In or Sign Up as a Provider
+                <p className="text-3xl font-medium text-black">
+                  Enter your email to <span className="text-[#993399]">Sign In</span> or
+                  <span className="text-[#993399]"> Sign Up</span> as a Provider
                 </p>
               </div>
 
@@ -96,23 +95,34 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                 onSubmit={handleSubmit(onSubmit)}
                 className="space-y-6"
               >
-                <div className="relative group">
-                  <div className="flex rounded-2xl overflow-hidden backdrop-blur-sm bg-white/20 border border-white/30 shadow-lg">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="email"
+                    className="block text-lg font-semibold text-black"
+                  >
+                    Email
+                  </Label>
+                  <div className="flex items-center gap-3 rounded-xl border border-transparent bg-white px-3 py-1 shadow-sm transition-all focus-within:border-[#339933] focus-within:ring-1 focus-within:ring-[#339933]">
                     <input
+                      id="email"
                       {...register("email")}
                       placeholder="Enter your email address"
-                      className={`flex-1 px-6 py-5 bg-transparent text-gray-700 font-semibold text-lg placeholder-gray-500 focus:outline-none ${
-                        errors?.email ? "text-red-600" : "text-green-600"
-                      }`}
+                      className="flex-1 bg-transparent px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none"
                     />
                     <Button
                       type="submit"
                       variant="ghost"
-                      disabled={checkEmailMutation.isPending || !!errors?.email}
-                      className={`px-6 h-auto transition-all duration-300 ${
-                        !errors?.email && !checkEmailMutation.isPending
-                          ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
-                          : "bg-gray-400/50 text-gray-500 cursor-not-allowed"
+                      disabled={
+                        checkEmailMutation.isPending ||
+                        !!errors?.email ||
+                        !emailValue?.trim()
+                      }
+                      className={`h-11 px-4 bg-[#339933] text-white transition-colors duration-200 hover:bg-[#339933]/90 ${
+                        checkEmailMutation.isPending ||
+                        !!errors?.email ||
+                        !emailValue?.trim()
+                          ? "cursor-not-allowed bg-[#339933]/60 text-white hover:bg-[#339933]/60"
+                          : ""
                       }`}
                     >
                       {checkEmailMutation.isPending ? (
@@ -128,7 +138,6 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                       )}
                     </Button>
                   </div>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
 
                 {errorMessage && (
@@ -139,6 +148,16 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                   </div>
                 )}
               </form>
+
+              <div className="mt-10 text-center space-y-2">
+                <h2 className="text-2xl font-semibold text-[#993399]">
+                  JustGo Health Providers
+                </h2>
+                <p className="text-base text-gray-600">
+                  There are thousands of students out there hoping for someone like
+                  you. Welcome.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -146,14 +165,14 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
         <div className="relative z-10 flex items-center justify-between px-12 pb-8">
           <Button
             onClick={() => router.replace("/")}
-            className="backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 text-purple-700 font-bold px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className="backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 text-[#993399] font-bold px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
             ← Back
           </Button>
 
           <div className="text-center">
             <div className="backdrop-blur-sm bg-white/10 border border-white/20 rounded-full px-6 py-2">
-              <p className="text-purple-700 font-semibold">Provider Portal</p>
+              <p className="text-[#993399] font-semibold">Provider Portal</p>
             </div>
           </div>
 
