@@ -1,15 +1,15 @@
 
-- Profile page
+- Profile page after user verifies account.
 - Incomplete profile (Says Pending)
 - Pending page design changes 
 
-
 - Curator signing in indicator
 - Profile continuation on incomplete account creation
+    Profile setup steps require an authorization header in the request, use axios interceptors
 
 - Submit signup code returns a token that can be used to then proceed to profile setup
 - In provider, the reset password flow is incomplete, after user enters OTP, a simple log "OTP complete" displays no fetch made. Make thw request and proceed to display new-password.tsx 
 - Providers and schools fetch shows a CORS error
-- Profile setup steps require an authorization header in the request, use axios interceptors
-- toasts on profile update should be moved to top-right corner
+- Toasts on profile update should be moved to top-right corner
 - Error on update specialty page
+- Curator pages
