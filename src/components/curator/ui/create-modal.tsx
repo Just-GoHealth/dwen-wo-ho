@@ -1,11 +1,15 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { FiX } from "react-icons/fi";
 
 interface ICreateModal {
   setShowCreateModal: (show: boolean) => void;
+  setShowSchoolModal: Dispatch<SetStateAction<boolean>>;
 }
 
-const CreateModal = ({ setShowCreateModal }: ICreateModal) => {
+const CreateModal = ({
+  setShowCreateModal,
+  setShowSchoolModal,
+}: ICreateModal) => {
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl border border-gray-200 p-4 lg:p-6 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
@@ -22,7 +26,10 @@ const CreateModal = ({ setShowCreateModal }: ICreateModal) => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
-          <button className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group">
+          <button
+            onClick={() => setShowSchoolModal(true)}
+            className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group"
+          >
             <div className="text-2xl lg:text-3xl mb-2">🏫</div>
             <h3 className="font-medium text-gray-800 text-sm lg:text-base">
               New Schools

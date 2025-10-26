@@ -9,3 +9,12 @@ export interface School {
   campuses: string[];
   createdAt: string;
 }
+
+export interface ICreateSchool {
+  name: string;
+  nickname: string;
+  type: string;
+  baseline: string;
+  campuses: string[];
+  logo: File;
+}

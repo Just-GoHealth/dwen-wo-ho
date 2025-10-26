@@ -224,7 +224,7 @@ const CuratorDashboard = () => {
     };
 
     loadProviders();
-  }, [router, mockProviders]);
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem("curatorToken");

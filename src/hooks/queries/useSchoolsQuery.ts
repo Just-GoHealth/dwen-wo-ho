@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance } from "@/configs/axiosInstance";
+import { axiosInstance, checkResponse } from "@/configs/axiosInstance";
 import { toast } from "sonner";
-import { School } from "@/types/school";
+import { ICreateSchool, School } from "@/types/school";
 
 // API functions
 const getSchools = async (): Promise<School[]> => {
@@ -11,7 +11,12 @@ const getSchools = async (): Promise<School[]> => {
 
 const getSchool = async (schoolId: string): Promise<School> => {
   const response = await axiosInstance.get(`/api/v1/schools/${schoolId}`);
-  return response.data?.data;
+  return checkResponse(response, 200)?.data;
+};
+
+const createSchool = async (data: ICreateSchool): Promise<School> => {
+  const response = await axiosInstance.post(`/api/v1/schools`, data);
+  return checkResponse(response, 201);
 };
 
 const disableSchool = async (schoolId: string): Promise<School> => {
@@ -39,6 +44,20 @@ export const useSchoolsQuery = () => {
       queryFn: () => getSchool(schoolId),
       enabled: !!schoolId,
     });
+
+  // create school mutation
+  const createSchoolMutation = useMutation({
+    mutationFn: createSchool,
+    onSuccess: (success) => {
+      console.log(success);
+      queryClient.invalidateQueries({ queryKey: [SCHOOLS_QUERY_KEY] });
+
+      toast.success("School created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create school");
+    },
+  });
 
   // Disable school mutation
   const disableSchoolMutation = useMutation({
@@ -69,6 +88,7 @@ export const useSchoolsQuery = () => {
     // Single school query helper
     useSchool,
     // Mutations
+    createSchoolMutation,
     disableSchool: disableSchoolMutation.mutate,
     isDisabling: disableSchoolMutation.isPending,
   };

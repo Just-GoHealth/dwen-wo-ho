@@ -5,6 +5,7 @@ import { CuratorSidebar } from "@/components/curator/ui/sidebar";
 import { ROUTES } from "@/constants/routes";
 import CreateModal from "@/components/curator/ui/create-modal";
 import { useState } from "react";
+import SchoolCreationModal from "@/components/modals/school-creation";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSchoolModal, setShowSchoolModal] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("curatorToken");
@@ -35,9 +37,26 @@ export default function DashboardLayout({
       <div className="flex-1 overflow-y-auto bg-gray-50 pt-16 md:pt-0">
         {children}
       </div>
+
       {showCreateModal && (
-        <CreateModal setShowCreateModal={setShowCreateModal} />
+        <CreateModal
+          setShowCreateModal={setShowCreateModal}
+          setShowSchoolModal={setShowSchoolModal}
+        />
       )}
+
+      <SchoolCreationModal
+        isOpen={showSchoolModal}
+        onClose={() => {
+          setShowSchoolModal(false);
+          setShowCreateModal(true);
+        }}
+        onSchoolCreated={(school) => {
+          console.log("School created:", school);
+          setShowSchoolModal(false);
+          setShowCreateModal(true);
+        }}
+      />
     </div>
   );
 }
