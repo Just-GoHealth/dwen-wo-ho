@@ -6,6 +6,8 @@ import { ROUTES } from "@/constants/routes";
 import CreateModal from "@/components/curator/ui/create-modal";
 import { useState } from "react";
 import SchoolCreationModal from "@/components/modals/school-creation";
+import { useSchools } from "@/hooks/queries/useSchools";
+import { useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
 
 export default function DashboardLayout({
   children,
@@ -21,16 +23,14 @@ export default function DashboardLayout({
     router.push(ROUTES.curator.signIn);
   };
 
-  const handleCreateClick = () => {
-    // You can handle the create modal state here if needed
-    // or pass it down to children through context if multiple children need it
-  };
+  const { schools } = useSchools();
+  const { providers } = useProvidersQuery();
 
   return (
     <div className="h-screen bg-white flex">
       <CuratorSidebar
-        schoolCount={6} // These could come from an API call or context
-        providerCount={6}
+        schoolCount={schools?.length || 0}
+        providerCount={providers?.data?.length || 0}
         onCreateClick={() => setShowCreateModal(true)}
         onLogout={handleLogout}
       />
@@ -52,7 +52,6 @@ export default function DashboardLayout({
           setShowCreateModal(true);
         }}
         onSchoolCreated={(school) => {
-          console.log("School created:", school);
           setShowSchoolModal(false);
           setShowCreateModal(true);
         }}

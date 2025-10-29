@@ -28,6 +28,14 @@ const campusOptions = [
 
 const schoolTypes = ["High School", "NMTC", "University"];
 
+type FormData = {
+  name: string;
+  nickname: string;
+  campuses: string[];
+  type: string;
+  logo: File | undefined;
+};
+
 const SchoolCreationModal = ({
   isOpen,
   onClose,
@@ -35,13 +43,13 @@ const SchoolCreationModal = ({
 }: SchoolCreationModalProps) => {
   const [showCampusDropdown, setShowCampusDropdown] = useState(false);
   const [selectedCampuses, setSelectedCampuses] = useState<string[]>([]);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     nickname: "",
-    baseline: "",
+    // baseline: "",
     campuses: [] as string[],
     type: "",
-    logo: null as File | null,
+    logo: undefined,
   });
 
   const { createSchoolMutation } = useSchoolsQuery();
@@ -62,27 +70,25 @@ const SchoolCreationModal = ({
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        logo: file,
-      }));
-    }
+    const input = event.target;
+    const file = input.files?.[0];
+    console.log(file);
+    setFormData((prev) => ({
+      ...prev,
+      logo: file,
+    }));
   };
 
   const handleRemoveLogo = () => {
-    setFormData((prev) => ({ ...prev, logo: null }));
+    setFormData((prev) => ({ ...prev, logo: undefined }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically call an API to create the school
     const schoolData = {
       ...formData,
       campuses: selectedCampuses,
     };
-    console.log("Creating school:", schoolData);
     createSchoolMutation.mutate(schoolData as ICreateSchool, {
       onSuccess: (success) => {
         onSchoolCreated?.(formData);
@@ -236,10 +242,10 @@ const SchoolCreationModal = ({
                     Logo
                   </label>
                   <div className="flex-1">
-                    {formData?.logo ? (
+                    {formData.logo ? (
                       <div className="relative inline-block">
                         <img
-                          src={URL.createObjectURL(formData.logo)}
+                          src={formData.logo}
                           alt="Uploaded logo"
                           className="w-32 h-32 object-cover rounded-lg border shadow-sm"
                         />

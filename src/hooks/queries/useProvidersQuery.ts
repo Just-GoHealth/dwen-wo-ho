@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance } from "@/configs/axiosInstance";
+import { axiosInstance, checkResponse } from "@/configs/axiosInstance";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { toast } from "sonner";
+import { IProviderResponse } from "@/types/provider.type";
 
 interface Provider {
   id: string;
@@ -15,9 +16,9 @@ interface Provider {
 }
 
 // API functions
-const getProviders = async (): Promise<Provider[]> => {
+const getProviders = async (): Promise<IProviderResponse> => {
   const response = await axiosInstance.get(ENDPOINTS.providers);
-  return response.data;
+  return checkResponse(response, 200);
 };
 
 const getProvider = async (email: string): Promise<Provider> => {

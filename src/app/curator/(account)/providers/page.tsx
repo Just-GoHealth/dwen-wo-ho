@@ -6,17 +6,7 @@ import { FiChevronDown } from "react-icons/fi";
 import WidthConstraint from "@/components/ui/width-constraint";
 import ProviderDetailsModal from "@/components/modals/provider-details";
 import { useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
-
-interface Provider {
-  id: string;
-  email: string;
-  fullName: string;
-  professionalTitle: string;
-  status: "Active" | "Inactive";
-  createdAt: string;
-  updatedAt: string;
-  lastActive?: string;
-}
+import { IProvider } from "@/types/provider.type";
 
 export default function ProvidersPage() {
   const [filter, setFilter] = useState("All");
@@ -27,19 +17,17 @@ export default function ProvidersPage() {
   // Fetch providers using the query hook
   const { providers, isLoading, isError, error } = useProvidersQuery();
 
-  console.log(providers);
-
   // Use providers data or empty array
-  const providersList = providers || [];
+  const providersList: IProvider[] = providers?.data || [];
 
   const handleProviderSelect = (providerEmail: string) => {
     setSelectedProviderEmail(providerEmail);
     setShowProviderModal(true);
   };
 
-  const filteredProviders = providersList.filter((provider) => {
+  const filteredProviders = providersList?.filter((provider) => {
     if (filter === "All") return true;
-    return provider.status.toLowerCase() === filter.toLowerCase();
+    return provider.applicationStatus.toLowerCase() === filter.toLowerCase();
   });
 
   // Loading state
@@ -125,21 +113,21 @@ export default function ProvidersPage() {
                 </button>
                 <button
                   onClick={() => {
-                    setFilter("Active");
+                    setFilter("APPROVED");
                     setShowFilterDropdown(false);
                   }}
                   className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-medium">Active</span>
+                  <span className="font-medium">Approved</span>
                 </button>
                 <button
                   onClick={() => {
-                    setFilter("Inactive");
+                    setFilter("PENDING");
                     setShowFilterDropdown(false);
                   }}
                   className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-medium">Inactive</span>
+                  <span className="font-medium">Pending</span>
                 </button>
               </div>
             )}
@@ -161,7 +149,7 @@ export default function ProvidersPage() {
           ) : (
             filteredProviders.map((provider) => (
               <div
-                key={provider.id}
+                key={provider.email}
                 onClick={() => handleProviderSelect(provider.email)}
                 className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02]"
               >
@@ -171,14 +159,14 @@ export default function ProvidersPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-gray-900 group-hover:text-[#955aa4] transition-colors text-base lg:text-lg truncate mb-1">
-                      {provider.fullName}
+                      {provider.providerName}
                     </h3>
                     <p className="text-gray-600 text-sm lg:text-base truncate mb-1">
-                      {provider.professionalTitle}
+                      {provider.specialty}
                     </p>
-                    {provider.lastActive && (
+                    {provider.applicationDate && (
                       <p className="text-orange-500 text-xs lg:text-sm font-medium">
-                        {provider.lastActive}
+                        {provider.applicationDate}
                       </p>
                     )}
                   </div>
@@ -186,14 +174,14 @@ export default function ProvidersPage() {
                 <div className="flex justify-center">
                   <div
                     className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${
-                      provider.status === "Active"
+                      provider.applicationStatus === "APPROVED"
                         ? "bg-green-100 text-green-700 border border-green-200"
-                        : provider.status === "Inactive"
+                        : provider.applicationStatus === "PENDING"
                         ? "bg-gray-100 text-gray-600 border border-gray-200"
                         : "bg-gray-100 text-gray-600 border border-gray-200"
                     }`}
                   >
-                    {provider.status}
+                    {provider.applicationStatus}
                   </div>
                 </div>
               </div>

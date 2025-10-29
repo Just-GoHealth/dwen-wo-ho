@@ -28,5 +28,6 @@ export const ENDPOINTS = {
   // Schools endpoints
   schools: "/api/v1/schools",
   school: (id: string) => `/api/v1/schools/${id}`,
+  getSchoolLockIn: (id: string) => `/api/v1/lockin/${id}`,
   disableSchool: (id: string) => `/api/v1/schools/${id}/disable`,
 };

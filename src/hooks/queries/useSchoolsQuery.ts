@@ -1,7 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance, checkResponse } from "@/configs/axiosInstance";
+import {
+  axiosFormData,
+  axiosInstance,
+  checkResponse,
+} from "@/configs/axiosInstance";
 import { toast } from "sonner";
 import { ICreateSchool, School } from "@/types/school";
+import { ENDPOINTS } from "@/constants/endpoints";
+import { ILockIn } from "@/types/lockin.type";
 
 // API functions
 const getSchools = async (): Promise<School[]> => {
@@ -14,8 +20,13 @@ const getSchool = async (schoolId: string): Promise<School> => {
   return checkResponse(response, 200)?.data;
 };
 
+const getSchoolLockIn = async (schoolId: string): Promise<ILockIn> => {
+  const response = await axiosInstance.get(ENDPOINTS.getSchoolLockIn(schoolId));
+  return checkResponse(response, 200);
+};
+
 const createSchool = async (data: ICreateSchool): Promise<School> => {
-  const response = await axiosInstance.post(`/api/v1/schools`, data);
+  const response = await axiosFormData.post(`/api/v1/schools`, data);
   return checkResponse(response, 201);
 };
 
@@ -27,6 +38,7 @@ const disableSchool = async (schoolId: string): Promise<School> => {
 };
 
 const SCHOOLS_QUERY_KEY = "schools";
+const SCHOOLS_LOCKIN_QUERY_KEY = "schools_lockin";
 
 export const useSchoolsQuery = () => {
   const queryClient = useQueryClient();
@@ -36,6 +48,14 @@ export const useSchoolsQuery = () => {
     queryKey: [SCHOOLS_QUERY_KEY],
     queryFn: getSchools,
   });
+
+  // Get single school lockin
+  const getSchoolLockinQuery = (schoolId: string) =>
+    useQuery({
+      queryKey: [SCHOOLS_LOCKIN_QUERY_KEY, schoolId],
+      queryFn: () => getSchoolLockIn(schoolId),
+      enabled: !!schoolId,
+    });
 
   // Get single school
   const useSchool = (schoolId: string) =>
@@ -76,8 +96,6 @@ export const useSchoolsQuery = () => {
     },
   });
 
-  console.log("schoolsList", schoolsQuery?.data);
-
   // Return all queries and mutations
   return {
     // Queries
@@ -87,6 +105,7 @@ export const useSchoolsQuery = () => {
     error: schoolsQuery.error,
     // Single school query helper
     useSchool,
+    getSchoolLockinQuery,
     // Mutations
     createSchoolMutation,
     disableSchool: disableSchoolMutation.mutate,

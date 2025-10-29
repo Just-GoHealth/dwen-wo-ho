@@ -16,5 +16,5 @@ export interface ICreateSchool {
   type: string;
   baseline: string;
   campuses: string[];
-  logo: File;
+  logo: File | null;
 }
