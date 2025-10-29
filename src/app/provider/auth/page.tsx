@@ -13,7 +13,7 @@ const ProviderAuthPage = () => {
   const [email, setEmail] = useState<string>("asare4ster@gmail.com");
 
   // This state is only used when there is an error during login because profile is incomplete
-  const [profileStep, setProfileStep] = useState<number>(0);
+  const [profileStep, setProfileStep] = useState<number | null>(null);
 
   const handleEmailSubmit = (submittedEmail: string, emailExists: boolean) => {
     setEmail(submittedEmail);

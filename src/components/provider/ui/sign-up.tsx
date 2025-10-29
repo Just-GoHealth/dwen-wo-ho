@@ -15,7 +15,7 @@ import SignUpProfile from "./signup/sign-up-profile";
 interface ProviderSignUpProps {
   email?: string;
   onBack?: () => void;
-  profileStep?: number;
+  profileStep: number | null;
 }
 
 type SignUpStep = "create" | "verify" | "profile";
@@ -69,7 +69,7 @@ const SignUpContent = ({
   };
 
   useEffect(() => {
-    if (profileStep == undefined) return;
+    if (profileStep == null) return;
     setCurrentStep("profile");
   }, [profileStep]);
 

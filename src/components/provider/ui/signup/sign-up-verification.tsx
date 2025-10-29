@@ -49,8 +49,10 @@ const SignUpVerification = ({
         email: email,
       });
 
+      console.log(response);
+
       // Store the token for authenticated requests in profile setup
-      if (response.token) {
+      if (response.data.token) {
         localStorage.setItem("token", response.token);
       }
 
