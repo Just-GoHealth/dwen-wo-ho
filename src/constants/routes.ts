@@ -6,6 +6,7 @@ export const ROUTES = {
     verifyEmail: "/provider/verifyEmail",
     verifyPasswordReset: "/provider/verify-password-reset",
     newPassword: "/provider/new-password",
+    auth: "/provider/auth",
   },
   patient: {
     singIn: "/patient/signin",
@@ -17,8 +18,9 @@ export const ROUTES = {
   },
   curator: {
     signIn: "/curator/signin",
-    checkEmail: "/curator/check-email",
     dashboard: "/curator/dashboard",
+    schools: "/curator/schools",
+    providers: "/curator/providers",
     providerDetails: "/curator/provider",
   },
 };

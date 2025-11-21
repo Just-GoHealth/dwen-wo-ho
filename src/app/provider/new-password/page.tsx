@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { DevTool } from "@hookform/devtools";
 import { recoverSteps } from "@/lib/utils";
 import Stepper from "@/components/stepper";
+import { api } from "@/lib/api";
 
 const SignUpSchema = z.object({
   email: z.email().min(1, { message: "Please enter your email" }),
@@ -23,10 +24,10 @@ const SignUpSchema = z.object({
 
 const SignUpContent = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-
-  const { loginMutation } = useAuthQuery();
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const email = useGetSearchParams("email");
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!email) {
@@ -48,13 +49,26 @@ const SignUpContent = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof SignUpSchema>) => {
+  const onSubmit = async (values: z.infer<typeof SignUpSchema>) => {
     console.log(values);
-    loginMutation.mutate(values, {
-      onSuccess: () => {
-        router.push(ROUTES.provider.singIn);
-      },
-    });
+    try {
+      const response = await api.resetPassword({
+        password: values.password,
+        confirmPassword: values.repeatPassword as string,
+      });
+
+      if (response.success) {
+        console.log(response);
+      } else {
+        setErrorMessage(response.message || "The provided email is invalid");
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.message || "Sign in failed. Please try again.";
+      setErrorMessage(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

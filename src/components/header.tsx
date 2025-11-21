@@ -44,7 +44,7 @@ const MobileMenu = ({ check }: { check: boolean }) => {
   );
 };
 
-const Header = ({ className, logo }: { className?: string, logo?: string }) => {
+const Header = ({ className, logo }: { className?: string; logo?: string }) => {
   const pathname = usePathname();
   const [check, setCheck] = useState(false);
   const navRef = useRef<HTMLHeadingElement | null>(null);
@@ -96,7 +96,7 @@ const Header = ({ className, logo }: { className?: string, logo?: string }) => {
     >
       <WidthConstraint className="flex w-full items-center justify-between gap-4">
         <Link href="/">
-          <Image  
+          <Image
             src={logo || "/logos/logo-black.png"}
             alt="dwen-wo-ho logo"
             width={150}
@@ -125,7 +125,7 @@ const Header = ({ className, logo }: { className?: string, logo?: string }) => {
           {!check ? <AlignRight /> : <X />}
         </button>
         <div className="hidden lg:flex gap-4 items-center">
-          <Link href={ROUTES.curator.checkEmail}>
+          <Link href={ROUTES.curator.signIn}>
             <Button
               variant="outline"
               className="text-[#955aa4] border-[#955aa4] hover:bg-[#955aa4] hover:text-white"

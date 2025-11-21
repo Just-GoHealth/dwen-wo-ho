@@ -3,9 +3,6 @@
 "use client";
 
 import JustGoHealth from "@/components/logo-purple";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -13,55 +10,30 @@ import Image from "next/image";
 import { api } from "@/lib/api";
 import { ROUTES } from "@/constants/routes";
 import LoadingOverlay from "@/components/ui/loading-overlay";
+import { useSelectedValuesFromReactHookForm } from "@/hooks/forms/useSelectedValuesFromReactHookForm";
+import {
+  CuratorEmailSchema,
+  CuratorEmailFormData,
+} from "@/schemas/curator.auth.schema";
 
-const FormSchema = z.object({
-  email: z
-    .email({ message: "Please enter a valid email" })
-    .min(1, "Please enter your email address"),
-});
+interface CheckEmailProps {
+  onEmailSubmit: (email: string) => void;
+}
 
-const CheckEmail = () => {
-  const [email, setEmail] = useState("");
-  const [isValidEmail, setIsValidEmail] = useState(false);
+const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setEmail(value);
-    setIsValidEmail(emailRegex.test(value));
-    setErrorMessage("");
-  };
 
   const checkEmailExists = async (email: string) => {
     try {
       setIsLoading(true);
       setErrorMessage("");
 
-      // Temporary curator email for testing
-      const TEMP_CURATOR_EMAIL = "jgohealth@gmail.com";
-
-      // Check if it's the temporary curator email
-      if (email === TEMP_CURATOR_EMAIL) {
-        router.push(
-          `${ROUTES.curator.signIn}?email=${encodeURIComponent(email)}`
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      // For other curator emails, we need to check if the email exists in the curator system
-      // Since we don't have a separate check-email endpoint for curator,
-      // we'll try to sign in directly and handle the response
       const response = await api.curatorCheckEmail({ email, password: "" });
 
       if (response && response.success) {
-        router.push(
-          `${ROUTES.curator.signIn}?email=${encodeURIComponent(email)}`
-        );
+        onEmailSubmit(email);
       } else {
         setErrorMessage(
           "Curator email not found. Please contact administrator."
@@ -75,15 +47,15 @@ const CheckEmail = () => {
     }
   };
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-  });
+  const { register, handleSubmit, errors, watch } =
+    useSelectedValuesFromReactHookForm(CuratorEmailSchema, {
+      mode: "onChange",
+    });
 
-  const onSubmit = (values: z.infer<typeof FormSchema>) => {
+  // Watch the email field for real-time value
+  const emailValue = watch("email");
+
+  const onSubmit = (values: CuratorEmailFormData) => {
     checkEmailExists(values.email);
   };
 
@@ -93,7 +65,7 @@ const CheckEmail = () => {
         text="Verifying curator access..."
         isVisible={isLoading}
       />
-      <div className="h-full flex flex-col justify-between relative overflow-hidden">
+      <div className="min-h-screen h-full flex flex-col justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 via-purple-500/10 to-pink-400/20"></div>
         <div className="absolute inset-0 backdrop-blur-[100px]"></div>
 
@@ -127,30 +99,27 @@ const CheckEmail = () => {
               <form
                 id="email-form"
                 onSubmit={handleSubmit(onSubmit)}
-                className="space-y-6">
+                className="space-y-6"
+              >
                 <div className="relative group">
                   <div className="flex rounded-2xl overflow-hidden backdrop-blur-sm bg-white/20 border border-white/30 shadow-lg">
                     <input
                       {...register("email")}
-                      onChange={handleEmailChange}
                       placeholder="curator@justgohealth.com"
                       className={`flex-1 px-6 py-5 bg-transparent text-gray-700 font-semibold text-lg placeholder-gray-500 focus:outline-none ${
-                        errors?.email?.message
-                          ? "text-red-600"
-                          : isValidEmail
-                          ? "text-green-600"
-                          : ""
+                        errors?.email ? "text-red-600" : "text-green-600"
                       }`}
                     />
                     <Button
                       type="submit"
                       variant="ghost"
-                      disabled={!isValidEmail || isLoading}
+                      disabled={isLoading}
                       className={`px-6 h-auto transition-all duration-300 ${
-                        isValidEmail && !isLoading
+                        !errors?.email && !isLoading
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                           : "bg-gray-400/50 text-gray-500 cursor-not-allowed"
-                      }`}>
+                      }`}
+                    >
                       {isLoading ? (
                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
@@ -190,8 +159,9 @@ const CheckEmail = () => {
 
         <div className="relative z-10 flex items-center justify-between px-12 pb-8">
           <Button
-            onClick={() => router.back()}
-            className="backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 text-purple-700 font-bold px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg">
+            onClick={() => router.replace("/")}
+            className="backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20 text-purple-700 font-bold px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
             ← Back
           </Button>
 

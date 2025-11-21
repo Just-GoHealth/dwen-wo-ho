@@ -73,6 +73,7 @@ const SignInContent = () => {
           });
           setShowPendingModal(true);
         } else {
+          console;
           router.push("/provider/profile");
         }
       } else {

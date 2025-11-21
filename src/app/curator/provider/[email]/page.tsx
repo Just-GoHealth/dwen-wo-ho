@@ -9,18 +9,18 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { ROUTES } from "@/constants/routes";
 import LoadingOverlay from "@/components/ui/loading-overlay";
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  XCircle, 
-  User, 
-  Mail, 
-  Phone, 
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  User,
+  Mail,
+  Phone,
   Calendar,
   MapPin,
   FileText,
   Award,
-  Camera
+  Camera,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -51,14 +51,14 @@ const ProviderDetails = () => {
   useEffect(() => {
     const loadProvider = async () => {
       try {
-        const token = localStorage.getItem('curatorToken') || "";
+        const token = localStorage.getItem("curatorToken") || "";
         if (!token) {
-          router.push(ROUTES.curator.checkEmail);
+          router.push(ROUTES.curator.signIn);
           return;
         }
 
         const response = await api.getProvider(email, { token });
-        
+
         if (response.success) {
           setProvider(response.data);
         } else {
@@ -81,12 +81,12 @@ const ProviderDetails = () => {
     setSuccessMessage("");
 
     try {
-      const token = localStorage.getItem('curatorToken') || "";
+      const token = localStorage.getItem("curatorToken") || "";
       const response = await api.approveProvider(email, { token });
-      
+
       if (response.success) {
         setSuccessMessage("Provider approved successfully!");
-        setProvider(prev => prev ? { ...prev, status: "APPROVED" } : null);
+        setProvider((prev) => (prev ? { ...prev, status: "APPROVED" } : null));
         // Refresh the page after 2 seconds
         setTimeout(() => {
           window.location.reload();
@@ -108,12 +108,12 @@ const ProviderDetails = () => {
     setSuccessMessage("");
 
     try {
-      const token = localStorage.getItem('curatorToken') || "";
+      const token = localStorage.getItem("curatorToken") || "";
       const response = await api.rejectProvider(email, { token });
-      
+
       if (response.success) {
         setSuccessMessage("Provider rejected successfully!");
-        setProvider(prev => prev ? { ...prev, status: "REJECTED" } : null);
+        setProvider((prev) => (prev ? { ...prev, status: "REJECTED" } : null));
         // Refresh the page after 2 seconds
         setTimeout(() => {
           window.location.reload();
@@ -142,14 +142,18 @@ const ProviderDetails = () => {
   };
 
   if (isLoading) {
-    return <LoadingOverlay text="Loading provider details..." isVisible={true} />;
+    return (
+      <LoadingOverlay text="Loading provider details..." isVisible={true} />
+    );
   }
 
   if (!provider) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Provider Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Provider Not Found
+          </h1>
           <Button onClick={() => router.push(ROUTES.curator.dashboard)}>
             Back to Dashboard
           </Button>
@@ -160,8 +164,11 @@ const ProviderDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <LoadingOverlay text="Processing request..." isVisible={isActionLoading} />
-      
+      <LoadingOverlay
+        text="Processing request..."
+        isVisible={isActionLoading}
+      />
+
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -178,7 +185,11 @@ const ProviderDetails = () => {
               <JustGoHealth />
             </div>
             <div className="flex items-center space-x-4">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(provider.status || "PENDING")}`}>
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
+                  provider.status || "PENDING"
+                )}`}
+              >
                 {provider.status}
               </span>
             </div>
@@ -189,13 +200,17 @@ const ProviderDetails = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {errorMessage && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-600 text-center font-medium">{errorMessage}</p>
+            <p className="text-red-600 text-center font-medium">
+              {errorMessage}
+            </p>
           </div>
         )}
 
         {successMessage && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-green-600 text-center font-medium">{successMessage}</p>
+            <p className="text-green-600 text-center font-medium">
+              {successMessage}
+            </p>
           </div>
         )}
 
@@ -229,11 +244,13 @@ const ProviderDetails = () => {
                   <Mail className="w-5 h-5 text-gray-400" />
                   <span className="text-gray-600">{provider.email}</span>
                 </div>
-                
+
                 {provider.officePhoneNumber && (
                   <div className="flex items-center space-x-2 mb-2">
                     <Phone className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-600">{provider.officePhoneNumber}</span>
+                    <span className="text-gray-600">
+                      {provider.officePhoneNumber}
+                    </span>
                   </div>
                 )}
 
@@ -246,7 +263,9 @@ const ProviderDetails = () => {
 
                 {provider.status && (
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Bio/Status</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Bio/Status
+                    </h3>
                     <p className="text-gray-600 bg-gray-50 p-4 rounded-lg">
                       {provider.status}
                     </p>
@@ -283,7 +302,9 @@ const ProviderDetails = () => {
         {provider.status === "PENDING" && (
           <div className="bg-white shadow-lg rounded-lg overflow-hidden">
             <div className="px-6 py-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Review Actions</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Review Actions
+              </h2>
               <div className="flex space-x-4">
                 <Button
                   onClick={handleApprove}
@@ -319,10 +340,12 @@ const ProviderDetails = () => {
                 )}
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">
-                Provider {provider.status === "APPROVED" ? "Approved" : "Rejected"}
+                Provider{" "}
+                {provider.status === "APPROVED" ? "Approved" : "Rejected"}
               </h2>
               <p className="text-gray-600">
-                This provider has been {provider.status === "APPROVED" ? "approved" : "rejected"} on{" "}
+                This provider has been{" "}
+                {provider.status === "APPROVED" ? "approved" : "rejected"} on{" "}
                 {new Date(provider.updatedAt).toLocaleDateString()}
               </p>
             </div>

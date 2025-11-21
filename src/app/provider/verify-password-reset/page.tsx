@@ -11,12 +11,15 @@ import { ROUTES } from "@/constants/routes";
 import useGetSearchParams from "@/hooks/useGetSearchParams";
 import Stepper from "@/components/stepper";
 import { ArrowRightIcon } from "lucide-react";
+import { api } from "@/lib/api";
 
 const VerifyContent = () => {
   const [isRunning, setIsRunning] = useState(true);
   const [seconds, setSeconds] = useState(120); // 2 minutes
   const email = useGetSearchParams("email");
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -33,11 +36,29 @@ const VerifyContent = () => {
   }, [isRunning, seconds]);
 
   useEffect(() => {
-    if (!email) {
-      router.push(ROUTES.provider.checkEmail);
-    }
-  }, [email, router]);
+    (async () => {
+      if (!email) {
+        router.push(ROUTES.provider.checkEmail);
+      }
 
+      // Make a request to sent email to user before countdown starts
+
+      try {
+        const response = await api.recoverAccount({ email: email as string });
+
+        if (response.success) {
+        } else {
+          setErrorMessage(response.message || "The provided email is invalid");
+        }
+      } catch (error: any) {
+        const errorMsg =
+          error.response?.data?.message || "Sign in failed. Please try again.";
+        setErrorMessage(errorMsg);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [email, router]);
 
   return (
     <div className="h-full flex flex-col justify-between">
@@ -58,9 +79,9 @@ const VerifyContent = () => {
           A 6-digit verification code was just sent to{" "}
           {decodeURIComponent(email as string)}
         </h2>
-        <div className="mt-5 text-center">  
+        <div className="mt-5 text-center">
           <InputOTP
-          className="text-green-600"
+            className="text-green-600"
             maxLength={6}
             onComplete={() =>
               router.push(`${ROUTES.provider.newPassword}?email=${email}`)

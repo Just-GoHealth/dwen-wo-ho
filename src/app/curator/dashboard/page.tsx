@@ -26,6 +26,7 @@ import LineupModal from "@/components/modals/lineup";
 import PartnerCreationModal from "@/components/modals/partner-creation";
 import ProviderDetailsModal from "@/components/modals/provider-details";
 import Image from "next/image";
+import { CuratorSidebar } from "@/components/curator/ui/sidebar";
 
 interface School {
   id: string;
@@ -200,7 +201,7 @@ const CuratorDashboard = () => {
       try {
         const token = localStorage.getItem("curatorToken");
         if (!token) {
-          router.push(ROUTES.curator.checkEmail);
+          router.push(ROUTES.curator.signIn);
           return;
         }
 
@@ -223,11 +224,11 @@ const CuratorDashboard = () => {
     };
 
     loadProviders();
-  }, [router, mockProviders]);
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem("curatorToken");
-    router.push(ROUTES.curator.checkEmail);
+    router.push(ROUTES.curator.signIn);
   };
 
   const filteredSchools = schools.filter((school) => {
@@ -242,132 +243,6 @@ const CuratorDashboard = () => {
 
   return (
     <div className="h-screen bg-white flex">
-      {/* Mobile Header with Hamburger Menu */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-[#955aa4] to-[#7C4DFF] flex items-center justify-between px-4 z-50">
-        <button
-          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          className="text-white p-2 hover:bg-white/20 rounded-lg transition-colors">
-          <FiMenu size={24} />
-        </button>
-        <h1 className="text-white font-bold text-lg">JustGo Health</h1>
-        <div className="w-10"></div> {/* Spacer for center alignment */}
-      </div>
-
-      {/* Mobile Overlay */}
-      {isMobileSidebarOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsMobileSidebarOpen(false)}
-        />
-      )}
-
-      {/* Colored Sidebar */}
-      <div
-        className={`
-        w-64 bg-gradient-to-b from-[#955aa4] to-[#7C4DFF] 
-        flex flex-col h-screen shadow-lg z-40
-        fixed md:static
-        transition-transform duration-300 ease-in-out
-        ${
-          isMobileSidebarOpen
-            ? "translate-x-0"
-            : "-translate-x-full md:translate-x-0"
-        }
-      `}>
-        {/* Logo */}
-        <div className="p-4 lg:p-6 border-b border-white/20">
-          <div className="transform hover:scale-105 transition-transform duration-300 justify-center flex">
-            <JustGoHealth />
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex-1 px-4 py-6">
-          <nav className="space-y-3">
-            <button
-              onClick={() => {
-                handleTabChange("home");
-                setIsMobileSidebarOpen(false);
-              }}
-              className={`w-full text-left px-4 py-3 font-bold transition-all duration-200 rounded-lg ${
-                activeTab === "home"
-                  ? "bg-white/20 text-white shadow-md"
-                  : "text-white/80 hover:bg-white/10 hover:text-white"
-              }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MdSchool className="text-xl" />
-                  <span className="text-lg">Schools</span>
-                </div>
-                <span className="text-sm bg-white/20 px-2 py-1 rounded-full">
-                  {schools.length}
-                </span>
-              </div>
-            </button>
-            <button
-              onClick={() => {
-                handleTabChange("providers");
-                setIsMobileSidebarOpen(false);
-              }}
-              className={`w-full text-left px-4 py-3 font-bold transition-all duration-200 rounded-lg ${
-                activeTab === "providers"
-                  ? "bg-white/20 text-white shadow-md"
-                  : "text-white/80 hover:bg-white/10 hover:text-white"
-              }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MdHealthAndSafety className="text-xl" />
-                  <span className="text-lg">Providers</span>
-                </div>
-                <span className="text-sm bg-white/20 px-2 py-1 rounded-full">
-                  {providers.length}
-                </span>
-              </div>
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab("pages");
-                setIsMobileSidebarOpen(false);
-              }}
-              className="w-full text-left px-4 py-3 rounded-lg font-bold text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200">
-              <div className="flex items-center gap-3">
-                <FiFileText className="text-xl" />
-                <span className="text-lg">Pages</span>
-              </div>
-            </button>
-            <button
-              onClick={() => {
-                setShowCreateModal(true);
-                setIsMobileSidebarOpen(false);
-              }}
-              className="w-full text-left px-4 py-3 rounded-lg font-bold text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200">
-              <div className="flex items-center gap-3">
-                <FiPlus className="text-xl" />
-                <span className="text-lg">Create</span>
-              </div>
-            </button>
-          </nav>
-        </div>
-
-        {/* Logout */}
-        <div className="p-4 border-t border-white/20">
-          <Button
-            onClick={() => {
-              setShowLogoutModal(true);
-              setIsMobileSidebarOpen(false);
-            }}
-            className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3">
-                <FiLogOut className="text-xl" />
-                <span className="text-lg">Logout</span>
-              </div>
-              <FiArrowRight className="w-4 h-4" />
-            </div>
-          </Button>
-        </div>
-      </div>
-
       {/* Main Content */}
 
       <div className="flex-1 overflow-y-auto bg-gray-50 pt-16 md:pt-0">
@@ -399,7 +274,8 @@ const CuratorDashboard = () => {
             <div className="relative ml-2 flex-shrink-0">
               <button
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                className="flex items-center gap-2 px-4 lg:px-6 py-2 lg:py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 justify-between min-w-[120px]">
+                className="flex items-center gap-2 px-4 lg:px-6 py-2 lg:py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 justify-between min-w-[120px]"
+              >
                 <span>{filter}</span>
                 <FiChevronDown
                   className="w-4 h-4 transition-transform duration-200"
@@ -418,7 +294,8 @@ const CuratorDashboard = () => {
                       setFilter("All");
                       setShowFilterDropdown(false);
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between transition-colors">
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between transition-colors"
+                  >
                     <span className="font-medium">All</span>
                     {filter === "All" && (
                       <span className="text-[#955aa4] text-lg">✓</span>
@@ -429,7 +306,8 @@ const CuratorDashboard = () => {
                       setFilter("Active");
                       setShowFilterDropdown(false);
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors">
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                  >
                     <span className="font-medium">Active</span>
                   </button>
                   <button
@@ -437,7 +315,8 @@ const CuratorDashboard = () => {
                       setFilter("Inactive");
                       setShowFilterDropdown(false);
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors">
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                  >
                     <span className="font-medium">Inactive</span>
                   </button>
                 </div>
@@ -451,7 +330,8 @@ const CuratorDashboard = () => {
               ? filteredSchools.map((school) => (
                   <div
                     key={school.id}
-                    className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 hover:scale-[1.02]">
+                    className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 hover:scale-[1.02]"
+                  >
                     <div className="flex items-start gap-4 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
                         {school.avatar ? (
@@ -481,7 +361,8 @@ const CuratorDashboard = () => {
                           school.status === "Active"
                             ? "bg-green-100 text-green-700 border border-green-200"
                             : "bg-gray-100 text-gray-600 border border-gray-200"
-                        }`}>
+                        }`}
+                      >
                         {school.status}
                       </div>
                     </div>
@@ -491,7 +372,8 @@ const CuratorDashboard = () => {
                   <div
                     key={provider.id}
                     onClick={() => handleProviderSelect(provider.email)}
-                    className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02]">
+                    className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02]"
+                  >
                     <div className="flex items-start gap-4 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center flex-shrink-0 shadow-md">
                         <MdHealthAndSafety className="text-white text-xl" />
@@ -518,7 +400,8 @@ const CuratorDashboard = () => {
                             : provider.status === "Inactive"
                             ? "bg-gray-100 text-gray-600 border border-gray-200"
                             : "bg-gray-100 text-gray-600 border border-gray-200"
-                        }`}>
+                        }`}
+                      >
                         {provider.status}
                       </div>
                     </div>
@@ -541,12 +424,14 @@ const CuratorDashboard = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleLogout}
-                className="flex-1 py-2.5 sm:py-2 text-center font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm sm:text-base">
+                className="flex-1 py-2.5 sm:py-2 text-center font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm sm:text-base"
+              >
                 Yes, Logout
               </button>
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 py-2.5 sm:py-2 text-center font-medium bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm sm:text-base">
+                className="flex-1 py-2.5 sm:py-2 text-center font-medium bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm sm:text-base"
+              >
                 Cancel
               </button>
             </div>
@@ -564,7 +449,8 @@ const CuratorDashboard = () => {
               </h2>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors">
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
                 <FiX className="w-5 h-5 lg:w-6 lg:h-6" />
               </button>
             </div>
@@ -575,7 +461,8 @@ const CuratorDashboard = () => {
                   setShowCreateModal(false);
                   setShowSchoolModal(true);
                 }}
-                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group">
+                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group"
+              >
                 <div className="text-2xl lg:text-3xl mb-2">🏫</div>
                 <h3 className="font-medium text-gray-800 text-sm lg:text-base">
                   New Schools
@@ -586,7 +473,8 @@ const CuratorDashboard = () => {
                   setShowCreateModal(false);
                   setShowMemberModal(true);
                 }}
-                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group">
+                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group"
+              >
                 <div className="text-2xl lg:text-3xl mb-2">👥</div>
                 <h3 className="font-medium text-gray-800 text-sm lg:text-base">
                   Our Team
@@ -597,7 +485,8 @@ const CuratorDashboard = () => {
                   setShowCreateModal(false);
                   setShowPartnerModal(true);
                 }}
-                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group">
+                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group"
+              >
                 <div className="text-2xl lg:text-3xl mb-2">🤝</div>
                 <h3 className="font-medium text-gray-800 text-sm lg:text-base">
                   New Partners
@@ -614,7 +503,8 @@ const CuratorDashboard = () => {
                   setShowCreateModal(false);
                   setShowLineupModal(true);
                 }}
-                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group">
+                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group"
+              >
                 <div className="text-2xl lg:text-3xl mb-2">🏥</div>
                 <h3 className="font-medium text-gray-800 text-sm lg:text-base">
                   Health Lineup
@@ -625,7 +515,8 @@ const CuratorDashboard = () => {
                   setShowCreateModal(false);
                   setShowReachModal(true);
                 }}
-                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group">
+                className="p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-center group"
+              >
                 <div className="text-2xl lg:text-3xl mb-2">📢</div>
                 <h3 className="font-medium text-gray-800 text-sm lg:text-base">
                   Reach

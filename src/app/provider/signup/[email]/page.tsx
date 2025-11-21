@@ -48,7 +48,7 @@ const Verify = () => {
 
       if (response.success) {
         // Redirect to password setup page
-        router.push(`${ROUTES.provider.signUp}/${email}/password`);
+        router.push(`${ROUTES.provider.signUp}/${email}/profile`);
       } else {
         setErrorMessage(response.message || "Verification failed");
       }

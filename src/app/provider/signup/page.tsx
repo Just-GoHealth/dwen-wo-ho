@@ -53,7 +53,6 @@ const SignUpContent = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const { loginMutation } = useAuthQuery();
   const email = useGetSearchParams("email");
   const router = useRouter();
 
@@ -64,13 +63,6 @@ const SignUpContent = () => {
     setEmailInput(value);
     setIsValidEmail(emailRegex.test(value));
   };
-
-  // Remove the redirect logic - allow direct access to signup page
-  // useEffect(() => {
-  //   if (!email) {
-  //     router.push(ROUTES.provider.checkEmail);
-  //   }
-  // }, [email]);
 
   const {
     control,
