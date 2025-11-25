@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import JustGoHealth from "@/components/logo-purple";
+import JustGoHealthBlack from "@/components/logo-black";
 import {
   FiFileText,
   FiPlus,
@@ -44,14 +44,14 @@ export const CuratorSidebar = ({
   return (
     <>
       {/* Mobile Header with Hamburger Menu */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-[#955aa4] to-[#7C4DFF] flex items-center justify-between px-4 z-50">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50 shadow-sm">
         <button
           onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          className="text-white p-2 hover:bg-white/20 rounded-lg transition-colors"
+          className="text-[#955aa4] p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <FiMenu size={24} />
         </button>
-        <h1 className="text-white font-bold text-lg">JustGo Health</h1>
+        <h1 className="text-[#955aa4] font-bold text-lg">JustGo Health</h1>
         <div className="w-10" /> {/* Spacer for center alignment */}
       </div>
 
@@ -63,10 +63,10 @@ export const CuratorSidebar = ({
         />
       )}
 
-      {/* Colored Sidebar */}
+      {/* White Sidebar */}
       <div
         className={cn(
-          "w-64 bg-gradient-to-b from-[#955aa4] to-[#7C4DFF]",
+          "w-64 bg-white border-r border-gray-200",
           "flex flex-col h-screen shadow-lg z-40",
           "fixed md:static",
           "transition-transform duration-300 ease-in-out",
@@ -76,9 +76,9 @@ export const CuratorSidebar = ({
         )}
       >
         {/* Logo */}
-        <div className="p-4 lg:p-6 border-b border-white/20">
+        <div className="p-4 lg:p-6 border-b border-gray-200">
           <div className="transform hover:scale-105 transition-transform duration-300 justify-center flex">
-            <JustGoHealth />
+            <JustGoHealthBlack />
           </div>
         </div>
 
@@ -91,8 +91,8 @@ export const CuratorSidebar = ({
               className={cn(
                 "block px-4 py-3 font-bold transition-all duration-200 rounded-lg",
                 isActive("/curator/schools")
-                  ? "bg-white/20 text-white shadow-md"
-                  : "text-white/80 hover:bg-white/10 hover:text-white"
+                  ? "bg-[#955aa4] text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-[#955aa4]"
               )}
             >
               <div className="flex items-center justify-between">
@@ -100,7 +100,12 @@ export const CuratorSidebar = ({
                   <MdSchool className="text-xl" />
                   <span className="text-lg">Schools</span>
                 </div>
-                <span className="text-sm bg-white/20 px-2 py-1 rounded-full">
+                <span className={cn(
+                  "text-sm px-2 py-1 rounded-full",
+                  isActive("/curator/schools")
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 text-gray-700"
+                )}>
                   {schoolCount}
                 </span>
               </div>
@@ -111,8 +116,8 @@ export const CuratorSidebar = ({
               className={cn(
                 "block px-4 py-3 font-bold transition-all duration-200 rounded-lg",
                 isActive("/curator/providers")
-                  ? "bg-white/20 text-white shadow-md"
-                  : "text-white/80 hover:bg-white/10 hover:text-white"
+                  ? "bg-[#955aa4] text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-[#955aa4]"
               )}
             >
               <div className="flex items-center justify-between">
@@ -120,7 +125,12 @@ export const CuratorSidebar = ({
                   <MdHealthAndSafety className="text-xl" />
                   <span className="text-lg">Providers</span>
                 </div>
-                <span className="text-sm bg-white/20 px-2 py-1 rounded-full">
+                <span className={cn(
+                  "text-sm px-2 py-1 rounded-full",
+                  isActive("/curator/providers")
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 text-gray-700"
+                )}>
                   {providerCount}
                 </span>
               </div>
@@ -131,8 +141,8 @@ export const CuratorSidebar = ({
               className={cn(
                 "block px-4 py-3 font-bold transition-all duration-200 rounded-lg",
                 isActive("/curator/pages")
-                  ? "bg-white/20 text-white shadow-md"
-                  : "text-white/80 hover:bg-white/10 hover:text-white"
+                  ? "bg-[#955aa4] text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-[#955aa4]"
               )}
             >
               <div className="flex items-center gap-3">
@@ -145,7 +155,7 @@ export const CuratorSidebar = ({
                 onCreateClick();
                 setIsMobileSidebarOpen(false);
               }}
-              className="w-full text-left px-4 py-3 rounded-lg font-bold text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200"
+              className="w-full text-left px-4 py-3 rounded-lg font-bold text-gray-700 hover:bg-gray-100 hover:text-[#955aa4] transition-all duration-200"
             >
               <div className="flex items-center gap-3">
                 <FiPlus className="text-xl" />
@@ -156,7 +166,7 @@ export const CuratorSidebar = ({
         </div>
 
         {/* Logout */}
-        <div className="p-4 border-t border-white/20">
+        <div className="p-4 border-t border-gray-200">
           <Button
             onClick={handleLogoutClick}
             className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"

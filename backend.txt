@@ -1,0 +1,17 @@
+- I want these details when we fetch a single provider
+    1. Their schools
+    2. Their partners
+
+- The providers are the one who have partners and schools they work with not schools having partners and providers hence the eendpoints
+/schools/{schoolId}/add-partner
+/schools/{schoolId}/remove-partner
+/schools/{schoolId}/add-provider
+/schools/{schoolId}/remove-provider
+/schools/{schoolId}/partners
+/schools/{schoolId}/providers
+
+All these endpoints need to rather be attached to a provider and as such when fetching a provider should return their schools and partners with the data 
+
+Please add the bio or so to the provider too.
+
+- Also for fetching schools, allow making type optional. Why? When adding a school to a partner, I should be able to get all the schools without passing a type

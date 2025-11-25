@@ -2,32 +2,25 @@
 
 import React, { useState } from "react";
 import { MdHealthAndSafety } from "react-icons/md";
-import { FiChevronDown } from "react-icons/fi";
 import WidthConstraint from "@/components/ui/width-constraint";
 import ProviderDetailsModal from "@/components/modals/provider-details";
+import ProviderCard from "@/components/curator/provider-card";
 import { useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
-
-interface Provider {
-  id: string;
-  email: string;
-  fullName: string;
-  professionalTitle: string;
-  status: "Active" | "Inactive";
-  createdAt: string;
-  updatedAt: string;
-  lastActive?: string;
-}
 
 export default function ProvidersPage() {
   const [filter, setFilter] = useState("All");
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
 
   // Fetch providers using the query hook
-  const { providers, isLoading, isError, error } = useProvidersQuery();
+  const { 
+    providers, 
+    isLoading, 
+    isError, 
+    error,
+  } = useProvidersQuery();
 
-  console.log(providers);
+
 
   // Use providers data or empty array
   const providersList = providers || [];
@@ -39,8 +32,44 @@ export default function ProvidersPage() {
 
   const filteredProviders = providersList.filter((provider) => {
     if (filter === "All") return true;
-    return provider.status.toLowerCase() === filter.toLowerCase();
+    return provider?.applicationStatus?.toLowerCase() === filter?.toLowerCase();
   });
+
+  // Filter configuration
+  const filterOptions = [
+    {
+      id: "All",
+      label: "All Providers",
+      color: "bg-[#955aa4]",
+      hoverColor: "hover:bg-gray-200",
+      inactiveColor: "bg-gray-100 text-gray-700",
+      count: providersList.length,
+    },
+    {
+      id: "PENDING",
+      label: "Pending",
+      color: "bg-yellow-500",
+      hoverColor: "hover:bg-gray-200",
+      inactiveColor: "bg-gray-100 text-gray-700",
+      count: providersList.filter(p => p.applicationStatus === "PENDING").length,
+    },
+    {
+      id: "APPROVED",
+      label: "Approved",
+      color: "bg-green-600",
+      hoverColor: "hover:bg-gray-200",
+      inactiveColor: "bg-gray-100 text-gray-700",
+      count: providersList.filter(p => p.applicationStatus === "APPROVED").length,
+    },
+    {
+      id: "REJECTED",
+      label: "Rejected",
+      color: "bg-red-600",
+      hoverColor: "hover:bg-gray-200",
+      inactiveColor: "bg-gray-100 text-gray-700",
+      count: providersList.filter(p => p.applicationStatus === "REJECTED").length,
+    },
+  ];
 
   // Loading state
   if (isLoading) {
@@ -78,71 +107,51 @@ export default function ProvidersPage() {
 
   return (
     <WidthConstraint>
-      <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-6 md:p-6">
         {/* Header */}
-        <div className="flex items-center mb-4 lg:mb-6 gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="bg-white rounded-lg px-4 lg:px-6 py-3 lg:py-4 shadow-sm border w-full">
-              <h1 className="text-xl lg:text-2xl font-bold text-[#955aa4] flex items-center gap-2">
-                <MdHealthAndSafety className="text-xl lg:text-2xl" />
-                <span className="hidden sm:inline">All Providers</span>
-                <span className="sm:hidden">Providers</span>
-                <span>· {filteredProviders.length}</span>
-              </h1>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+             
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                  Providers
+                </h1>
+                <p className="text-gray-500 text-sm">
+                  Manage and review healthcare providers
+                </p>
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+              <span className="text-gray-600 text-sm font-medium">Total:</span>
+              <span className="text-[#955aa4] text-lg font-bold">
+                {providersList.length}
+              </span>
             </div>
           </div>
 
-          {/* Filter Dropdown */}
-          <div className="relative ml-2 flex-shrink-0">
-            <button
-              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className="flex items-center gap-2 px-4 lg:px-6 py-2 lg:py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 justify-between min-w-[120px]"
-            >
-              <span>{filter}</span>
-              <FiChevronDown
-                className="w-4 h-4 transition-transform duration-200"
-                style={{
-                  transform: showFilterDropdown
-                    ? "rotate(180deg)"
-                    : "rotate(0deg)",
-                }}
-              />
-            </button>
-
-            {showFilterDropdown && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
-                <button
-                  onClick={() => {
-                    setFilter("All");
-                    setShowFilterDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between transition-colors"
-                >
-                  <span className="font-medium">All</span>
-                  {filter === "All" && (
-                    <span className="text-[#955aa4] text-lg">✓</span>
-                  )}
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter("Active");
-                    setShowFilterDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <span className="font-medium">Active</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter("Inactive");
-                    setShowFilterDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <span className="font-medium">Inactive</span>
-                </button>
-              </div>
-            )}
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {filterOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => setFilter(option.id)}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                  filter === option.id
+                    ? `${option.color} text-white shadow-md`
+                    : `${option.inactiveColor} ${option.hoverColor}`
+                }`}
+              >
+                {option.label}
+                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                  filter === option.id
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 text-gray-600"
+                }`}>
+                  {option.count}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -160,43 +169,11 @@ export default function ProvidersPage() {
             </div>
           ) : (
             filteredProviders.map((provider) => (
-              <div
-                key={provider.id}
-                onClick={() => handleProviderSelect(provider.email)}
-                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02]"
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center flex-shrink-0 shadow-md">
-                    <MdHealthAndSafety className="text-white text-xl" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-gray-900 group-hover:text-[#955aa4] transition-colors text-base lg:text-lg truncate mb-1">
-                      {provider.fullName}
-                    </h3>
-                    <p className="text-gray-600 text-sm lg:text-base truncate mb-1">
-                      {provider.professionalTitle}
-                    </p>
-                    {provider.lastActive && (
-                      <p className="text-orange-500 text-xs lg:text-sm font-medium">
-                        {provider.lastActive}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-center">
-                  <div
-                    className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${
-                      provider.status === "Active"
-                        ? "bg-green-100 text-green-700 border border-green-200"
-                        : provider.status === "Inactive"
-                        ? "bg-gray-100 text-gray-600 border border-gray-200"
-                        : "bg-gray-100 text-gray-600 border border-gray-200"
-                    }`}
-                  >
-                    {provider.status}
-                  </div>
-                </div>
-              </div>
+              <ProviderCard
+                key={provider.email}
+                provider={provider}
+                onClick={handleProviderSelect}
+              />
             ))
           )}
         </div>
@@ -206,6 +183,15 @@ export default function ProvidersPage() {
           isOpen={showProviderModal}
           onClose={() => setShowProviderModal(false)}
           providerEmail={selectedProviderEmail}
+          provider={providersList.find(p => p.email === selectedProviderEmail) ? {
+            ...providersList.find(p => p.email === selectedProviderEmail)!,
+            id: providersList.find(p => p.email === selectedProviderEmail)!.email, // Using email as ID for now
+            fullName: providersList.find(p => p.email === selectedProviderEmail)!.providerName,
+            professionalTitle: providersList.find(p => p.email === selectedProviderEmail)!.specialty,
+            profileImage: providersList.find(p => p.email === selectedProviderEmail)!.profilePhotoURL,
+            createdAt: providersList.find(p => p.email === selectedProviderEmail)!.applicationDate,
+            updatedAt: providersList.find(p => p.email === selectedProviderEmail)!.lastActive || providersList.find(p => p.email === selectedProviderEmail)!.applicationDate,
+          } : undefined}
         />
       </div>
     </WidthConstraint>

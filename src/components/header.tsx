@@ -83,7 +83,7 @@ const Header = ({ className, logo }: { className?: string; logo?: string }) => {
 
   const handleGetStarted = () => {
     if (pathname === "/providers") {
-      router.push(ROUTES.provider.checkEmail);
+      router.push(ROUTES.provider.auth);
     } else {
       router.push(ROUTES.patient.checkEmail);
     }
@@ -125,14 +125,7 @@ const Header = ({ className, logo }: { className?: string; logo?: string }) => {
           {!check ? <AlignRight /> : <X />}
         </button>
         <div className="hidden lg:flex gap-4 items-center">
-          <Link href={ROUTES.curator.signIn}>
-            <Button
-              variant="outline"
-              className="text-[#955aa4] border-[#955aa4] hover:bg-[#955aa4] hover:text-white"
-            >
-              Curator Portal
-            </Button>
-          </Link>
+         
           <Button
             onClick={handleGetStarted}
             className="bg-gray-300 text-black hover:bg-gray-300 "

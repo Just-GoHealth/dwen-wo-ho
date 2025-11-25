@@ -30,7 +30,8 @@ export async function api(endpoint: string, options: RequestInit = {}) {
       const error = await response.json();
       throw new Error(error.message || "API request failed");
     }
-    return response.json();
+    const res= await response.json();
+    return res.data;
   } catch (error: any) {
     throw new Error(error?.message || "Network error");
   }
