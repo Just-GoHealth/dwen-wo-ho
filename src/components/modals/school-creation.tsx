@@ -3,9 +3,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import JustGoHealth from "@/components/logo-purple";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Upload } from "lucide-react";
+import { ChevronDown, Upload, X, MapPin } from "lucide-react";
 
 interface SchoolCreationModalProps {
   isOpen: boolean;
@@ -35,7 +34,7 @@ const SchoolCreationModal = ({ isOpen, onClose, onSchoolCreated }: SchoolCreatio
     "Sunyani"
   ];
 
-  const schoolTypes = ["High School", "NMTC", "University"];
+  const schoolTypes = ["JHS", "SHS", "NMTC", "UNIVERSITY"];
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -64,7 +63,6 @@ const SchoolCreationModal = ({ isOpen, onClose, onSchoolCreated }: SchoolCreatio
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically call an API to create the school
     console.log("Creating school:", { ...formData, campuses: selectedCampuses });
     onSchoolCreated?.(formData);
     onClose();
@@ -79,157 +77,199 @@ const SchoolCreationModal = ({ isOpen, onClose, onSchoolCreated }: SchoolCreatio
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
             onClick={onClose}
           />
           
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-white rounded-2xl border-2 border-[#955aa4] w-full max-w-2xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-auto overflow-hidden flex flex-col max-h-[90vh]">
               {/* Header */}
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <JustGoHealth />
-                  <h2 className="text-3xl font-bold text-[#955aa4]">New School</h2>
+              <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">New School</h2>
+                    <p className="text-sm text-gray-500">Add a new educational institution</p>
+                  </div>
                 </div>
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                {/* Name */}
-                <div className="flex items-center gap-6">
-                  <label className="text-lg font-bold text-gray-900 w-24">Name</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#955aa4]"
-                    placeholder="Enter school name"
-                  />
-                </div>
-
-                {/* Nickname */}
-                <div className="flex items-center gap-6">
-                  <label className="text-lg font-bold text-gray-900 w-24">Nickname</label>
-                  <input
-                    type="text"
-                    value={formData.nickname}
-                    onChange={(e) => handleInputChange("nickname", e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#955aa4]"
-                    placeholder="Enter school nickname"
-                  />
-                </div>
-
-                {/* Campuses */}
-                <div className="flex items-start gap-6">
-                  <label className="text-lg font-bold text-gray-900 w-24 pt-2">
-                    Campuses {selectedCampuses.length > 0 && `· ${selectedCampuses.length}`}
-                  </label>
-                  <div className="flex-1 relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowCampusDropdown(!showCampusDropdown)}
-                      className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-left flex items-center justify-between"
-                    >
-                      <span className="text-gray-500">
-                        {selectedCampuses.length > 0 
-                          ? selectedCampuses.join(", ")
-                          : "Select locations"
-                        }
-                      </span>
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </button>
-                    
-                    {showCampusDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                        {campusOptions.map((campus) => (
-                          <button
-                            key={campus}
-                            type="button"
-                            onClick={() => handleCampusToggle(campus)}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center justify-between"
-                          >
-                            <span className={selectedCampuses.includes(campus) ? "text-[#955aa4]" : "text-gray-900"}>
-                              {campus}
-                            </span>
-                            {selectedCampuses.includes(campus) && (
-                              <span className="text-[#955aa4]">✓</span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <p className="text-sm text-gray-500 mt-1">You can add multiple campuses.</p>
+              <div className="flex-1 overflow-y-auto p-8">
+                <form id="school-form" onSubmit={handleSubmit} className="space-y-8">
+                  {/* Name & Nickname */}
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">School Name</label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#955aa4]/20 focus:border-[#955aa4] transition-all"
+                        placeholder="e.g. Achimota School"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Nickname (Optional)</label>
+                      <input
+                        type="text"
+                        value={formData.nickname}
+                        onChange={(e) => handleInputChange("nickname", e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#955aa4]/20 focus:border-[#955aa4] transition-all"
+                        placeholder="e.g. Motown"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Type */}
-                <div className="flex items-center gap-6">
-                  <label className="text-lg font-bold text-gray-900 w-24">Type</label>
-                  <div className="flex-1 flex gap-4">
-                    {schoolTypes.map((type) => (
+                  {/* Type */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-gray-700">Institution Type</label>
+                    <div className="flex flex-wrap gap-3">
+                      {schoolTypes.map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => handleInputChange("type", type)}
+                          className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
+                            formData.type === type
+                              ? "bg-[#955aa4] text-white shadow-md shadow-[#955aa4]/20"
+                              : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent hover:border-gray-200"
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Campuses */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold text-gray-700">Campuses</label>
+                      {selectedCampuses.length > 0 && (
+                        <span className="text-xs font-medium text-[#955aa4] bg-[#955aa4]/10 px-2 py-1 rounded-full">
+                          {selectedCampuses.length} selected
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative">
                       <button
-                        key={type}
                         type="button"
-                        onClick={() => handleInputChange("type", type)}
-                        className={`px-6 py-2 rounded-lg font-bold transition-colors ${
-                          formData.type === type
-                            ? "bg-[#955aa4] text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                        onClick={() => setShowCampusDropdown(!showCampusDropdown)}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-left flex items-center justify-between hover:bg-gray-100 transition-colors"
                       >
-                        {type}
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          <span className={selectedCampuses.length > 0 ? "text-gray-900" : "text-gray-500"}>
+                            {selectedCampuses.length > 0 
+                              ? selectedCampuses.join(", ")
+                              : "Select campus locations"
+                            }
+                          </span>
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showCampusDropdown ? "rotate-180" : ""}`} />
                       </button>
-                    ))}
+                      
+                      <AnimatePresence>
+                        {showCampusDropdown && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-20 overflow-hidden"
+                          >
+                            <div className="max-h-48 overflow-y-auto p-2">
+                              {campusOptions.map((campus) => (
+                                <button
+                                  key={campus}
+                                  type="button"
+                                  onClick={() => handleCampusToggle(campus)}
+                                  className={`w-full text-left px-4 py-2.5 rounded-lg flex items-center justify-between transition-colors ${
+                                    selectedCampuses.includes(campus)
+                                      ? "bg-[#955aa4]/5 text-[#955aa4]"
+                                      : "hover:bg-gray-50 text-gray-700"
+                                  }`}
+                                >
+                                  <span className="font-medium">{campus}</span>
+                                  {selectedCampuses.includes(campus) && (
+                                    <span className="text-[#955aa4] font-bold">✓</span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
-                </div>
 
-                {/* Logo */}
-                <div className="flex items-center gap-6">
-                  <label className="text-lg font-bold text-gray-900 w-24">Logo</label>
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      id="logo-upload"
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="logo-upload"
-                      className="w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors"
-                    >
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <span className="text-gray-500 font-bold">+ Photo</span>
+                  {/* Logo */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-gray-700">School Logo</label>
+                    <div className="flex items-center gap-6">
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          id="logo-upload"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="logo-upload"
+                          className="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-[#955aa4]/30 transition-all group"
+                        >
+                          {formData.logo ? (
+                            <div className="text-center">
+                              <p className="text-[#955aa4] font-medium mb-1">{formData.logo.name}</p>
+                              <p className="text-xs text-gray-400">Click to change</p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                <Upload className="w-5 h-5 text-[#955aa4]" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-600 group-hover:text-[#955aa4] transition-colors">Click to upload logo</span>
+                              <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</span>
+                            </>
+                          )}
+                        </label>
                       </div>
-                    </label>
+                    </div>
                   </div>
-                </div>
+                </form>
+              </div>
 
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-                  <Button
-                    type="button"
-                    onClick={onClose}
-                    variant="outline"
-                    className="px-6 py-2 border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="px-6 py-2 bg-[#955aa4] text-white hover:bg-[#955aa4]/90"
-                  >
-                    Create School
-                  </Button>
-                </div>
-              </form>
+              {/* Footer */}
+              <div className="px-8 py-6 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+                <Button
+                  type="button"
+                  onClick={onClose}
+                  variant="ghost"
+                  className="px-6 font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  form="school-form"
+                  className="px-8 bg-[#955aa4] hover:bg-[#8a4d99] text-white font-semibold shadow-lg shadow-[#955aa4]/20"
+                >
+                  Create School
+                </Button>
+              </div>
             </div>
           </motion.div>
         </>

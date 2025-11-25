@@ -5,6 +5,10 @@ import { CuratorSidebar } from "@/components/curator/ui/sidebar";
 import { ROUTES } from "@/constants/routes";
 import CreateModal from "@/components/curator/ui/create-modal";
 import { useState } from "react";
+import SchoolCreationModal from "@/components/modals/school-creation";
+import MemberCreationModal from "@/components/modals/member-creation";
+import PartnerCreationModal from "@/components/modals/partner-creation";
+import ReachModal from "@/components/modals/reach";
 
 export default function DashboardLayout({
   children,
@@ -13,15 +17,14 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSchoolModal, setShowSchoolModal] = useState(false);
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [showPartnerModal, setShowPartnerModal] = useState(false);
+  const [showReachModal, setShowReachModal] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("curatorToken");
     router.push(ROUTES.curator.signIn);
-  };
-
-  const handleCreateClick = () => {
-    // You can handle the create modal state here if needed
-    // or pass it down to children through context if multiple children need it
   };
 
   return (
@@ -35,9 +38,75 @@ export default function DashboardLayout({
       <div className="flex-1 overflow-y-auto bg-gray-50 pt-16 md:pt-0">
         {children}
       </div>
+      
       {showCreateModal && (
-        <CreateModal setShowCreateModal={setShowCreateModal} />
+        <CreateModal 
+          setShowCreateModal={setShowCreateModal}
+          onOpenSchoolModal={() => {
+            setShowCreateModal(false);
+            setShowSchoolModal(true);
+          }}
+          onOpenMemberModal={() => {
+            setShowCreateModal(false);
+            setShowMemberModal(true);
+          }}
+          onOpenPartnerModal={() => {
+            setShowCreateModal(false);
+            setShowPartnerModal(true);
+          }}
+          onOpenReachModal={() => {
+            setShowCreateModal(false);
+            setShowReachModal(true);
+          }}
+        />
       )}
+
+      <SchoolCreationModal
+        isOpen={showSchoolModal}
+        onClose={() => {
+          setShowSchoolModal(false);
+          setShowCreateModal(true);
+        }}
+        onSchoolCreated={(school) => {
+          console.log("School created:", school);
+          setShowSchoolModal(false);
+          setShowCreateModal(true);
+        }}
+      />
+
+      <MemberCreationModal
+        isOpen={showMemberModal}
+        onClose={() => {
+          setShowMemberModal(false);
+          setShowCreateModal(true);
+        }}
+        onMemberCreated={(member) => {
+          console.log("Member created:", member);
+          setShowMemberModal(false);
+          setShowCreateModal(true);
+        }}
+      />
+
+      <PartnerCreationModal
+        isOpen={showPartnerModal}
+        onClose={() => {
+          setShowPartnerModal(false);
+          setShowCreateModal(true);
+        }}
+        onPartnerCreated={(partner) => {
+          console.log("Partner created:", partner);
+          setShowPartnerModal(false);
+          setShowCreateModal(true);
+        }}
+      />
+
+      <ReachModal
+        isOpen={showReachModal}
+        onClose={() => {
+          setShowReachModal(false);
+          setShowCreateModal(true);
+        }}
+      />
     </div>
   );
 }

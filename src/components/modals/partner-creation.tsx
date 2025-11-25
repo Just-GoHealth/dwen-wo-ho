@@ -1,10 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import JustGoHealth from "@/components/logo-purple";
 import { useRef, useState } from "react";
-import { X } from "lucide-react";
+import { X, Upload, Building2 } from "lucide-react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 interface PartnerCreationModalProps {
   isOpen: boolean;
@@ -43,47 +43,75 @@ const PartnerCreationModal = ({ isOpen, onClose, onPartnerCreated }: PartnerCrea
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 backdrop-blur-sm bg-white/20 z-50"
+            className="fixed inset-0 backdrop-blur-sm bg-black/40 z-50"
             onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-white rounded-2xl border-2 border-[#955aa4] max-w-3xl w-full p-10">
-              <div className="flex items-center justify-between mb-6">
-                <JustGoHealth />
-                <button onClick={onClose} className="text-gray-500 hover:text-gray-800"><X className="w-6 h-6" /></button>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-auto overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-4">
+                 
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">New Partner</h2>
+                    <p className="text-sm text-gray-500">Add a new partner organization</p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <h2 className="text-center text-6xl font-extrabold text-[#955aa4] mb-8">New Partner</h2>
+              {/* Form */}
+              <div className="p-8">
+                <form id="partner-form" onSubmit={handleSubmit} className="space-y-6">
+                  {/* Name */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Partner Name</label>
+                    <div className="relative">
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#955aa4]/20 focus:border-[#955aa4] transition-all"
+                        placeholder="e.g. Ministry of Health"
+                      />
+                      <Building2 className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                  </div>
 
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="grid grid-cols-5 items-center gap-6">
-                  <label className="col-span-1 text-5xl font-extrabold">Name</label>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="col-span-4 h-16 rounded-xl border-2 border-gray-400 px-4 text-2xl"
-                    placeholder=""
-                  />
-                </div>
+                  {/* Nickname */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Nickname (Optional)</label>
+                    <input
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#955aa4]/20 focus:border-[#955aa4] transition-all"
+                      placeholder="e.g. MoH"
+                    />
+                  </div>
 
-                <div className="grid grid-cols-5 items-center gap-6">
-                  <label className="col-span-1 text-5xl font-extrabold">Nickname</label>
-                  <input
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    className="col-span-4 h-16 rounded-xl border-2 border-gray-400 px-4 text-2xl"
-                    placeholder=""
-                  />
-                </div>
+                    <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Slogan</label>
+                    <input
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#955aa4]/20 focus:border-[#955aa4] transition-all"
+                      placeholder="e.g. The Sound Of Young America"
+                    />
+                  </div>
 
-                <div className="grid grid-cols-5 items-center gap-6">
-                  <label className="col-span-1 text-5xl font-extrabold">Logo</label>
-                  <div className="col-span-4">
+                  {/* Logo */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Partner Logo</label>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -91,37 +119,50 @@ const PartnerCreationModal = ({ isOpen, onClose, onPartnerCreated }: PartnerCrea
                       className="hidden"
                       onChange={handleFileChange}
                     />
-                    {logo ? (
-                      <button
-                        type="button"
-                        onClick={handlePickLogo}
-                        className="w-full h-20 rounded-xl border-2 border-gray-400 bg-white overflow-hidden flex items-center justify-center"
-                        title="Change logo"
-                      >
-                        <Image src={logo} alt="Logo preview" className="h-full object-contain" width={100} height={100} />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handlePickLogo}
-                        className="w-full h-20 rounded-xl bg-gray-300 text-gray-700 text-3xl font-extrabold"
-                      >
-                        + Photo
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={handlePickLogo}
+                      className="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-[#955aa4]/30 transition-all group overflow-hidden relative"
+                    >
+                      {logo ? (
+                        <div className="relative w-full h-full p-4">
+                          <Image src={logo} alt="Logo preview" fill className="object-contain" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                            <span className="opacity-0 group-hover:opacity-100 bg-white/90 px-3 py-1 rounded-full text-xs font-medium shadow-sm">Change</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Upload className="w-5 h-5 text-[#955aa4]" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-600 group-hover:text-[#955aa4] transition-colors">Click to upload logo</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                </div>
+                </form>
+              </div>
 
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={!name.trim()}
-                    className="h-16 w-24 rounded-2xl bg-gray-300 text-2xl font-bold text-gray-900 disabled:opacity-50"
-                  >
-                    GO
-                  </button>
-                </div>
-              </form>
+              {/* Footer */}
+              <div className="px-8 py-6 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+                <Button
+                  type="button"
+                  onClick={onClose}
+                  variant="ghost"
+                  className="px-6 font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  form="partner-form"
+                  disabled={!name.trim()}
+                  className="px-8 bg-[#955aa4] hover:bg-[#8a4d99] text-white font-semibold shadow-lg shadow-[#955aa4]/20 disabled:opacity-50 disabled:shadow-none"
+                >
+                  Create Partner
+                </Button>
+              </div>
             </div>
           </motion.div>
         </>
