@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "https://justgo-api.up.railway.app";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://justgo.up.railway.app";
 
 export const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
