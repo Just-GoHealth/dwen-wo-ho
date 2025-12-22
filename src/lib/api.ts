@@ -2,7 +2,7 @@ const API_BASE =
   process.env.NODE_ENV === "development"
     ? "" // Use proxy in development
     : process.env.NEXT_PUBLIC_API_BASE_URL ||
-      "https://justgo-api.up.railway.app";
+    "https://justgo.up.railway.app";
 
 export async function api(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem("token");
@@ -16,7 +16,7 @@ export async function api(endpoint: string, options: RequestInit = {}) {
     headers["Content-Type"] = "application/json";
   }
 
-  if (token) {
+  if (token && !headers.Authorization) {
     headers.Authorization = `Bearer ${token}`;
   }
 
