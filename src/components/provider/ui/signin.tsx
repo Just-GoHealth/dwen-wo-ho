@@ -118,7 +118,11 @@ const SignInContent = ({
 
       if (response.success) {
         // Navigate to reset password step after email is sent
-        onForgotPassword?.();
+        if (onForgotPassword) {
+          onForgotPassword();
+        } else {
+          router.push(`${ROUTES.provider.verifyPasswordReset}?email=${email}`);
+        }
       } else {
         setErrorMessage(
           response.message || "Failed to send recovery email. Please try again."
@@ -145,28 +149,23 @@ const SignInContent = ({
     <div className="min-h-screen h-full flex flex-col py-8 justify-between">
       <div className="flex items-center px-8 justify-between w-full">
         <JustGoHealth />
-        <button className="bg-gray-300 text-red-500 rounded-full px-4 py-1">
-          Switch to Patients
-        </button>
+        <p className="text-3xl font-bold"><span className="text-sm">for</span> Providers</p>
       </div>
 
-      <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="px-12">
-        <h1 className="text-5xl font-extrabold">Provider Sign In</h1>
+      <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="px-24">
+        <h1 className="text-5xl text-center font-extrabold">Sign in to your Account</h1>
         <div className="my-16">
           <div className="flex flex-col">
-            <label className="text-2xl font-bold text-gray-500 pl-4">
-              Email
-            </label>
             <input
               {...register("email")}
               value={email as string}
               placeholder={email as string}
               disabled
-              className={`font-bold w-full rounded-xl border-gray-300 border-4 text-2xl text-gray-500 p-4 bg-gray-200/50`}
+              className={`font-bold w-full rounded-xl text-xl text-gray-500 p-4 bg-gray-200/50`}
             />
           </div>
           <div className="mt-4 flex flex-col">
-            <label className="text-2xl font-bold text-gray-500 pl-4">
+            <label className="ml-3 text-gray-500 text-lg font-semibold">
               Password
             </label>
             <div className="relative">
@@ -174,18 +173,17 @@ const SignInContent = ({
                 {...register("password")}
                 placeholder="********"
                 type={showPassword ? "text" : "password"}
-                className={`font-bold w-full rounded-xl border-4 ${
-                  errors?.password
-                    ? "border-red-500 text-red-500"
-                    : password?.length > 0
-                    ? "border-green-600 text-green-600"
+                className={`font-bold w-full rounded-xl outline-none placeholder:text-gray-500 focus:border-3 focus:border-[#2bb673] ${errors?.password
+                  ? "border-red-500 text-red-500"
+                  : password?.length > 0
+                    ? "border-[#2bb673] text-[#2bb673]"
                     : "border-gray-300 text-gray-500"
-                } text-2xl text-gray-500 p-4 bg-gray-200/50`}
+                  } text-xl text-gray-500 p-4 bg-gray-200/50`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute top-1/2 right-0.5 transform -translate-x-1/2 -translate-y-1/2"
+                className="absolute top-1/2 right-0.5 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center text-gray-500 text-md font-semibold"
               >
                 {!showPassword ? <span>SHOW</span> : <span>HIDE</span>}
               </button>
@@ -201,33 +199,27 @@ const SignInContent = ({
           </div>
         )}
 
-        <div className="text-center mt-4">
-          {onForgotPassword ? (
-            <button
-              type="button"
-              onClick={handleRecoverAccount}
-              disabled={recoverAccountMutation.isPending}
-              className="text-purple-600 hover:text-purple-700 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {recoverAccountMutation.isPending
-                ? "Sending email..."
-                : "Don't remember your password? Recover account →"}
-            </button>
-          ) : (
-            <Link
-              href={`${ROUTES.provider.verifyPasswordReset}?email=${email}`}
-              className="text-purple-600 hover:text-purple-700 text-sm font-medium transition-colors"
-            >
-              Don&apos;t remember your password? Recover account →
-            </Link>
-          )}
+        <div className="text-center mt-6 flex justify-center items-center gap-2">
+          <span className="text-gray-500 font-semibold text-lg">
+            Don't remember password?
+          </span>
+          <button
+            type="button"
+            onClick={handleRecoverAccount}
+            disabled={recoverAccountMutation.isPending}
+            className="text-[#ed1c24] font-bold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:underline"
+          >
+            {recoverAccountMutation.isPending
+              ? "Sending email..."
+              : "Recover Account >"}
+          </button>
         </div>
       </form>
 
       <div className="flex border-t border-gray-500 px-10 pt-10 items-center justify-between">
         <Button
           onClick={onBack}
-          className="rounded-full px-6 border-4 bg-white text-[#955aa4] text-xl font-bold border-[#955aa4] uppercase"
+          className="rounded-full px-8 py-1 border-4 bg-white text-[#955aa4] text-lg font-bold border-[#955aa4] uppercase flex items-center justify-center hover:bg-white"
         >
           Back
         </Button>
@@ -239,13 +231,12 @@ const SignInContent = ({
             loginMutation.isPending ||
             Object.keys(errors).length > 0
           }
-          className={`text-xl px-6 py-2 border-4 font-bold rounded-md flex items-center gap-2 ${
-            !password?.length ||
+          className={`text-lg px-8 py-1 border-4 font-bold rounded-md flex items-center gap-2 ${!password?.length ||
             loginMutation.isPending ||
             Object.keys(errors).length > 0
-              ? "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
-              : "border-[#2b3990] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
-          }`}
+            ? "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
+            : "border-[#955aa4] text-white bg-[#955aa4]/60 hover:bg-[#955aa4]/80"
+            }`}
         >
           {loginMutation.isPending && (
             <div className="flex items-center gap-1">
