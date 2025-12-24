@@ -73,17 +73,17 @@ const NewPasswordContent = () => {
 
   return (
     <div className="h-full flex flex-col justify-between">
-      <div className="flex items-center px-8 justify-between w-full">
+      <div className="flex items-center px-8 pt-5 justify-between w-full">
         <JustGoHealth />
         <Link
           href={ROUTES.provider.singIn}
-          className="text-2xl bg-gray-300 text-[#ed1c24] rounded-full px-4 py-1"
+          className="bg-gray-300 text-[#ed1c24] rounded-md px-6 py-1"
         >
           Sign in
         </Link>
       </div>
-      <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="px-12">
-        <h1 className="text-6xl text-center font-extrabold">
+      <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="px-22">
+        <h1 className="text-5xl text-center font-extrabold">
           Create New Password
         </h1>
         <div className="my-16 space-y-5">
@@ -92,9 +92,7 @@ const NewPasswordContent = () => {
               {...register("password")}
               placeholder="Password (6 or more characters)"
               type={showPassword ? "text" : "password"}
-              className={`font-bold w-full rounded-xl border-4 ${
-                errors?.email?.message ? "border-red-500" : "border-green-600"
-              } text-2xl text-green-600 p-4 bg-gray-200/50`}
+              className={`font-bold w-full rounded-xl border-4 text-xl text-gray-600 p-4 bg-gray-200/50`}
             />
             <button
               type="button"
@@ -104,14 +102,12 @@ const NewPasswordContent = () => {
               {!showPassword ? <span>SHOW</span> : <span>HIDE</span>}
             </button>
           </div>
-          <div className="relative mt-4 flex flex-col">
+          <div className="relative mt-10 flex flex-col">
             <input
               {...register("repeatPassword")}
               placeholder="Repeat Password"
               type={showPassword ? "text" : "password"}
-              className={`font-bold w-full rounded-xl border-4 ${
-                errors?.email?.message ? "border-red-500" : "border-green-600"
-              } text-2xl text-green-600 p-4 bg-gray-200/50`}
+              className={`font-bold w-full rounded-xl border-4 text-xl text-gray-600 p-4 bg-gray-200/50`}
             />
             <button
               type="button"
@@ -123,10 +119,10 @@ const NewPasswordContent = () => {
           </div>
         </div>
       </form>
-      <div className="flex border-t border-gray-500 px-10 pt-10 items-center justify-between">
+      <div className="flex border-t border-gray-500 px-10 p-8 items-center justify-between">
         <Button
           onClick={() => router.back()}
-          className="none rounded-full px-6 border-4 bg-white text-[#955aa4] text-xl font-bold border-[#955aa4] uppercase"
+          className="rounded-full px-8 py-1 border-4 bg-white text-[#955aa4] text-lg font-bold border-[#955aa4] uppercase flex items-center justify-center hover:bg-white"
         >
           Back
         </Button>
@@ -135,7 +131,7 @@ const NewPasswordContent = () => {
           form="login-form"
           type="submit"
           value="DONE"
-          className="text-xl px-7 py-1 border-4 font-bold border-[#2b3990] rounded-full text-white bg-[#955aa4]"
+          className="text-xl px-7 py-1 border-4 font-bold border-[#955aa4] rounded-full text-white bg-[#955aa4]/60"
         />
       </div>
       <DevTool control={control} />
