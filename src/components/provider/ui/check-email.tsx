@@ -35,13 +35,18 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
         setErrorMessage(response.message || "Failed to verify email");
       }
     } catch (error: any) {
-      console.error("Error checking email:", error);
-      if (error.response?.data?.message == "User not found") {
+      if (
+        error.message === "User not found" ||
+        error.response?.data?.message === "User not found"
+      ) {
         // Proceed to create user
         onEmailSubmit(email, false);
+        return;
       }
+
+      console.error("Error checking email:", error);
       setErrorMessage(
-        error.response?.data?.message || "Failed to verify email"
+        error.response?.data?.message || error.message || "Failed to verify email"
       );
     }
   };
@@ -99,32 +104,32 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                       <label htmlFor="" className="ml-3 text-gray-500 text-xl font-semibold">Email</label>
                       <div className="flex items-center bg-[#2bb673] rounded-lg p-1">
                         <input
-                        {...register("email")}
-                        placeholder="Enter your email address"
-                        className={`w-full px-6 py-3 rounded-lg bg-white text-[#2bb673] font-semibold text-lg placeholder-gray-500 focus:outline-none ${errors?.email ? "text-red-600" : "text-green-600"
-                          }`}
-                      />
+                          {...register("email")}
+                          placeholder="Enter your email address"
+                          className={`w-full px-6 py-3 rounded-lg bg-white text-[#2bb673] font-semibold text-lg placeholder-gray-500 focus:outline-none ${errors?.email ? "text-red-600" : "text-green-600"
+                            }`}
+                        />
                         <Button
-                        type="submit"
-                        variant="ghost"
-                        disabled={checkEmailMutation.isPending || !!errors?.email}
-                        className={`px-6 h-auto transition-all duration-300 ${!errors?.email && !checkEmailMutation.isPending
-                          ? "bg-[#2bb673] text-white transform"
-                          : "bg-gray-400/50 text-gray-500 cursor-not-allowed"
-                          }`}
-                      >
-                        {checkEmailMutation.isPending ? (
-                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Image
-                            src="/arrow-vertical.png"
-                            alt="Submit"
-                            width={24}
-                            height={24}
-                            className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1"
-                          />
-                        )}
-                      </Button>
+                          type="submit"
+                          variant="ghost"
+                          disabled={checkEmailMutation.isPending || !!errors?.email}
+                          className={`px-6 h-auto transition-all duration-300 ${!errors?.email && !checkEmailMutation.isPending
+                            ? "bg-[#2bb673] text-white transform"
+                            : "bg-gray-400/50 text-gray-500 cursor-not-allowed"
+                            }`}
+                        >
+                          {checkEmailMutation.isPending ? (
+                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Image
+                              src="/arrow-vertical.png"
+                              alt="Submit"
+                              width={24}
+                              height={24}
+                              className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1"
+                            />
+                          )}
+                        </Button>
                       </div>
                     </div>
                   </div>

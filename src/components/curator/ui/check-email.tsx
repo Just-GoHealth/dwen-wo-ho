@@ -106,19 +106,17 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                     <input
                       {...register("email")}
                       placeholder="curator@justgohealth.com"
-                      className={`flex-1 px-6 py-5 bg-transparent text-gray-700 font-semibold text-lg placeholder-gray-500 focus:outline-none ${
-                        errors?.email ? "text-red-600" : "text-green-600"
-                      }`}
+                      className={`flex-1 px-6 py-5 bg-transparent text-gray-700 font-semibold text-lg placeholder-gray-500 focus:outline-none ${errors?.email ? "text-red-600" : "text-green-600"
+                        }`}
                     />
                     <Button
                       type="submit"
                       variant="ghost"
                       disabled={isLoading}
-                      className={`px-6 h-auto transition-all duration-300 ${
-                        !errors?.email && !isLoading
+                      className={`px-6 h-auto transition-all duration-300 ${!errors?.email && !isLoading
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                           : "bg-gray-400/50 text-gray-500 cursor-not-allowed"
-                      }`}
+                        }`}
                     >
                       {isLoading ? (
                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />

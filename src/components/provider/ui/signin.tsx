@@ -153,7 +153,7 @@ const SignInContent = ({
       </div>
 
       <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="px-24">
-        <h1 className="text-5xl text-center font-extrabold">Sign in to your Account</h1>
+        <h1 className="text-5xl text-center font-extrabold">Sign in to your Accoun</h1>
         <div className="my-16">
           <div className="flex flex-col">
             <input

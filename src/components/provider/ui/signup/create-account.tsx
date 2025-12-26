@@ -97,101 +97,67 @@ const CreateAccount = ({
       <form
         id="create-account-form"
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-md mx-auto space-y-8"
+        className="w-full max-w-xl mx-auto space-y-8"
       >
         {/* Header Section */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-extrabold text-black mb-2">
             Create Your Account
           </h1>
-          <p className="text-gray-600">
-            Join thousands of healthcare providers making a difference
-          </p>
         </div>
 
         {/* Form Fields */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <input
             {...register("email")}
             value={email}
             placeholder="Enter your email address"
-            disabled={!!propEmail}
-            className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
-              propEmail || errors?.email
-                ? "bg-gray-50 text-gray-500 border-gray-300"
-                : email
-                ? "border-green-600 text-green-600"
-                : "border-gray-300 bg-white hover:border-gray-400"
-            }`}
+            disabled
+            className="font-bold w-full rounded-xl text-xl text-gray-500 p-4 bg-gray-200/50 outline-none border-none"
           />
 
-          <FormSelect
-            value={title}
-            onValueChange={handleTitleChange}
-            placeholder="Professional Title"
-            className="!w-full !px-4 !py-3 !text-base !border-2 !border-gray-300 !rounded-lg !bg-white hover:!border-gray-400 focus:!outline-none focus:!ring-2 focus:!ring-purple-500 focus:!border-transparent !transition-colors !font-normal !text-gray-900 !h-auto !p-4"
-          >
-            <div className="py-1">
-              <SelectItem
-                value="Dr."
-                className="px-4 py-3 text-sm font-medium hover:bg-purple-50 focus:bg-purple-50 data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
-              >
-                Dr. (Doctor)
-              </SelectItem>
-              <SelectItem
-                value="Prof."
-                className="px-4 py-3 text-sm font-medium hover:bg-purple-50 focus:bg-purple-50 data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
-              >
-                Prof. (Professor)
-              </SelectItem>
-              <SelectItem
-                value="Mr."
-                className="px-4 py-3 text-sm font-medium hover:bg-purple-50 focus:bg-purple-50 data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
-              >
-                Mr.
-              </SelectItem>
-              <SelectItem
-                value="Mrs."
-                className="px-4 py-3 text-sm font-medium hover:bg-purple-50 focus:bg-purple-50 data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
-              >
-                Mrs.
-              </SelectItem>
-              <SelectItem
-                value="Ms."
-                className="px-4 py-3 text-sm font-medium hover:bg-purple-50 focus:bg-purple-50 data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
-              >
-                Ms.
-              </SelectItem>
-              <SelectItem
-                value="Miss"
-                className="px-4 py-3 text-sm font-medium hover:bg-purple-50 focus:bg-purple-50 data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
-              >
-                Miss
-              </SelectItem>
-              <SelectItem
-                value="Rev."
-                className="px-4 py-3 text-sm font-medium hover:bg-purple-50 focus:bg-purple-50 data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
-              >
-                Rev. (Reverend)
-              </SelectItem>
-            </div>
-          </FormSelect>
+          <div className="space-y-4">
+            <h2 className="text-4xl font-extrabold text-black">
+              Professional Title
+            </h2>
+            <FormSelect
+              value={title}
+              onValueChange={handleTitleChange}
+              placeholder="Professional Title"
+              className="!w-full !rounded-full !text-xl !text-gray-500 !p-4 !bg-gray-200/50 !border-4 !border-gray-400 outline-none !h-auto font-bold"
+            >
+              <div className="py-1">
+                {[
+                  "Dr. (Doctor)",
+                  "Prof. (Professor)",
+                  "Mr.",
+                  "Mrs.",
+                  "Ms.",
+                  "Miss",
+                  "Rev. (Reverend)",
+                ].map((item) => (
+                  <SelectItem
+                    key={item}
+                    value={item.split(" ")[0]}
+                    className="px-4 py-3 text-lg font-medium text-gray-500 data-[state=checked]:bg-[#ed1c24] data-[state=checked]:text-white focus:bg-[#ed1c24] focus:text-white cursor-pointer rounded-none"
+                  >
+                    {item}
+                  </SelectItem>
+                ))}
+              </div>
+            </FormSelect>
+          </div>
 
           <div className="space-y-2">
             <input
               {...register("fullName")}
               placeholder="Full Name"
-              className={`w-full px-4 py-3 text-base border-2 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
-                errors?.fullName
-                  ? "border-red-500 text-red-500"
-                  : fullName
-                  ? "border-green-600 text-green-600"
-                  : "border-gray-300"
-              }`}
+              className={`font-bold w-full rounded-xl text-xl border-4 text-gray-500 p-4 bg-gray-200/50 outline-none focus:border-[#2bb673] transition-colors ${errors?.fullName ? "border-red-500" : "border-gray-400"
+                }`}
             />
             {fullName && title && (
-              <p className="text-center text-purple-600 text-sm font-medium">
-                You are {`${title} ${fullName}`}
+              <p className="text-center text-gray-500 text-xl font-bold mt-2">
+                You are <span className="text-[#955aa4]">{title} {fullName}</span>
               </p>
             )}
           </div>
@@ -201,20 +167,15 @@ const CreateAccount = ({
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Password (6 or more characters)"
-              className={`w-full px-4 py-3 pr-16 text-base border-2 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
-                errors?.password
-                  ? "border-red-500 text-red-500"
-                  : password && password.length >= 6
-                  ? "border-green-600 text-green-600"
-                  : "border-gray-300"
-              }`}
+              className={`font-bold w-full rounded-xl text-xl text-gray-500 p-4 bg-gray-200/50 outline-none border-4 border-gray-400 focus:border-[#2bb673] transition-colors ${errors?.password ? "border-red-500" : "border-gray-400"
+                }`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-600 font-medium text-xs hover:text-purple-700 transition-colors"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-bold text-xs uppercase hover:text-gray-700 transition-colors"
             >
-              {showPassword ? "HIDE" : "SHOW"}
+              {showPassword ? "Hide" : "Show"}
             </button>
           </div>
         </div>
@@ -229,23 +190,23 @@ const CreateAccount = ({
         )}
 
         {/* Terms & Conditions */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-center space-x-3 mt-4">
           <Checkbox
             checked={agreedToTerms}
             onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
-            className="rounded border-2 border-gray-300 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+            className="w-6 h-6 rounded border-2 border-gray-400 data-[state=checked]:bg-transparent data-[state=checked]:text-black"
           />
-          <p className="text-sm text-gray-600">
-            I agree to the{" "}
+          <p className="text-lg font-bold text-gray-500">
+            Agree to{" "}
             <Link
               href="/"
-              className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
+              className="text-[#ed1c24] hover:underline transition-colors"
             >
               Terms & Conditions
             </Link>
           </p>
         </div>
-      </form>
+      </form >
     </>
   );
 };
