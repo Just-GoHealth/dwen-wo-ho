@@ -67,8 +67,8 @@ const NewPasswordContent = () => {
         console.error(response.message || "The provided email is invalid");
       }
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const errorMsg =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (error as any).response?.data?.message || "Sign in failed. Please try again.";
       console.error(errorMsg);
     } finally {

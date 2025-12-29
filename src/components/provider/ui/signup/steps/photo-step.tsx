@@ -91,9 +91,9 @@ const PhotoStep = ({ profilePhoto, onChange }: PhotoStepProps) => {
       setIsPhotoModalOpen(false);
     } catch (error) {
       console.error("Photo upload error:", error);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       toast.error(
-        (error as any)?.message || "Failed to upload photo. Please try again."
+        (error as // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          any)?.message || "Failed to upload photo. Please try again."
       );
     }
   };

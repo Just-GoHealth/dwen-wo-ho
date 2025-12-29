@@ -99,8 +99,8 @@ const SignUpProfile = ({
         setCurrentStep(currentStep + 1);
       } catch (error) {
         console.error("Profile update error:", error);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         toast.error(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (error as any)?.message || "Failed to update profile. Please try again."
         );
       } finally {
@@ -136,8 +136,8 @@ const SignUpProfile = ({
         setShowPendingModal(true);
       } catch (error) {
         console.error("Specialty submission error:", error);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         toast.error(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (error as any)?.message || "Failed to add specialty. Please try again."
         );
       } finally {
