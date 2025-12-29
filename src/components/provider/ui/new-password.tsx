@@ -68,7 +68,7 @@ const NewPasswordContent = () => {
       }
     } catch (error) {
       const errorMsg =
-        error.response?.data?.message || "Sign in failed. Please try again.";
+        (error as any).response?.data?.message || "Sign in failed. Please try again.";
       console.error(errorMsg);
     } finally {
       // setIsLoading(false);

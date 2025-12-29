@@ -53,7 +53,7 @@ const useAuthQuery = () => {
   const updateProfileMutation = useMutation({
     mutationKey: ["auth", "updateProfile"],
     mutationFn: (data: {
-      [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+      [key: string]: unknown;
     }) => updateProfile(data),
   });
 
@@ -124,8 +124,7 @@ const useAuthQuery = () => {
   }
 
   async function updateProfile(data: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    [key: string]: unknown;
   }) {
     return api(ENDPOINTS.updateProfile, {
       method: "POST",

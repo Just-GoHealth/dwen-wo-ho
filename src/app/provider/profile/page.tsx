@@ -101,7 +101,7 @@ const Profile = () => {
       setIsVerified(false);
       setShowPendingModal(true);
     }
-  }, [router, api]);
+  }, [router]);
 
   useEffect(() => {
     checkVerificationStatus();
@@ -236,8 +236,8 @@ const Profile = () => {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                        ? "border-[#955aa4] text-[#955aa4]"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? "border-[#955aa4] text-[#955aa4]"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                       }`}
                   >
                     <Icon className="w-5 h-5" />

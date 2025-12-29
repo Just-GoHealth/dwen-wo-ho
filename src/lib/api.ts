@@ -5,7 +5,7 @@ const API_BASE =
     "https://justgo.up.railway.app";
 
 export async function api(endpoint: string, options: RequestInit = {}) {
-  const token = localStorage.getItem("token");
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
@@ -56,7 +56,7 @@ export async function api(endpoint: string, options: RequestInit = {}) {
       throw new Error(error.message || "API request failed");
     }
     return response.json();
-  } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-    throw new Error(error?.message || "Network error");
+  } catch (error) {
+    throw new Error((error as any)?.message || "Network error");
   }
 }
