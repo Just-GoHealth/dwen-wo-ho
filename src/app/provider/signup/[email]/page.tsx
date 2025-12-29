@@ -52,7 +52,6 @@ const Verify = () => {
         setErrorMessage(response.message || "Verification failed");
       }
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const errorMsg =
         (error as any)?.response?.data?.message ||
         "Verification failed. Please try again.";

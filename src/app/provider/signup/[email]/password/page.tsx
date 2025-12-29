@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { signUpSteps } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
 import Stepper from "@/components/stepper";
-import { api } from "@/lib/api";
+import useAuthQuery from "@/hooks/queries/useAuthQuery";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,16 +21,18 @@ const PasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
+type PasswordFormData = z.infer<typeof PasswordSchema>;
+
 const PasswordSetup = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [signupData, setSignupData] = useState<any>(null);
-  
+
   const params = useParams();
   const { email } = params;
   const router = useRouter();
+  const { signupMutation } = useAuthQuery();
 
   const {
     register,
@@ -46,35 +48,23 @@ const PasswordSetup = () => {
   });
 
   useEffect(() => {
-    // Get signup data from cookies
-    const cookies = document.cookie.split(';');
-    const signupDataCookie = cookies.find(cookie => cookie.trim().startsWith('signupData='));
-    
-    if (signupDataCookie) {
-      try {
-        const data = JSON.parse(signupDataCookie.split('=')[1]);
-        setSignupData(data);
-      } catch (error) {
-        console.error('Error parsing signup data:', error);
-        router.push(ROUTES.provider.signUp);
-      }
-    } else {
-      router.push(ROUTES.provider.signUp);
+    const data = localStorage.getItem("signupData");
+    if (data) {
+      setSignupData(JSON.parse(data));
     }
-  }, [router]);
+  }, []);
 
-  const onSubmit = async (values: z.infer<typeof PasswordSchema>) => {
+  const onSubmit = async (values: PasswordFormData) => {
     if (!signupData) {
       setErrorMessage("Signup data not found. Please start over.");
       return;
     }
 
-    setIsLoading(true);
     setErrorMessage("");
 
     try {
       // Complete the account creation with password
-      const response = await api.createAccount({
+      const response = await signupMutation.mutateAsync({
         email: signupData.email,
         password: values.password,
         fullName: signupData.fullName,
@@ -82,23 +72,21 @@ const PasswordSetup = () => {
       });
 
       if (response.success) {
-        // Clear the signup data cookie
-        document.cookie = 'signupData=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        
+        localStorage.removeItem("signupData");
+
         // Store the token for future API calls
         if (response.data?.token) {
           localStorage.setItem('authToken', response.data.token);
         }
-        
+
         router.push(`${ROUTES.provider.signUp}/${email}/profile`);
       } else {
-        setErrorMessage(response.message || "Password setup failed");
+        setErrorMessage(response.message || "Account creation failed");
       }
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || "Password setup failed. Please try again.";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorMsg = (error as any)?.response?.data?.message || "Account creation failed. Please try again.";
       setErrorMessage(errorMsg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -113,7 +101,7 @@ const PasswordSetup = () => {
           for <span className="text-4xl">Providers</span>
         </p>
       </div>
-      
+
       <form id="password-form" onSubmit={handleSubmit(onSubmit)} className="px-12">
         <h1 className="text-5xl font-extrabold">Set Your Password</h1>
         <div className="my-16 space-y-5">
@@ -125,9 +113,8 @@ const PasswordSetup = () => {
               {...register("password")}
               placeholder="Enter your password (6 or more characters)"
               type={showPassword ? "text" : "password"}
-              className={`font-bold w-full rounded-xl border-4 ${
-                errors?.password?.message ? "border-red-500" : "border-green-600"
-              } text-2xl text-gray-500 p-4 bg-gray-200/50`}
+              className={`font-bold w-full rounded-xl border-4 ${errors?.password?.message ? "border-red-500" : "border-green-600"
+                } text-2xl text-gray-500 p-4 bg-gray-200/50`}
             />
             <button
               type="button"
@@ -149,9 +136,8 @@ const PasswordSetup = () => {
               {...register("confirmPassword")}
               placeholder="Confirm your password"
               type={showConfirmPassword ? "text" : "password"}
-              className={`font-bold w-full rounded-xl border-4 ${
-                errors?.confirmPassword?.message ? "border-red-500" : "border-green-600"
-              } text-2xl text-gray-500 p-4 bg-gray-200/50`}
+              className={`font-bold w-full rounded-xl border-4 ${errors?.confirmPassword?.message ? "border-red-500" : "border-green-600"
+                } text-2xl text-gray-500 p-4 bg-gray-200/50`}
             />
             <button
               type="button"
@@ -184,17 +170,16 @@ const PasswordSetup = () => {
         <button
           form="password-form"
           type="submit"
-          disabled={!password || !confirmPassword || isLoading}
-          className={`text-xl px-6 py-2 border-4 font-bold rounded-md flex items-center gap-2 ${
-            password && confirmPassword && !isLoading
+          disabled={!password || !confirmPassword || signupMutation.isPending}
+          className={`text-xl px-6 py-2 border-4 font-bold rounded-md flex items-center gap-2 ${password && confirmPassword && !signupMutation.isPending
               ? "border-[#955aa4] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
               : "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
-          }`}
+            }`}
         >
-          {isLoading && (
+          {signupMutation.isPending && (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           )}
-          {isLoading ? "Setting Password..." : "Next"}
+          {signupMutation.isPending ? "Setting Password..." : "Next"}
         </button>
       </div>
     </div>
