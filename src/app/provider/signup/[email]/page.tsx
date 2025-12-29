@@ -10,15 +10,15 @@ import { formatTime, signUpSteps } from "@/lib/utils";
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
 import Stepper from "@/components/stepper";
-import { api } from "@/lib/api";
+import useAuthQuery from "@/hooks/queries/useAuthQuery";
 
 const Verify = () => {
   const [isRunning, setIsRunning] = useState(true);
   const [seconds, setSeconds] = useState(120); // 2 minutes
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const params = useParams();
   const { email } = params;
+  const { verifyEmailMutation } = useAuthQuery();
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -37,11 +37,10 @@ const Verify = () => {
   const router = useRouter();
 
   const handleOTPComplete = async (value: string) => {
-    setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const response = await api.submitSignupCode({
+      const response = await verifyEmailMutation.mutateAsync({
         code: value,
         email: decodeURIComponent(email as string),
       });
@@ -52,13 +51,12 @@ const Verify = () => {
       } else {
         setErrorMessage(response.message || "Verification failed");
       }
-    } catch (error: any) {
+    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const errorMsg =
-        error.response?.data?.message ||
+        (error as any)?.response?.data?.message ||
         "Verification failed. Please try again.";
       setErrorMessage(errorMsg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -91,7 +89,7 @@ const Verify = () => {
           </div>
           {/* OTP Input Section */}
           <div className="text-center space-y-6">
-            {isLoading ? (
+            {verifyEmailMutation.isPending ? (
               <div className="flex flex-col items-center gap-4">
                 <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
                 <p className="text-gray-600 font-medium">
