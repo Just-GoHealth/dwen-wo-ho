@@ -84,7 +84,6 @@ const PasswordSetup = () => {
         setErrorMessage(response.message || "Account creation failed");
       }
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const errorMsg = (error as any)?.response?.data?.message || "Account creation failed. Please try again.";
       setErrorMessage(errorMsg);
     }
@@ -172,8 +171,8 @@ const PasswordSetup = () => {
           type="submit"
           disabled={!password || !confirmPassword || signupMutation.isPending}
           className={`text-xl px-6 py-2 border-4 font-bold rounded-md flex items-center gap-2 ${password && confirmPassword && !signupMutation.isPending
-              ? "border-[#955aa4] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
-              : "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
+            ? "border-[#955aa4] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
+            : "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
             }`}
         >
           {signupMutation.isPending && (

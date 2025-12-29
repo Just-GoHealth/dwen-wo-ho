@@ -112,7 +112,11 @@ const ProviderDetailsModal = ({
       if (!token) return;
 
       // Load provider details
-      const response = await api.getProvider(providerEmail, { token });
+      const response = await api(`/api/v1/curator/providers/${providerEmail}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.success) {
         setProvider(response.data);
       } else {
@@ -154,7 +158,7 @@ const ProviderDetailsModal = ({
     } finally {
       setIsLoading(false);
     }
-  }, [providerEmail, api]);
+  }, [providerEmail, mockSchools, mockPartners]);
 
   useEffect(() => {
     if (isOpen && providerEmail) {
@@ -244,10 +248,9 @@ const ProviderDetailsModal = ({
                 <p className="text-sm sm:text-base lg:text-lg text-gray-700 mt-1">
                   📞 {provider?.officePhoneNumber}
                 </p>
-                <p className="text-sm sm:text-base lg:text-lg text-gray-700 mt-1 break-words">{`Status: "${
-                  provider?.status ||
+                <p className="text-sm sm:text-base lg:text-lg text-gray-700 mt-1 break-words">{`Status: "${provider?.status ||
                   "We're all alone in this together. Let's talk!"
-                }"`}</p>
+                  }"`}</p>
               </div>
             </div>
           </div>
