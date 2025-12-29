@@ -63,9 +63,9 @@ const VerifyContent = ({
         } else {
           console.error(response.message || "The provided email is invalid");
         }
-      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+      } catch (error) {
         const errorMsg =
-          error.response?.data?.message || "Sign in failed. Please try again.";
+          (error as any)?.response?.data?.message || "Sign in failed. Please try again.";
         console.error(errorMsg);
       } finally {
         // setIsLoading(false);

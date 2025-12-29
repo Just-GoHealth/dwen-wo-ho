@@ -97,10 +97,10 @@ const SignUpProfile = ({
 
         toast.success("Profile updated successfully!");
         setCurrentStep(currentStep + 1);
-      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+      } catch (error) {
         console.error("Profile update error:", error);
         toast.error(
-          error?.message || "Failed to update profile. Please try again."
+          (error as any)?.message || "Failed to update profile. Please try again."
         );
       } finally {
         setIsSubmitting(false);
@@ -133,10 +133,10 @@ const SignUpProfile = ({
         });
 
         setShowPendingModal(true);
-      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+      } catch (error) {
         console.error("Specialty submission error:", error);
         toast.error(
-          error?.message || "Failed to add specialty. Please try again."
+          (error as any)?.message || "Failed to add specialty. Please try again."
         );
       } finally {
         setIsSubmitting(false);
