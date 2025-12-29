@@ -51,7 +51,7 @@ export default function DashboardLayout({
           setShowSchoolModal(false);
           setShowCreateModal(true);
         }}
-        onSchoolCreated={(school) => {
+        onSchoolCreated={() => {
           setShowSchoolModal(false);
           setShowCreateModal(true);
         }}

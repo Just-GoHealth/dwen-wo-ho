@@ -5,7 +5,7 @@ import { MdSchool } from "react-icons/md";
 import Image from "next/image";
 import WidthConstraint from "@/components/ui/width-constraint";
 import { useSchoolsQuery } from "@/hooks/queries/useSchoolsQuery";
-import { School } from "@/types/school";
+
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
 

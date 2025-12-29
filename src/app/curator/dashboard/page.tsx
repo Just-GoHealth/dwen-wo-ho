@@ -3,21 +3,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import JustGoHealth from "@/components/logo-purple";
-import { Button } from "@/components/ui/button";
+
 import { api } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { ROUTES } from "@/constants/routes";
 import {
   FiChevronDown,
   FiX,
-  FiHome,
-  FiUsers,
-  FiFileText,
-  FiPlus,
-  FiLogOut,
-  FiArrowRight,
-  FiMenu,
+
 } from "react-icons/fi";
 import { MdSchool, MdHealthAndSafety } from "react-icons/md";
 import SchoolCreationModal from "@/components/modals/school-creation";
@@ -27,7 +20,7 @@ import LineupModal from "@/components/modals/lineup";
 import PartnerCreationModal from "@/components/modals/partner-creation";
 import ProviderDetailsModal from "@/components/modals/provider-details";
 import Image from "next/image";
-import { CuratorSidebar } from "@/components/curator/ui/sidebar";
+
 
 interface School {
   id: string;
@@ -50,6 +43,117 @@ interface Provider {
   lastActive?: string;
 }
 
+const mockSchools: School[] = [
+  {
+    id: "1",
+    name: "Achimota High School",
+    status: "Active",
+    lastActivity: "2m ago",
+    activityType: "New Visit",
+    avatar: "/auth/lawyer.jpg",
+  },
+  {
+    id: "2",
+    name: "Ashesi University",
+    status: "Active",
+    lastActivity: "2d ago",
+    activityType: "New Provider",
+  },
+  {
+    id: "3",
+    name: "Korle-Bu NMTC",
+    status: "Inactive",
+    lastActivity: "2h ago",
+    activityType: "New Screen",
+    avatar: "/auth/man.jpg",
+  },
+  {
+    id: "4",
+    name: "Accra Technical Uni.",
+    status: "Active",
+    lastActivity: "Now",
+    activityType: "New Results",
+  },
+  {
+    id: "5",
+    name: "KNUST",
+    status: "Inactive",
+    lastActivity: "2w ago",
+    activityType: "Provider Visit",
+  },
+  {
+    id: "6",
+    name: "Achimota High School",
+    status: "Active",
+    lastActivity: "2m ago",
+    activityType: "New Visit",
+    avatar: "/auth/lawyer.jpg",
+  },
+];
+
+const mockProviders: Provider[] = [
+  {
+    id: "1",
+    email: "frances.kwame@example.com",
+    fullName: "Dr. Frances Kwame Nkrumah",
+    professionalTitle: "Clinical Psychologist",
+    status: "Active",
+    createdAt: "2024-01-15T10:30:00Z",
+    updatedAt: "2024-01-15T10:30:00Z",
+    lastActive: "2m ago",
+  },
+  {
+    id: "2",
+    email: "emily.owusu@example.com",
+    fullName: "Prof. Emily Owusu",
+    professionalTitle: "Clinical Psychologist",
+    status: "Active",
+    createdAt: "2024-01-14T14:20:00Z",
+    updatedAt: "2024-01-14T14:20:00Z",
+    lastActive: "3m ago",
+  },
+  {
+    id: "3",
+    email: "hannah.asan@example.com",
+    fullName: "Ms. Hannah Yaa Asante",
+    professionalTitle: "Mental Health Nurse",
+    status: "Active",
+    createdAt: "2024-01-13T09:15:00Z",
+    updatedAt: "2024-01-13T09:15:00Z",
+    lastActive: "5m ago",
+  },
+  {
+    id: "4",
+    email: "john.doe@example.com",
+    fullName: "Dr. John Doe",
+    professionalTitle: "Psychiatrist",
+    status: "Active",
+    createdAt: "2024-01-12T16:45:00Z",
+    updatedAt: "2024-01-12T16:45:00Z",
+    lastActive: "1h ago",
+  },
+  {
+    id: "5",
+    email: "sarah.smith@example.com",
+    fullName: "Ms. Sarah Smith",
+    professionalTitle: "Therapist",
+    status: "Active",
+    createdAt: "2024-01-11T11:30:00Z",
+    updatedAt: "2024-01-11T11:30:00Z",
+    lastActive: "2h ago",
+  },
+  {
+    id: "6",
+    email: "michael.brown@example.com",
+    fullName: "Dr. Michael Brown",
+    professionalTitle: "Family Medicine",
+    status: "Inactive",
+    createdAt: "2024-01-10T13:20:00Z",
+    updatedAt: "2024-01-10T13:20:00Z",
+    lastActive: "1d ago",
+  },
+];
+
 const CuratorDashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [filter, setFilter] = useState("All");
@@ -63,7 +167,7 @@ const CuratorDashboard = () => {
   const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -73,129 +177,19 @@ const CuratorDashboard = () => {
     }
   }, []);
 
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    localStorage.setItem("curatorActiveTab", tab);
-  };
+
 
   const handleProviderSelect = (providerEmail: string) => {
     setSelectedProviderEmail(providerEmail);
     setShowProviderModal(true);
   };
 
-  const mockSchools: School[] = [
-    {
-      id: "1",
-      name: "Achimota High School",
-      status: "Active",
-      lastActivity: "2m ago",
-      activityType: "New Visit",
-      avatar: "/auth/lawyer.jpg",
-    },
-    {
-      id: "2",
-      name: "Ashesi University",
-      status: "Active",
-      lastActivity: "2d ago",
-      activityType: "New Provider",
-    },
-    {
-      id: "3",
-      name: "Korle-Bu NMTC",
-      status: "Inactive",
-      lastActivity: "2h ago",
-      activityType: "New Screen",
-      avatar: "/auth/man.jpg",
-    },
-    {
-      id: "4",
-      name: "Accra Technical Uni.",
-      status: "Active",
-      lastActivity: "Now",
-      activityType: "New Results",
-    },
-    {
-      id: "5",
-      name: "KNUST",
-      status: "Inactive",
-      lastActivity: "2w ago",
-      activityType: "Provider Visit",
-    },
-    {
-      id: "6",
-      name: "Achimota High School",
-      status: "Active",
-      lastActivity: "2m ago",
-      activityType: "New Visit",
-      avatar: "/auth/lawyer.jpg",
-    },
-  ];
+
 
   const [schools] = useState<School[]>(mockSchools);
   const [providers, setProviders] = useState<Provider[]>([]);
 
-  const mockProviders: Provider[] = [
-    {
-      id: "1",
-      email: "frances.kwame@example.com",
-      fullName: "Dr. Frances Kwame Nkrumah",
-      professionalTitle: "Clinical Psychologist",
-      status: "Active",
-      createdAt: "2024-01-15T10:30:00Z",
-      updatedAt: "2024-01-15T10:30:00Z",
-      lastActive: "2m ago",
-    },
-    {
-      id: "2",
-      email: "emily.owusu@example.com",
-      fullName: "Prof. Emily Owusu",
-      professionalTitle: "Clinical Psychologist",
-      status: "Active",
-      createdAt: "2024-01-14T14:20:00Z",
-      updatedAt: "2024-01-14T14:20:00Z",
-      lastActive: "3m ago",
-    },
-    {
-      id: "3",
-      email: "hannah.asan@example.com",
-      fullName: "Ms. Hannah Yaa Asante",
-      professionalTitle: "Mental Health Nurse",
-      status: "Active",
-      createdAt: "2024-01-13T09:15:00Z",
-      updatedAt: "2024-01-13T09:15:00Z",
-      lastActive: "5m ago",
-    },
-    {
-      id: "4",
-      email: "john.doe@example.com",
-      fullName: "Dr. John Doe",
-      professionalTitle: "Psychiatrist",
-      status: "Active",
-      createdAt: "2024-01-12T16:45:00Z",
-      updatedAt: "2024-01-12T16:45:00Z",
-      lastActive: "1h ago",
-    },
-    {
-      id: "5",
-      email: "sarah.smith@example.com",
-      fullName: "Ms. Sarah Smith",
-      professionalTitle: "Therapist",
-      status: "Active",
-      createdAt: "2024-01-11T11:30:00Z",
-      updatedAt: "2024-01-11T11:30:00Z",
-      lastActive: "2h ago",
-    },
-    {
-      id: "6",
-      email: "michael.brown@example.com",
-      fullName: "Dr. Michael Brown",
-      professionalTitle: "Family Medicine",
-      status: "Inactive",
-      createdAt: "2024-01-10T13:20:00Z",
-      updatedAt: "2024-01-10T13:20:00Z",
-      lastActive: "1d ago",
-    },
-  ];
+
 
   useEffect(() => {
     const loadProviders = async () => {
@@ -361,8 +355,8 @@ const CuratorDashboard = () => {
                   <div className="flex justify-center">
                     <div
                       className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${school.status === "Active"
-                          ? "bg-green-100 text-green-700 border border-green-200"
-                          : "bg-gray-100 text-gray-600 border border-gray-200"
+                        ? "bg-green-100 text-green-700 border border-green-200"
+                        : "bg-gray-100 text-gray-600 border border-gray-200"
                         }`}
                     >
                       {school.status}
@@ -397,10 +391,10 @@ const CuratorDashboard = () => {
                   <div className="flex justify-center">
                     <div
                       className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${provider.status === "Active"
-                          ? "bg-green-100 text-green-700 border border-green-200"
-                          : provider.status === "Inactive"
-                            ? "bg-gray-100 text-gray-600 border border-gray-200"
-                            : "bg-gray-100 text-gray-600 border border-gray-200"
+                        ? "bg-green-100 text-green-700 border border-green-200"
+                        : provider.status === "Inactive"
+                          ? "bg-gray-100 text-gray-600 border border-gray-200"
+                          : "bg-gray-100 text-gray-600 border border-gray-200"
                         }`}
                     >
                       {provider.status}

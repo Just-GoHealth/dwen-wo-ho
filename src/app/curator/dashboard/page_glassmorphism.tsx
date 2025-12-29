@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import JustGoHealth from "@/components/logo-purple";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { ENDPOINTS } from "@/constants/endpoints";
 import { ROUTES } from "@/constants/routes";
 import { ChevronDown, Plus, X } from "lucide-react";
 import SchoolCreationModal from "@/components/modals/school-creation";
@@ -36,6 +37,117 @@ interface Provider {
   updatedAt: string;
   lastActive?: string;
 }
+
+const mockSchools: School[] = [
+  {
+    id: "1",
+    name: "Achimota High School",
+    status: "Active",
+    lastActivity: "2m ago",
+    activityType: "New Visit",
+    avatar: "/auth/lawyer.jpg",
+  },
+  {
+    id: "2",
+    name: "Ashesi University",
+    status: "Active",
+    lastActivity: "2d ago",
+    activityType: "New Provider",
+  },
+  {
+    id: "3",
+    name: "Korle-Bu NMTC",
+    status: "Inactive",
+    lastActivity: "2h ago",
+    activityType: "New Screen",
+    avatar: "/auth/man.jpg",
+  },
+  {
+    id: "4",
+    name: "Accra Technical Uni.",
+    status: "Active",
+    lastActivity: "Now",
+    activityType: "New Results",
+  },
+  {
+    id: "5",
+    name: "KNUST",
+    status: "Inactive",
+    lastActivity: "2w ago",
+    activityType: "Provider Visit",
+  },
+  {
+    id: "6",
+    name: "Achimota High School",
+    status: "Active",
+    lastActivity: "2m ago",
+    activityType: "New Visit",
+    avatar: "/auth/lawyer.jpg",
+  },
+];
+
+const mockProviders: Provider[] = [
+  {
+    id: "1",
+    email: "frances.kwame@example.com",
+    fullName: "Dr. Frances Kwame Nkrumah",
+    professionalTitle: "Clinical Psychologist",
+    status: "Active",
+    createdAt: "2024-01-15T10:30:00Z",
+    updatedAt: "2024-01-15T10:30:00Z",
+    lastActive: "2m ago",
+  },
+  {
+    id: "2",
+    email: "emily.owusu@example.com",
+    fullName: "Prof. Emily Owusu",
+    professionalTitle: "Clinical Psychologist",
+    status: "Active",
+    createdAt: "2024-01-14T14:20:00Z",
+    updatedAt: "2024-01-14T14:20:00Z",
+    lastActive: "3m ago",
+  },
+  {
+    id: "3",
+    email: "hannah.asan@example.com",
+    fullName: "Ms. Hannah Yaa Asante",
+    professionalTitle: "Mental Health Nurse",
+    status: "Active",
+    createdAt: "2024-01-13T09:15:00Z",
+    updatedAt: "2024-01-13T09:15:00Z",
+    lastActive: "5m ago",
+  },
+  {
+    id: "4",
+    email: "john.doe@example.com",
+    fullName: "Dr. John Doe",
+    professionalTitle: "Psychiatrist",
+    status: "Active",
+    createdAt: "2024-01-12T16:45:00Z",
+    updatedAt: "2024-01-12T16:45:00Z",
+    lastActive: "1h ago",
+  },
+  {
+    id: "5",
+    email: "sarah.smith@example.com",
+    fullName: "Ms. Sarah Smith",
+    professionalTitle: "Therapist",
+    status: "Active",
+    createdAt: "2024-01-11T11:30:00Z",
+    updatedAt: "2024-01-11T11:30:00Z",
+    lastActive: "2h ago",
+  },
+  {
+    id: "6",
+    email: "michael.brown@example.com",
+    fullName: "Dr. Michael Brown",
+    professionalTitle: "Family Medicine",
+    status: "Inactive",
+    createdAt: "2024-01-10T13:20:00Z",
+    updatedAt: "2024-01-10T13:20:00Z",
+    lastActive: "1d ago",
+  },
+];
 
 const CuratorDashboard = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -69,119 +181,12 @@ const CuratorDashboard = () => {
     setShowProviderModal(true);
   };
 
-  const mockSchools: School[] = [
-    {
-      id: "1",
-      name: "Achimota High School",
-      status: "Active",
-      lastActivity: "2m ago",
-      activityType: "New Visit",
-      avatar: "/auth/lawyer.jpg",
-    },
-    {
-      id: "2",
-      name: "Ashesi University",
-      status: "Active",
-      lastActivity: "2d ago",
-      activityType: "New Provider",
-    },
-    {
-      id: "3",
-      name: "Korle-Bu NMTC",
-      status: "Inactive",
-      lastActivity: "2h ago",
-      activityType: "New Screen",
-      avatar: "/auth/man.jpg",
-    },
-    {
-      id: "4",
-      name: "Accra Technical Uni.",
-      status: "Active",
-      lastActivity: "Now",
-      activityType: "New Results",
-    },
-    {
-      id: "5",
-      name: "KNUST",
-      status: "Inactive",
-      lastActivity: "2w ago",
-      activityType: "Provider Visit",
-    },
-    {
-      id: "6",
-      name: "Achimota High School",
-      status: "Active",
-      lastActivity: "2m ago",
-      activityType: "New Visit",
-      avatar: "/auth/lawyer.jpg",
-    },
-  ];
+
 
   const [schools] = useState<School[]>(mockSchools);
   const [providers, setProviders] = useState<Provider[]>([]);
 
-  const mockProviders: Provider[] = [
-    {
-      id: "1",
-      email: "frances.kwame@example.com",
-      fullName: "Dr. Frances Kwame Nkrumah",
-      professionalTitle: "Clinical Psychologist",
-      status: "Active",
-      createdAt: "2024-01-15T10:30:00Z",
-      updatedAt: "2024-01-15T10:30:00Z",
-      lastActive: "2m ago",
-    },
-    {
-      id: "2",
-      email: "emily.owusu@example.com",
-      fullName: "Prof. Emily Owusu",
-      professionalTitle: "Clinical Psychologist",
-      status: "Active",
-      createdAt: "2024-01-14T14:20:00Z",
-      updatedAt: "2024-01-14T14:20:00Z",
-      lastActive: "3m ago",
-    },
-    {
-      id: "3",
-      email: "hannah.asan@example.com",
-      fullName: "Ms. Hannah Yaa Asante",
-      professionalTitle: "Mental Health Nurse",
-      status: "Active",
-      createdAt: "2024-01-13T09:15:00Z",
-      updatedAt: "2024-01-13T09:15:00Z",
-      lastActive: "5m ago",
-    },
-    {
-      id: "4",
-      email: "john.doe@example.com",
-      fullName: "Dr. John Doe",
-      professionalTitle: "Psychiatrist",
-      status: "Active",
-      createdAt: "2024-01-12T16:45:00Z",
-      updatedAt: "2024-01-12T16:45:00Z",
-      lastActive: "1h ago",
-    },
-    {
-      id: "5",
-      email: "sarah.smith@example.com",
-      fullName: "Ms. Sarah Smith",
-      professionalTitle: "Therapist",
-      status: "Active",
-      createdAt: "2024-01-11T11:30:00Z",
-      updatedAt: "2024-01-11T11:30:00Z",
-      lastActive: "2h ago",
-    },
-    {
-      id: "6",
-      email: "michael.brown@example.com",
-      fullName: "Dr. Michael Brown",
-      professionalTitle: "Family Medicine",
-      status: "Inactive",
-      createdAt: "2024-01-10T13:20:00Z",
-      updatedAt: "2024-01-10T13:20:00Z",
-      lastActive: "1d ago",
-    },
-  ];
+
 
   useEffect(() => {
     const loadProviders = async () => {
@@ -197,7 +202,9 @@ const CuratorDashboard = () => {
           return;
         }
 
-        const response = await api.getProviders({ token });
+        const response = await api(ENDPOINTS.providers, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         if (response.success) {
           setProviders(response.data || []);
@@ -211,7 +218,7 @@ const CuratorDashboard = () => {
     };
 
     loadProviders();
-  }, [router, mockProviders]);
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem("curatorToken");
@@ -245,11 +252,10 @@ const CuratorDashboard = () => {
             <nav className="space-y-4">
               <button
                 onClick={() => handleTabChange("home")}
-                className={`w-full text-left px-6 py-4 font-bold transition-all duration-300 transform hover:scale-105 ${
-                  activeTab === "home"
-                    ? "bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-lg rounded-2xl"
-                    : "text-gray-700 hover:bg-white/20 rounded-xl backdrop-blur-sm"
-                }`}>
+                className={`w-full text-left px-6 py-4 font-bold transition-all duration-300 transform hover:scale-105 ${activeTab === "home"
+                  ? "bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-lg rounded-2xl"
+                  : "text-gray-700 hover:bg-white/20 rounded-xl backdrop-blur-sm"
+                  }`}>
                 <div className="flex items-center justify-between">
                   <span className="text-xl">🏠 Schools</span>
                   <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
@@ -260,11 +266,10 @@ const CuratorDashboard = () => {
 
               <button
                 onClick={() => handleTabChange("providers")}
-                className={`w-full text-left px-6 py-4 font-bold transition-all duration-300 transform hover:scale-105 ${
-                  activeTab === "providers"
-                    ? "bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-lg rounded-2xl"
-                    : "text-gray-700 hover:bg-white/20 rounded-xl backdrop-blur-sm"
-                }`}>
+                className={`w-full text-left px-6 py-4 font-bold transition-all duration-300 transform hover:scale-105 ${activeTab === "providers"
+                  ? "bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-lg rounded-2xl"
+                  : "text-gray-700 hover:bg-white/20 rounded-xl backdrop-blur-sm"
+                  }`}>
                 <div className="flex items-center justify-between">
                   <span className="text-xl">👩‍⚕️ Providers</span>
                   <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
@@ -368,81 +373,79 @@ const CuratorDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {activeTab === "home"
                 ? filteredSchools.map((school) => (
-                    <div
-                      key={school.id}
-                      className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center overflow-hidden shadow-lg">
-                          {school.avatar ? (
-                            <Image
-                              width={56}
-                              height={56}
-                              src={school.avatar}
-                              alt={school.name}
-                              className="w-full h-full object-cover rounded-2xl"
-                            />
-                          ) : (
-                            <span className="text-white text-2xl">🏫</span>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg text-gray-800 group-hover:text-purple-600 transition-colors">
-                            {school.name}
-                          </h3>
-                          <p className="text-red-500 text-sm font-medium">
-                            📍 {school.activityType} • {school.lastActivity}
-                          </p>
-                        </div>
+                  <div
+                    key={school.id}
+                    className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center overflow-hidden shadow-lg">
+                        {school.avatar ? (
+                          <Image
+                            width={56}
+                            height={56}
+                            src={school.avatar}
+                            alt={school.name}
+                            className="w-full h-full object-cover rounded-2xl"
+                          />
+                        ) : (
+                          <span className="text-white text-2xl">🏫</span>
+                        )}
                       </div>
-                      <div className="flex justify-center">
-                        <button
-                          className={`px-6 py-2 rounded-xl font-bold text-sm shadow-lg transform hover:scale-105 transition-all duration-300 ${
-                            school.status === "Active"
-                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-                              : "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
-                          }`}>
-                          {school.status}
-                        </button>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-gray-800 group-hover:text-purple-600 transition-colors">
+                          {school.name}
+                        </h3>
+                        <p className="text-red-500 text-sm font-medium">
+                          📍 {school.activityType} • {school.lastActivity}
+                        </p>
                       </div>
                     </div>
-                  ))
+                    <div className="flex justify-center">
+                      <button
+                        className={`px-6 py-2 rounded-xl font-bold text-sm shadow-lg transform hover:scale-105 transition-all duration-300 ${school.status === "Active"
+                          ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                          : "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
+                          }`}>
+                        {school.status}
+                      </button>
+                    </div>
+                  </div>
+                ))
                 : filteredProviders.map((provider) => (
-                    <div
-                      key={provider.id}
-                      onClick={() => handleProviderSelect(provider.email)}
-                      className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer group">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center overflow-hidden shadow-lg">
-                          <span className="text-white text-2xl">👩‍⚕️</span>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg text-gray-800 group-hover:text-purple-600 transition-colors">
-                            {provider.fullName}
-                          </h3>
-                          <p className="text-gray-600 text-sm font-medium">
-                            {provider.professionalTitle}
-                          </p>
-                          {provider.lastActive && (
-                            <p className="text-red-500 text-sm">
-                              🕒 {provider.lastActive}
-                            </p>
-                          )}
-                        </div>
+                  <div
+                    key={provider.id}
+                    onClick={() => handleProviderSelect(provider.email)}
+                    className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer group">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center overflow-hidden shadow-lg">
+                        <span className="text-white text-2xl">👩‍⚕️</span>
                       </div>
-                      <div className="flex justify-center">
-                        <div
-                          className={`px-6 py-2 rounded-xl font-bold text-sm text-center shadow-lg transform hover:scale-105 transition-all duration-300 ${
-                            provider.status === "Active"
-                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-                              : provider.status === "Inactive"
-                              ? "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
-                              : "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
-                          }`}>
-                          {provider.status}
-                        </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-gray-800 group-hover:text-purple-600 transition-colors">
+                          {provider.fullName}
+                        </h3>
+                        <p className="text-gray-600 text-sm font-medium">
+                          {provider.professionalTitle}
+                        </p>
+                        {provider.lastActive && (
+                          <p className="text-red-500 text-sm">
+                            🕒 {provider.lastActive}
+                          </p>
+                        )}
                       </div>
                     </div>
-                  ))}
+                    <div className="flex justify-center">
+                      <div
+                        className={`px-6 py-2 rounded-xl font-bold text-sm text-center shadow-lg transform hover:scale-105 transition-all duration-300 ${provider.status === "Active"
+                          ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                          : provider.status === "Inactive"
+                            ? "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
+                            : "bg-gradient-to-r from-gray-400 to-gray-500 text-white"
+                          }`}>
+                        {provider.status}
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
