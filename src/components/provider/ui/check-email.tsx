@@ -1,9 +1,7 @@
 "use client";
 
 import JustGoHealth from "@/components/logo-purple";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import Image from "next/image";
 import { ROUTES } from "@/constants/routes";
@@ -22,7 +20,7 @@ interface CheckEmailProps {
 
 const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
   const [errorMessage, setErrorMessage] = useState("");
-  const router = useRouter();
+
   const { checkEmailMutation } = useAuthQuery();
 
   const checkEmailExists = async (email: string) => {
@@ -35,7 +33,7 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
       } else {
         setErrorMessage(response.message || "Failed to verify email");
       }
-    } catch (error: any) {
+    } catch (error) {
       if (
         error.message === "User not found" ||
         error.response?.data?.message === "User not found"
@@ -52,12 +50,12 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
     }
   };
 
-  const { register, handleSubmit, errors, watch } =
+  const { register, handleSubmit, errors } =
     useSelectedValuesFromReactHookForm(ProviderEmailSchema, {
       mode: "onChange",
     });
 
-  const emailValue = watch("email");
+
 
   const onSubmit = (values: ProviderEmailFormData) => {
     checkEmailExists(values.email);

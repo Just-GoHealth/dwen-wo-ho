@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,7 @@ const SignUpProfile = ({
 
         toast.success("Profile updated successfully!");
         setCurrentStep(currentStep + 1);
-      } catch (error: any) {
+      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error("Profile update error:", error);
         toast.error(
           error?.message || "Failed to update profile. Please try again."
@@ -133,7 +133,7 @@ const SignUpProfile = ({
         });
 
         setShowPendingModal(true);
-      } catch (error: any) {
+      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error("Specialty submission error:", error);
         toast.error(
           error?.message || "Failed to add specialty. Please try again."

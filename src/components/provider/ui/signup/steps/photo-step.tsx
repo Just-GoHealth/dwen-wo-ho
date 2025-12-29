@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -89,7 +89,7 @@ const PhotoStep = ({ profilePhoto, onChange }: PhotoStepProps) => {
 
       toast.success("Photo uploaded successfully!");
       setIsPhotoModalOpen(false);
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       console.error("Photo upload error:", error);
       toast.error(
         error?.message || "Failed to upload photo. Please try again."

@@ -6,7 +6,7 @@ import { useEffect, useState, Suspense } from "react";
 import { ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+
 import PendingVerificationModal from "@/components/modals/pending-verification";
 import { useSelectedValuesFromReactHookForm } from "@/hooks/forms/useSelectedValuesFromReactHookForm";
 import {
@@ -201,7 +201,7 @@ const SignInContent = ({
 
         <div className="text-center mt-6 flex justify-center items-center gap-2">
           <span className="text-gray-500 font-semibold text-lg">
-            Don't remember password?
+            Don&apos;t remember password?
           </span>
           <button
             type="button"

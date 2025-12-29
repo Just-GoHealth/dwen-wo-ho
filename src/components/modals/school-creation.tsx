@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import JustGoHealth from "@/components/logo-purple";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Upload, X } from "lucide-react";
-import { useSchoolsQuery } from "@/hooks/queries/useSchoolsQuery";
+import Image from "next/image";
+import { useCreateSchool } from "@/hooks/queries/useSchoolsQuery";
 import { ICreateSchool } from "@/types/school";
 
 interface SchoolCreationModalProps {
@@ -52,7 +53,7 @@ const SchoolCreationModal = ({
     logo: undefined,
   });
 
-  const { createSchoolMutation } = useSchoolsQuery();
+  const createSchoolMutation = useCreateSchool();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -224,11 +225,10 @@ const SchoolCreationModal = ({
                         key={type}
                         type="button"
                         onClick={() => handleInputChange("type", type)}
-                        className={`px-6 py-2 rounded-lg font-bold transition-colors ${
-                          formData.type === type
-                            ? "bg-[#955aa4] text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                        className={`px-6 py-2 rounded-lg font-bold transition-colors ${formData.type === type
+                          ? "bg-[#955aa4] text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
                       >
                         {type}
                       </button>
@@ -244,9 +244,11 @@ const SchoolCreationModal = ({
                   <div className="flex-1">
                     {formData.logo ? (
                       <div className="relative inline-block">
-                        <img
-                          src={formData.logo}
+                        <Image
+                          src={URL.createObjectURL(formData.logo)}
                           alt="Uploaded logo"
+                          width={128}
+                          height={128}
                           className="w-32 h-32 object-cover rounded-lg border shadow-sm"
                         />
                         <button

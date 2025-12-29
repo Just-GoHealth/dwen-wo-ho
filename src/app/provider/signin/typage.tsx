@@ -13,6 +13,7 @@ import Link from "next/link";
 import useGetSearchParams from "@/hooks/useGetSearchParams";
 import { useEffect, useState, Suspense } from "react";
 import { ROUTES } from "@/constants/routes";
+import { ENDPOINTS } from "@/constants/endpoints";
 import { api } from "@/lib/api";
 import PendingVerificationModal from "@/components/modals/pending-verification";
 
@@ -56,7 +57,10 @@ const SignInContent = () => {
     setErrorMessage("");
 
     try {
-      const response = await api.signIn(values);
+      const response = await api(ENDPOINTS.login, {
+        method: "POST",
+        body: JSON.stringify(values),
+      });
 
       if (response.success) {
         // Store token if needed
@@ -73,7 +77,7 @@ const SignInContent = () => {
           });
           setShowPendingModal(true);
         } else {
-          console;
+          // console.log("Login success");
           router.push("/provider/profile");
         }
       } else {
@@ -133,7 +137,7 @@ const SignInContent = () => {
               value={email as string}
               placeholder={email as string}
               disabled
-              className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-500 bg-gray-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg text-gray-500 bg-gray-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
@@ -148,11 +152,10 @@ const SignInContent = () => {
                 onChange={handlePasswordChange}
                 placeholder="Enter your password"
                 type={showPassword ? "text" : "password"}
-                className={`w-full px-4 py-3 pr-16 text-base border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
-                  errors?.password?.message
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-300 bg-white hover:border-gray-400"
-                }`}
+                className={`w-full px-4 py-3 pr-16 text-base border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${errors?.password?.message
+                  ? "border-red-500 bg-red-50"
+                  : "border-gray-300 bg-white hover:border-gray-400"
+                  }`}
               />
               <button
                 type="button"
@@ -196,11 +199,10 @@ const SignInContent = () => {
           form="login-form"
           type="submit"
           disabled={!password.trim() || isLoading}
-          className={`text-sm sm:text-base lg:text-xl px-3 sm:px-4 lg:px-6 py-2 border-2 sm:border-4 font-bold rounded-md flex items-center gap-2 w-full sm:w-auto ${
-            !password.trim() || isLoading
-              ? "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
-              : "border-[#2b3990] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
-          }`}
+          className={`text-sm sm:text-base lg:text-xl px-3 sm:px-4 lg:px-6 py-2 border-2 sm:border-4 font-bold rounded-md flex items-center gap-2 w-full sm:w-auto ${!password.trim() || isLoading
+            ? "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
+            : "border-[#2b3990] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
+            }`}
         >
           {isLoading && (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

@@ -86,7 +86,7 @@ const CreateAccount = ({
   const email = watch("email");
   const title = watch("title");
   const fullName = watch("fullName");
-  const password = watch("password");
+
 
   return (
     <>

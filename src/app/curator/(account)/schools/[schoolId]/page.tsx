@@ -3,7 +3,7 @@
 import { Check, Plus } from "lucide-react";
 import WidthConstraint from "@/components/ui/width-constraint";
 import { cn } from "@/lib/utils";
-import { useSchoolsQuery } from "@/hooks/queries/useSchoolsQuery";
+
 
 
 const mockProvider = {
@@ -63,11 +63,8 @@ const AppointmentAction = ({ state }: { state: "pending" | "completed" }) => {
 };
 
 const ProviderDetailPage = () => {
-  const { getSchoolLockinQuery } = useSchoolsQuery();
-
-
-
-  console.log(getSchoolLockinQuery('3'));
+  // const { data: lockinData } = useSchoolLockin('3');
+  // console.log(lockinData);
   return (
     <div className="min-h-screen bg-[#F8F7EF] text-[#1F1D16]">
       <main className="py-10">

@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, Suspense, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import JustGoHealth from "@/components/logo-purple";
 import { Button } from "@/components/ui/button";
 import Stepper from "@/components/stepper";
@@ -90,8 +87,7 @@ const SignUpContent = ({
         return (
           <SignUpVerification
             email={signUpData.email}
-            fullName={signUpData.fullName}
-            title={signUpData.title}
+
             onNext={handleVerificationNext}
           />
         );

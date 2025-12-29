@@ -1,0 +1,19 @@
+
+D:\dwen-wo-ho\src\app\provider\profile\page.tsx
+  104:6  warning  React Hook useCallback has an unnecessary dependency: 'api'. Either exclude it or remove the dependency array. Outer scope values like 'api' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+
+D:\dwen-wo-ho\src\components\curator\ui\check-email.tsx
+  54:43  error  'watch' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\dwen-wo-ho\src\components\modals\provider-details.tsx
+  157:6  warning  React Hook useCallback has missing dependencies: 'mockPartners' and 'mockSchools'. Either include them or remove the dependency array. Outer scope values like 'api' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+
+D:\dwen-wo-ho\src\components\provider\ui\check-email.tsx
+  36:21  error  Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  53:43  error  'watch' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\dwen-wo-ho\src\components\provider\ui\new-password.tsx
+  69:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 6 problems (4 errors, 2 warnings)
+

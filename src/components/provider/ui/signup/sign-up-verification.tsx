@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { InputOTP, InputOTPSlot } from "@/components/ui/input-otp";
@@ -9,15 +9,11 @@ import useAuthQuery from "@/hooks/queries/useAuthQuery";
 
 interface SignUpVerificationProps {
   email: string;
-  fullName: string;
-  title: string;
   onNext: () => void;
 }
 
 const SignUpVerification = ({
   email,
-  fullName,
-  title,
   onNext,
 }: SignUpVerificationProps) => {
   const [isRunning, setIsRunning] = useState(true);
@@ -58,7 +54,7 @@ const SignUpVerification = ({
 
       // Move to profile setup step
       onNext();
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       const errorMsg =
         error.response?.data?.message ||
         "Verification failed. Please try again.";
@@ -112,7 +108,7 @@ const SignUpVerification = ({
                     setSeconds(120);
                     setIsRunning(true);
                     setErrorMessage("");
-                  } catch (error: any) {
+                  } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
                     const errorMsg =
                       error.response?.data?.message ||
                       "Failed to resend code. Please try again.";

@@ -2,13 +2,14 @@
 
 import JustGoHealth from "@/components/logo-purple";
 import { ROUTES } from "@/constants/routes";
+import { ENDPOINTS } from "@/constants/endpoints";
 import useGetSearchParams from "@/hooks/useGetSearchParams";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useAuthQuery from "@/hooks/queries/useAuthQuery";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DevTool } from "@hookform/devtools";
@@ -24,10 +25,10 @@ const SignUpSchema = z.object({
 
 const NewPasswordContent = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  /* const [errorMessage, setErrorMessage] = useState<string>(""); */
   const email = useGetSearchParams("email");
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  /* const [isLoading, setIsLoading] = useState<boolean>(false); */
 
   useEffect(() => {
     if (!email) {
@@ -39,7 +40,7 @@ const NewPasswordContent = () => {
     control,
     register,
     handleSubmit,
-    formState: { errors },
+    // formState: { errors },
   } = useForm<z.infer<typeof SignUpSchema>>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
@@ -52,22 +53,25 @@ const NewPasswordContent = () => {
   const onSubmit = async (values: z.infer<typeof SignUpSchema>) => {
     console.log(values);
     try {
-      const response = await api.resetPassword({
-        password: values.password,
-        confirmPassword: values.repeatPassword as string,
+      const response = await api(ENDPOINTS.resetPassword, {
+        method: "POST",
+        body: JSON.stringify({
+          password: values.password,
+          confirmPassword: values.repeatPassword as string,
+        }),
       });
 
       if (response.success) {
         console.log(response);
       } else {
-        setErrorMessage(response.message || "The provided email is invalid");
+        console.error(response.message || "The provided email is invalid");
       }
-    } catch (error: any) {
+    } catch (error) {
       const errorMsg =
         error.response?.data?.message || "Sign in failed. Please try again.";
-      setErrorMessage(errorMsg);
+      console.error(errorMsg);
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
 

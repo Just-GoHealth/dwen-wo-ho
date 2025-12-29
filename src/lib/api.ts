@@ -56,7 +56,7 @@ export async function api(endpoint: string, options: RequestInit = {}) {
       throw new Error(error.message || "API request failed");
     }
     return response.json();
-  } catch (error: any) {
+  } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
     throw new Error(error?.message || "Network error");
   }
 }

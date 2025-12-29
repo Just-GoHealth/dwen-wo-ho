@@ -4,14 +4,15 @@ import React from "react";
 import { MdSchool } from "react-icons/md";
 import Image from "next/image";
 import WidthConstraint from "@/components/ui/width-constraint";
-import { useSchoolsQuery } from "@/hooks/queries/useSchoolsQuery";
+import { useSchools } from "@/hooks/queries/useSchoolsQuery";
 
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
+import { School } from "@/types/school";
 
 export default function SchoolsPage() {
   // Fetch schools using the query hook
-  const { schools, isLoading, isError, error } = useSchoolsQuery();
+  const { data: schools, isLoading, isError, error } = useSchools();
 
   console.log(schools);
 
@@ -82,7 +83,7 @@ export default function SchoolsPage() {
               </p>
             </div>
           ) : (
-            schoolsList?.map((school) => (
+            schoolsList?.map((school: School) => (
               <Link
                 key={school.id}
                 href={`${ROUTES.curator.schools}/${school.id}`}
