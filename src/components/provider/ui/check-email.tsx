@@ -34,7 +34,9 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
         setErrorMessage(response.message || "Failed to verify email");
       }
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (error as any)?.message === "User not found" ||
         (error as any)?.response?.data?.message === "User not found"
       ) {
@@ -44,7 +46,9 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
       }
 
       console.error("Error checking email:", error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setErrorMessage(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (error as any)?.response?.data?.message || (error as any)?.message || "Failed to verify email"
       );
     }

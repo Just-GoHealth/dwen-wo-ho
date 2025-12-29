@@ -57,6 +57,7 @@ export async function api(endpoint: string, options: RequestInit = {}) {
     }
     return response.json();
   } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     throw new Error((error as any)?.message || "Network error");
   }
 }
