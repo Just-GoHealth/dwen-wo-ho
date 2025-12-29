@@ -3,6 +3,7 @@
 import JustGoHealth from "@/components/logo-purple";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import Image from "next/image";
 import { ROUTES } from "@/constants/routes";
@@ -133,7 +134,6 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                       </div>
                     </div>
                   </div>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
 
                 {errorMessage && (
