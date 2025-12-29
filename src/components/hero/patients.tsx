@@ -21,7 +21,7 @@ const PatientsHero = () => {
     "Improve Your Roomie Vibes 🏡",
   ];
 
-  const colors = ["#2BA36A", "#8B5CB1", "#D94A54", "#2b3990", "#8B5CB1", "#2BA36A"];
+  const colors = ["#2bb572", "#965ba4", "#eb2129", "#253f91", "#2BA36A", "#965ba4"];
 
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
 
@@ -88,7 +88,7 @@ const PatientsHero = () => {
               <h1 className="text-4xl lg:text-5xl leading-0 font-bold text-[#2BA36A]">
                 Dwen Wo Ho
               </h1>
-              <p className="text-lg lg:text-xl font-medium leading-relaxed lg:max-w-[400px]">
+              <p className="text-lg lg:text-xl font-bold lg:max-w-[400px]">
                 It&apos;s never been this easy to take care of your own mental health, and
               </p>
             </motion.div>
@@ -138,7 +138,7 @@ const PatientsHero = () => {
                   </motion.h2>
                 </AnimatePresence>
               </div>
-              <p className="text-lg lg:text-xl font-medium leading-relaxed">
+              <p className="text-lg lg:text-xl font-bold leading-relaxed">
                 living your best life in college.
               </p>
               <motion.div
@@ -148,7 +148,7 @@ const PatientsHero = () => {
               >
                 <Button 
                   onClick={() => router.push(ROUTES.patient.checkEmail)}
-                  className="bg-gray-200 text-[#D94A54] hover:bg-gray-300 px-8"
+                  className="bg-gray-200 text-[#D94A54] font-bold lg:text-[17px] hover:bg-gray-300 px-8"
                 >
                   Get Started
                 </Button>

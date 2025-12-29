@@ -20,7 +20,7 @@ const ProvidersHero = () => {
     "Providers",
   ];
 
-  const colors = ["#2BA36A", "#8B5CB1", "#D94A54", "#8B5CB1", "#2BA36A"];
+  const colors = ["#2bb572", "#965ba4", "#eb2129", "#253f91", "#2BA36A", "#965ba4"];
 
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
 
@@ -69,14 +69,14 @@ const ProvidersHero = () => {
                       </motion.span>
                     </AnimatePresence>
                   </h1>
-                  <p className="text-xl lg:text-2xl text-white/90 font-medium max-w-3xl mx-auto">
+                  <p className="text-xl lg:text-2xl text-white/90 font-bold max-w-3xl mx-auto">
                     to bring personalized mental healthcare closer to college
                     students.
                   </p>
                 </div>
                 <Button
                   onClick={() => router.push(ROUTES.provider.auth)}
-                  className="bg-gray-200 text-[#D94A54] hover:bg-gray-300 px-8"
+                  className="bg-gray-200 text-[#D94A54] lg:text-[17px] font-bold hover:bg-gray-300 px-8"
                 >
                   Get Started
                 </Button>
