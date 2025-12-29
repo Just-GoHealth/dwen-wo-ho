@@ -97,11 +97,11 @@ const CreateAccount = ({
       <form
         id="create-account-form"
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-xl mx-auto space-y-8"
+        className="w-full max-w-xl mx-auto space-y-4"
       >
         {/* Header Section */}
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-black mb-2">
+          <h1 className="text-3xl font-extrabold text-black mb-1">
             Create Your Account
           </h1>
         </div>
@@ -113,18 +113,18 @@ const CreateAccount = ({
             value={email}
             placeholder="Enter your email address"
             disabled
-            className="font-bold w-full rounded-xl text-xl text-gray-500 p-4 bg-gray-200/50 outline-none border-none"
+            className="font-bold w-full rounded-xl text-lg text-gray-500 p-3 bg-gray-200/50 outline-none border-none"
           />
 
           <div className="space-y-4">
-            <h2 className="text-4xl font-extrabold text-black">
+            <h2 className="text-2xl font-extrabold text-black">
               Professional Title
             </h2>
             <FormSelect
               value={title}
               onValueChange={handleTitleChange}
               placeholder="Professional Title"
-              className="!w-full !rounded-full !text-xl !text-gray-500 !p-4 !bg-gray-200/50 !border-4 !border-gray-400 outline-none !h-auto font-bold"
+              className="!w-full !rounded-full !text-lg !text-gray-500 !p-3 !bg-gray-200/50 !border-2 !border-gray-400 outline-none !h-auto font-bold"
             >
               <div className="py-1">
                 {[
@@ -152,11 +152,11 @@ const CreateAccount = ({
             <input
               {...register("fullName")}
               placeholder="Full Name"
-              className={`font-bold w-full rounded-xl text-xl border-4 text-gray-500 p-4 bg-gray-200/50 outline-none focus:border-[#2bb673] transition-colors ${errors?.fullName ? "border-red-500" : "border-gray-400"
+              className={`font-bold w-full rounded-xl text-lg border-2 text-gray-500 p-3 bg-gray-200/50 outline-none focus:border-[#2bb673] transition-colors ${errors?.fullName ? "border-red-500" : "border-gray-400"
                 }`}
             />
             {fullName && title && (
-              <p className="text-center text-gray-500 text-xl font-bold mt-2">
+              <p className="text-center text-gray-500 text-lg font-bold mt-2">
                 You are <span className="text-[#955aa4]">{title} {fullName}</span>
               </p>
             )}
@@ -167,7 +167,7 @@ const CreateAccount = ({
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Password (6 or more characters)"
-              className={`font-bold w-full rounded-xl text-xl text-gray-500 p-4 bg-gray-200/50 outline-none border-4 border-gray-400 focus:border-[#2bb673] transition-colors ${errors?.password ? "border-red-500" : "border-gray-400"
+              className={`font-bold w-full rounded-xl text-lg text-gray-500 p-3 bg-gray-200/50 outline-none border-2 border-gray-400 focus:border-[#2bb673] transition-colors ${errors?.password ? "border-red-500" : "border-gray-400"
                 }`}
             />
             <button

@@ -115,9 +115,9 @@ const SignUpContent = ({
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between w-full px-8 py-6">
+      <div className="flex items-center justify-between w-full px-8 py-4">
         <JustGoHealth />
-        <p className="text-3xl font-bold"><span className="text-sm">for</span> Providers</p>
+        <p className="text-2xl font-bold"><span className="text-sm">for</span> Providers</p>
       </div>
 
       {/* Main Content */}
@@ -127,7 +127,7 @@ const SignUpContent = ({
 
       {/* Bottom Navigation - Hidden on Profile Step */}
       {currentStep !== "profile" && (
-        <div className="flex flex-col sm:flex-row border-t border-gray-500 px-4 sm:px-6 lg:px-6 py-6 items-center justify-between space-y-4 sm:space-y-0 mt-8">
+        <div className="flex flex-col sm:flex-row border-t border-gray-500 px-4 sm:px-6 lg:px-6 py-4 items-center justify-between space-y-4 sm:space-y-0 mt-4">
           <Button
             onClick={handleBack}
             className="rounded-full mr-2 px-8 py-1 border-4 bg-white text-[#955aa4] text-lg font-bold border-[#955aa4] uppercase flex items-center justify-center hover:bg-white"
