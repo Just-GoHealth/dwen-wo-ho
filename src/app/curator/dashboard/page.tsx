@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import JustGoHealth from "@/components/logo-purple";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { ENDPOINTS } from "@/constants/endpoints";
 import { ROUTES } from "@/constants/routes";
 import {
   FiChevronDown,
@@ -210,7 +211,9 @@ const CuratorDashboard = () => {
           return;
         }
 
-        const response = await api.getProviders({ token });
+        const response = await api(ENDPOINTS.providers, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         if (response.success) {
           setProviders(response.data || []);
@@ -328,85 +331,83 @@ const CuratorDashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
             {activeTab === "home"
               ? filteredSchools.map((school) => (
-                  <div
-                    key={school.id}
-                    className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 hover:scale-[1.02]"
-                  >
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
-                        {school.avatar ? (
-                          <Image
-                            width={48}
-                            height={48}
-                            src={school.avatar}
-                            alt={school.name}
-                            className="w-full h-full object-cover rounded-xl"
-                          />
-                        ) : (
-                          <MdSchool className="text-white text-xl" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 text-base lg:text-lg truncate mb-1">
-                          {school.name}
-                        </h3>
-                        <p className="text-orange-500 text-xs lg:text-sm truncate font-medium">
-                          {school.activityType} • {school.lastActivity}
-                        </p>
-                      </div>
+                <div
+                  key={school.id}
+                  className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 hover:scale-[1.02]"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
+                      {school.avatar ? (
+                        <Image
+                          width={48}
+                          height={48}
+                          src={school.avatar}
+                          alt={school.name}
+                          className="w-full h-full object-cover rounded-xl"
+                        />
+                      ) : (
+                        <MdSchool className="text-white text-xl" />
+                      )}
                     </div>
-                    <div className="flex justify-center">
-                      <div
-                        className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${
-                          school.status === "Active"
-                            ? "bg-green-100 text-green-700 border border-green-200"
-                            : "bg-gray-100 text-gray-600 border border-gray-200"
-                        }`}
-                      >
-                        {school.status}
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 text-base lg:text-lg truncate mb-1">
+                        {school.name}
+                      </h3>
+                      <p className="text-orange-500 text-xs lg:text-sm truncate font-medium">
+                        {school.activityType} • {school.lastActivity}
+                      </p>
                     </div>
                   </div>
-                ))
-              : filteredProviders.map((provider) => (
-                  <div
-                    key={provider.id}
-                    onClick={() => handleProviderSelect(provider.email)}
-                    className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02]"
-                  >
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center flex-shrink-0 shadow-md">
-                        <MdHealthAndSafety className="text-white text-xl" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 group-hover:text-[#955aa4] transition-colors text-base lg:text-lg truncate mb-1">
-                          {provider.fullName}
-                        </h3>
-                        <p className="text-gray-600 text-sm lg:text-base truncate mb-1">
-                          {provider.professionalTitle}
-                        </p>
-                        {provider.lastActive && (
-                          <p className="text-orange-500 text-xs lg:text-sm font-medium">
-                            {provider.lastActive}
-                          </p>
-                        )}
-                      </div>
+                  <div className="flex justify-center">
+                    <div
+                      className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${school.status === "Active"
+                          ? "bg-green-100 text-green-700 border border-green-200"
+                          : "bg-gray-100 text-gray-600 border border-gray-200"
+                        }`}
+                    >
+                      {school.status}
                     </div>
-                    <div className="flex justify-center">
-                      <div
-                        className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${
-                          provider.status === "Active"
-                            ? "bg-green-100 text-green-700 border border-green-200"
-                            : provider.status === "Inactive"
+                  </div>
+                </div>
+              ))
+              : filteredProviders.map((provider) => (
+                <div
+                  key={provider.id}
+                  onClick={() => handleProviderSelect(provider.email)}
+                  className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02]"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center flex-shrink-0 shadow-md">
+                      <MdHealthAndSafety className="text-white text-xl" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 group-hover:text-[#955aa4] transition-colors text-base lg:text-lg truncate mb-1">
+                        {provider.fullName}
+                      </h3>
+                      <p className="text-gray-600 text-sm lg:text-base truncate mb-1">
+                        {provider.professionalTitle}
+                      </p>
+                      {provider.lastActive && (
+                        <p className="text-orange-500 text-xs lg:text-sm font-medium">
+                          {provider.lastActive}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div
+                      className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${provider.status === "Active"
+                          ? "bg-green-100 text-green-700 border border-green-200"
+                          : provider.status === "Inactive"
                             ? "bg-gray-100 text-gray-600 border border-gray-200"
                             : "bg-gray-100 text-gray-600 border border-gray-200"
                         }`}
-                      >
-                        {provider.status}
-                      </div>
+                    >
+                      {provider.status}
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
           </div>
         </div>
       </div>
