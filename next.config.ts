@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://justgo-api.up.railway.app/api/:path*",
+        destination: "https://justgo.up.railway.app/api/:path*",
       },
     ];
   },

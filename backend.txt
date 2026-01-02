@@ -17,3 +17,5 @@ Please add the bio or so to the provider too.
 - Also for fetching schools, allow making type optional. Why? When adding a school to a partner, I should be able to get all the schools without passing a type
 
 - Can't find an endpoint for a member
+
+- For the schools, the status should be returned with the status so I can know to disable or enable hence the need for /schools/{schoolId}/enable or a single endpoint to toggle 

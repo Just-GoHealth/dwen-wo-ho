@@ -4,8 +4,8 @@ export interface School {
   nickname: string;
   logo: string;
   type: string;
-  totalProviders: number;
-  totalPartners: number;
+  totalProviders?: number;
+  totalPartners?: number;
   campuses: string[];
   createdAt: string;
 }

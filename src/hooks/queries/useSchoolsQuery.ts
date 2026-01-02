@@ -4,13 +4,20 @@ import { toast } from "sonner";
 import { School } from "@/types/school";
 
 // API functions
-const getSchools = async (): Promise<School[]> => {
-  const result = await api("/api/v1/schools");
-  return result.data;
+const getSchools = async (type?: string): Promise<School[]> => {
+  const params = new URLSearchParams();
+  if (type) params.append("type", type);
+  
+  const result = await api(`/api/v1/schools?${params.toString()}`);
+
+  console.log({result})
+  return result || [];
 };
 
 const getSchool = async (schoolId: string): Promise<School> => {
   const result = await api(`/api/v1/schools/${schoolId}`);
+
+  console.log({result})
   return result.data;
 };
 
@@ -23,13 +30,13 @@ const disableSchool = async (schoolId: string): Promise<School> => {
 
 const SCHOOLS_QUERY_KEY = "schools";
 
-export const useSchoolsQuery = () => {
+export const useSchoolsQuery = (type?: string) => {
   const queryClient = useQueryClient();
 
   // Fetch all schools
   const schoolsQuery = useQuery({
-    queryKey: [SCHOOLS_QUERY_KEY],
-    queryFn: getSchools,
+    queryKey: [SCHOOLS_QUERY_KEY, type],
+    queryFn: () => getSchools(type),
   });
 
   // Get single school
@@ -63,7 +70,7 @@ export const useSchoolsQuery = () => {
   return {
     // Queries
     schools: schoolsQuery.data,
-    isLoading: schoolsQuery.isLoading,
+    isLoading: schoolsQuery.isPending,
     isError: schoolsQuery.isError,
     error: schoolsQuery.error,
     // Single school query helper

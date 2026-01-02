@@ -15,6 +15,7 @@ interface PartnerCreationModalProps {
 const PartnerCreationModal = ({ isOpen, onClose, onPartnerCreated }: PartnerCreationModalProps) => {
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
+  const [slogan, setSlogan] = useState("");
   const [logo, setLogo] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -102,8 +103,8 @@ const PartnerCreationModal = ({ isOpen, onClose, onPartnerCreated }: PartnerCrea
                     <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">Slogan</label>
                     <input
-                      value={nickname}
-                      onChange={(e) => setNickname(e.target.value)}
+                      value={slogan}
+                      onChange={(e) => setSlogan(e.target.value)}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#955aa4]/20 focus:border-[#955aa4] transition-all"
                       placeholder="e.g. The Sound Of Young America"
                     />

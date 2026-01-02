@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
-import { ROUTES } from "@/constants/routes";
-import { FiChevronDown, FiX } from "react-icons/fi";
-import { MdSchool, MdHealthAndSafety } from "react-icons/md";
-import SchoolCreationModal from "@/components/modals/school-creation";
-import MemberCreationModal from "@/components/modals/member-creation";
-import ReachModal from "@/components/modals/reach";
-import LineupModal from "@/components/modals/lineup";
-import PartnerCreationModal from "@/components/modals/partner-creation";
-import ProviderDetailsModal from "@/components/modals/provider-details";
-import Image from "next/image";
-import { CuratorSidebar } from "@/components/curator/ui/sidebar";
+// import { api } from "@/lib/api";
+// import { ROUTES } from "@/constants/routes";
+// import { FiChevronDown, FiX } from "react-icons/fi";
+// import { MdSchool, MdHealthAndSafety } from "react-icons/md";
+// import SchoolCreationModal from "@/components/modals/school-creation";
+// import MemberCreationModal from "@/components/modals/member-creation";
+// import ReachModal from "@/components/modals/reach";
+// import LineupModal from "@/components/modals/lineup";
+// import PartnerCreationModal from "@/components/modals/partner-creation";
+// import ProviderDetailsModal from "@/components/modals/provider-details";
+// import Image from "next/image";
+// import { CuratorSidebar } from "@/components/curator/ui/sidebar";
 
 interface School {
   id: string;
@@ -38,19 +38,19 @@ interface Provider {
 }
 
 const CuratorDashboard = () => {
-  const [activeTab, setActiveTab] = useState("home");
-  const [filter, setFilter] = useState("All");
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showSchoolModal, setShowSchoolModal] = useState(false);
-  const [showMemberModal, setShowMemberModal] = useState(false);
-  const [showReachModal, setShowReachModal] = useState(false);
-  const [showLineupModal, setShowLineupModal] = useState(false);
-  const [showPartnerModal, setShowPartnerModal] = useState(false);
-  const [showProviderModal, setShowProviderModal] = useState(false);
-  const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  // const [activeTab, setActiveTab] = useState("home");
+  // const [filter, setFilter] = useState("All");
+  // const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  // const [showLogoutModal, setShowLogoutModal] = useState(false);
+  // const [showCreateModal, setShowCreateModal] = useState(false);
+  // const [showSchoolModal, setShowSchoolModal] = useState(false);
+  // const [showMemberModal, setShowMemberModal] = useState(false);
+  // const [showReachModal, setShowReachModal] = useState(false);
+  // const [showLineupModal, setShowLineupModal] = useState(false);
+  // const [showPartnerModal, setShowPartnerModal] = useState(false);
+  // const [showProviderModal, setShowProviderModal] = useState(false);
+  // const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
+  // const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const router = useRouter();
 
   // useEffect(() => {
