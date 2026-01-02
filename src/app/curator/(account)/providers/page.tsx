@@ -13,24 +13,17 @@ export default function ProvidersPage() {
   const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
 
   // Fetch providers using the query hook
-  const { 
-    providers, 
-    isLoading, 
-    isError, 
-    error,
-  } = useProvidersQuery();
-
-
+  const { providers, isLoading, isError, error } = useProvidersQuery();
 
   // Use providers data or empty array
-  const providersList = providers || [];
+  const providersList: IProvider[] = providers?.data || [];
 
   const handleProviderSelect = (providerEmail: string) => {
     setSelectedProviderEmail(providerEmail);
     setShowProviderModal(true);
   };
 
-  const filteredProviders = providersList.filter((provider) => {
+  const filteredProviders = providersList?.filter((provider) => {
     if (filter === "All") return true;
     return provider?.applicationStatus?.toLowerCase() === filter?.toLowerCase();
   });
@@ -51,7 +44,8 @@ export default function ProvidersPage() {
       color: "bg-yellow-500",
       hoverColor: "hover:bg-gray-200",
       inactiveColor: "bg-gray-100 text-gray-700",
-      count: providersList.filter(p => p.applicationStatus === "PENDING").length,
+      count: providersList.filter((p) => p.applicationStatus === "PENDING")
+        .length,
     },
     {
       id: "APPROVED",
@@ -59,7 +53,8 @@ export default function ProvidersPage() {
       color: "bg-green-600",
       hoverColor: "hover:bg-gray-200",
       inactiveColor: "bg-gray-100 text-gray-700",
-      count: providersList.filter(p => p.applicationStatus === "APPROVED").length,
+      count: providersList.filter((p) => p.applicationStatus === "APPROVED")
+        .length,
     },
     {
       id: "REJECTED",
@@ -67,7 +62,8 @@ export default function ProvidersPage() {
       color: "bg-red-600",
       hoverColor: "hover:bg-gray-200",
       inactiveColor: "bg-gray-100 text-gray-700",
-      count: providersList.filter(p => p.applicationStatus === "REJECTED").length,
+      count: providersList.filter((p) => p.applicationStatus === "REJECTED")
+        .length,
     },
   ];
 
@@ -112,7 +108,6 @@ export default function ProvidersPage() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-             
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
                   Providers
@@ -143,11 +138,13 @@ export default function ProvidersPage() {
                 }`}
               >
                 {option.label}
-                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                  filter === option.id
-                    ? "bg-white/20 text-white"
-                    : "bg-gray-200 text-gray-600"
-                }`}>
+                <span
+                  className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    filter === option.id
+                      ? "bg-white/20 text-white"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                >
                   {option.count}
                 </span>
               </button>
@@ -183,15 +180,37 @@ export default function ProvidersPage() {
           isOpen={showProviderModal}
           onClose={() => setShowProviderModal(false)}
           providerEmail={selectedProviderEmail}
-          provider={providersList.find(p => p.email === selectedProviderEmail) ? {
-            ...providersList.find(p => p.email === selectedProviderEmail)!,
-            id: providersList.find(p => p.email === selectedProviderEmail)!.email, // Using email as ID for now
-            fullName: providersList.find(p => p.email === selectedProviderEmail)!.providerName,
-            professionalTitle: providersList.find(p => p.email === selectedProviderEmail)!.specialty,
-            profileImage: providersList.find(p => p.email === selectedProviderEmail)!.profilePhotoURL,
-            createdAt: providersList.find(p => p.email === selectedProviderEmail)!.applicationDate,
-            updatedAt: providersList.find(p => p.email === selectedProviderEmail)!.lastActive || providersList.find(p => p.email === selectedProviderEmail)!.applicationDate,
-          } : undefined}
+          provider={
+            providersList.find((p) => p.email === selectedProviderEmail)
+              ? {
+                  ...providersList.find(
+                    (p) => p.email === selectedProviderEmail
+                  )!,
+                  id: providersList.find(
+                    (p) => p.email === selectedProviderEmail
+                  )!.email, // Using email as ID for now
+                  fullName: providersList.find(
+                    (p) => p.email === selectedProviderEmail
+                  )!.providerName,
+                  professionalTitle: providersList.find(
+                    (p) => p.email === selectedProviderEmail
+                  )!.specialty,
+                  profileImage: providersList.find(
+                    (p) => p.email === selectedProviderEmail
+                  )!.profilePhotoURL,
+                  createdAt: providersList.find(
+                    (p) => p.email === selectedProviderEmail
+                  )!.applicationDate,
+                  updatedAt:
+                    providersList.find(
+                      (p) => p.email === selectedProviderEmail
+                    )!.lastActive ||
+                    providersList.find(
+                      (p) => p.email === selectedProviderEmail
+                    )!.applicationDate,
+                }
+              : undefined
+          }
         />
       </div>
     </WidthConstraint>

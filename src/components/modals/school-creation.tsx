@@ -12,53 +12,46 @@ interface SchoolCreationModalProps {
   onSchoolCreated?: (school: any) => void;
 }
 
-const SchoolCreationModal = ({ isOpen, onClose, onSchoolCreated }: SchoolCreationModalProps) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    nickname: "",
-    campuses: [] as string[],
-    type: "",
-    logo: null as File | null
-  });
-  const [showCampusDropdown, setShowCampusDropdown] = useState(false);
-  const [selectedCampuses, setSelectedCampuses] = useState<string[]>([]);
-
-  const campusOptions = [
-    "Accra",
-    "Kumasi", 
-    "Cape Coast",
-    "Takoradi",
-    "Tamale",
-    "Ho",
-    "Koforidua",
-    "Sunyani"
-  ];
+const campusOptions = [
+  "Accra",
+  "Kumasi",
+  "Cape Coast",
+  "Takoradi",
+  "Tamale",
+  "Ho",
+  "Koforidua",
+  "Sunyani",
+];
 
   const schoolTypes = ["JHS", "SHS", "NMTC", "UNIVERSITY"];
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleCampusToggle = (campus: string) => {
-    setSelectedCampuses(prev => 
+    setSelectedCampuses((prev) =>
       prev.includes(campus)
-        ? prev.filter(c => c !== campus)
+        ? prev.filter((c) => c !== campus)
         : [...prev, campus]
     );
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({
-        ...prev,
-        logo: file
-      }));
-    }
+    const input = event.target;
+    const file = input.files?.[0];
+    console.log(file);
+    setFormData((prev) => ({
+      ...prev,
+      logo: file,
+    }));
+  };
+
+  const handleRemoveLogo = () => {
+    setFormData((prev) => ({ ...prev, logo: undefined }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -80,7 +73,7 @@ const SchoolCreationModal = ({ isOpen, onClose, onSchoolCreated }: SchoolCreatio
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
             onClick={onClose}
           />
-          
+
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}

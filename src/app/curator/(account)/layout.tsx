@@ -30,17 +30,17 @@ export default function DashboardLayout({
   return (
     <div className="h-screen bg-white flex">
       <CuratorSidebar
-        schoolCount={6} // These could come from an API call or context
-        providerCount={6}
+        schoolCount={schools?.length || 0}
+        providerCount={providers?.data?.length || 0}
         onCreateClick={() => setShowCreateModal(true)}
         onLogout={handleLogout}
       />
       <div className="flex-1 overflow-y-auto bg-gray-50 pt-16 md:pt-0">
         {children}
       </div>
-      
+
       {showCreateModal && (
-        <CreateModal 
+        <CreateModal
           setShowCreateModal={setShowCreateModal}
           onOpenSchoolModal={() => {
             setShowCreateModal(false);
