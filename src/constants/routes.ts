@@ -7,6 +7,8 @@ export const ROUTES = {
     verifyPasswordReset: "/provider/verify-password-reset",
     newPassword: "/provider/new-password",
     auth: "/provider/auth",
+    profile: "/provider/profile",
+    dashboard: "/provider/dashboard",
   },
   patient: {
     singIn: "/patient/signin",

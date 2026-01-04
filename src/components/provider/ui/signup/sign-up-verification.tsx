@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import useAuthQuery from "@/hooks/queries/useAuthQuery";
+import { toast } from "sonner";
 
 interface SignUpVerificationProps {
   email: string;
@@ -20,7 +21,7 @@ const SignUpVerification = ({
   const [seconds, setSeconds] = useState(120); // 2 minutes
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { verifyEmailMutation, checkEmailMutation } = useAuthQuery();
+  const { verifyEmailMutation, sendVerificationEmailMutation } = useAuthQuery();
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -39,26 +40,71 @@ const SignUpVerification = ({
   const handleOTPComplete = async (value: string) => {
     setErrorMessage("");
 
+    console.log("=== OTP VERIFICATION STARTED ===");
+    console.log("Email:", email);
+    console.log("Code entered:", value);
+
     try {
-      const response = await verifyEmailMutation.mutateAsync({
+      // First, verify the code
+      console.log("🔑 Step 1: Verifying OTP code...");
+
+      const verifyResponse = await verifyEmailMutation.mutateAsync({
         code: value,
-        email: email,
+        email: email.trim(),
       });
 
-      console.log(response);
+      console.log("✅ Verification response:", verifyResponse);
 
-      // Store the token for authenticated requests in profile setup
-      if (response.data.token) {
-        localStorage.setItem("token", response.token);
+      // Check for success using the flag from the response
+      if (verifyResponse?.success) {
+        console.log("✅ Verification successful! Proceeding to Profile Setup...");
+
+        // Extract token based on the provided JSON structure
+        const token = verifyResponse.data?.token;
+
+        if (token) {
+          console.log("🔑 Token received, storing in localStorage:", token.substring(0, 10) + "...");
+          localStorage.setItem("token", token);
+
+          // Show success message
+          toast.success("Account verified successfully");
+
+          // Proceed to next step
+          onNext();
+        } else {
+          console.error("❌ Verification successful but no token found:", verifyResponse);
+          setErrorMessage("Verification succeeded but login failed. Please try logging in.");
+          toast.error("Verification error: No token received");
+        }
+      } else {
+        console.error("❌ Verification failed - success flag false");
+        const msg = verifyResponse?.message || "Verification failed. Please try again.";
+        setErrorMessage(msg);
+        toast.error(msg);
+      }
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+      console.error("❌ ERROR during verification/signup process:", error);
+
+      let errorMsg = "Verification failed. Please try again.";
+
+      // Try to extract message from different possible error structures
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        try {
+          if (error.message.trim().startsWith('{')) {
+            const parsed = JSON.parse(error.message);
+            errorMsg = parsed.message || error.message;
+          } else {
+            errorMsg = error.message;
+          }
+        } catch {
+          errorMsg = error.message;
+        }
       }
 
-      // Move to profile setup step
-      onNext();
-    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      const errorMsg =
-        error.response?.data?.message ||
-        "Verification failed. Please try again.";
       setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -71,15 +117,17 @@ const SignUpVerification = ({
         </h1>
         <p className="text-gray-600">
           A 6-digit verification code was just sent to{" "}
-          <span className="font-semibold text-purple-600">{email}</span>
+          <span className="font-semibold text-[#955aa4]">{email}</span>
         </p>
       </div>
       {/* OTP Input Section */}
       <div className="text-center space-y-6">
         {verifyEmailMutation.isPending ? (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-600 font-medium">Verifying your code...</p>
+            <div className="w-8 h-8 border-4 border-[#955aa4] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-600 font-medium">
+              {verifyEmailMutation.isPending ? "Verifying your code..." : "Creating your account..."}
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -101,23 +149,36 @@ const SignUpVerification = ({
 
             <div className="flex items-center justify-center gap-4">
               <Button
-                disabled={seconds > 0 || checkEmailMutation.isPending}
+                disabled={seconds > 0 || sendVerificationEmailMutation.isPending}
                 onClick={async () => {
                   try {
-                    await checkEmailMutation.mutateAsync({ email });
+                    await sendVerificationEmailMutation.mutateAsync({ email });
                     setSeconds(120);
                     setIsRunning(true);
                     setErrorMessage("");
                   } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-                    const errorMsg =
-                      error.response?.data?.message ||
-                      "Failed to resend code. Please try again.";
+                    let errorMsg = "Failed to resend code. Please try again.";
+
+                    if (error.response?.data?.message) {
+                      errorMsg = error.response.data.message;
+                    } else if (error.message) {
+                      try {
+                        if (error.message.trim().startsWith('{')) {
+                          const parsed = JSON.parse(error.message);
+                          errorMsg = parsed.message || error.message;
+                        } else {
+                          errorMsg = error.message;
+                        }
+                      } catch {
+                        errorMsg = error.message;
+                      }
+                    }
                     setErrorMessage(errorMsg);
                   }
                 }}
-                className="rounded-lg px-4 py-2 text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
+                className="rounded-lg px-4 py-2 text-sm font-medium bg-[#955aa4] text-white hover:bg-[#955aa4]/80 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
               >
-                {checkEmailMutation.isPending ? "Sending..." : "Resend code →"}
+                {sendVerificationEmailMutation.isPending ? "Sending..." : "Resend code →"}
               </Button>
               <span className="text-sm text-gray-500 bg-gray-100 rounded-full px-3 py-1">
                 {formatTime(seconds)}

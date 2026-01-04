@@ -40,6 +40,61 @@ interface ProviderDetailsModalProps {
   providerEmail: string;
 }
 
+// Mock data for schools and partners
+const mockSchools: School[] = [
+  {
+    id: "1",
+    name: "Achimota High School",
+    joinedDate: "3d ago",
+    isAssociated: true,
+  },
+  {
+    id: "2",
+    name: "Achimota High School",
+    joinedDate: "3d ago",
+    isAssociated: false,
+  },
+  {
+    id: "3",
+    name: "Achimota High School",
+    joinedDate: "3d ago",
+    isAssociated: false,
+  },
+];
+
+const mockPartners: Partner[] = [
+  {
+    id: "1",
+    name: "SRC Prempeh College",
+    joinedDate: "3d ago",
+    isAssociated: true,
+  },
+  {
+    id: "2",
+    name: "OKB Hope Foundation",
+    joinedDate: "3d ago",
+    isAssociated: true,
+  },
+  {
+    id: "3",
+    name: "Mental Health Authority",
+    joinedDate: "3d ago",
+    isAssociated: false,
+  },
+  {
+    id: "4",
+    name: "SRC Prempeh College",
+    joinedDate: "3d ago",
+    isAssociated: false,
+  },
+  {
+    id: "5",
+    name: "OKB Hope Foundation",
+    joinedDate: "3d ago",
+    isAssociated: false,
+  },
+];
+
 const ProviderDetailsModal = ({
   isOpen,
   onClose,
@@ -51,59 +106,7 @@ const ProviderDetailsModal = ({
   const [isLoading, setIsLoading] = useState(false);
 
   // Mock data for schools and partners
-  const mockSchools: School[] = [
-    {
-      id: "1",
-      name: "Achimota High School",
-      joinedDate: "3d ago",
-      isAssociated: true,
-    },
-    {
-      id: "2",
-      name: "Achimota High School",
-      joinedDate: "3d ago",
-      isAssociated: false,
-    },
-    {
-      id: "3",
-      name: "Achimota High School",
-      joinedDate: "3d ago",
-      isAssociated: false,
-    },
-  ];
 
-  const mockPartners: Partner[] = [
-    {
-      id: "1",
-      name: "SRC Prempeh College",
-      joinedDate: "3d ago",
-      isAssociated: true,
-    },
-    {
-      id: "2",
-      name: "OKB Hope Foundation",
-      joinedDate: "3d ago",
-      isAssociated: true,
-    },
-    {
-      id: "3",
-      name: "Mental Health Authority",
-      joinedDate: "3d ago",
-      isAssociated: false,
-    },
-    {
-      id: "4",
-      name: "SRC Prempeh College",
-      joinedDate: "3d ago",
-      isAssociated: false,
-    },
-    {
-      id: "5",
-      name: "OKB Hope Foundation",
-      joinedDate: "3d ago",
-      isAssociated: false,
-    },
-  ];
 
   const loadProviderDetails = useCallback(async () => {
     setIsLoading(true);
@@ -158,7 +161,7 @@ const ProviderDetailsModal = ({
     } finally {
       setIsLoading(false);
     }
-  }, [providerEmail, mockSchools, mockPartners]);
+  }, [providerEmail]);
 
   useEffect(() => {
     if (isOpen && providerEmail) {
