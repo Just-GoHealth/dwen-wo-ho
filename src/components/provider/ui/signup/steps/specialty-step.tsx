@@ -31,24 +31,21 @@ const SpecialtyStep = ({ specialty, onChange }: SpecialtyStepProps) => {
   };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-5xl font-extrabold text-center">Add Specialty</h1>
-      <p className="text-xl text-gray-600 text-center">
+    <div className="space-y-8 px-11">
+      <h1 className="text-5xl font-extrabold text-center ">Add Specialty</h1>
+      <p className="text-xl font-medium text-gray-500 text-center -mt-5">
         Click to choose your specialty. You can add more than one later.
       </p>
 
-      <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+      <div className="grid grid-cols-2 gap-3.5 max-w-2xl mx-auto">
         {specialties.map((specialty) => (
           <button
             key={specialty}
             onClick={() => handleSpecialtySelect(specialty)}
-            className={`p-4 rounded-full border-2 text-left transition-all duration-200 ${
-              selectedSpecialty === specialty
-                ? "border-[#955aa4] bg-purple-50 text-[#955aa4]"
-                : selectedSpecialty
-                ? "border-gray-200 bg-gray-50 text-gray-400 hover:border-gray-300"
-                : "border-gray-300 bg-gray-100 hover:border-gray-400"
-            }`}
+            className={`p-4 rounded-full text-center font-bold text-lg transition-all duration-200 ${selectedSpecialty === specialty
+                ? "bg-gray-500 text-white shadow-md active:scale-95"
+                : "bg-gray-400 text-gray-300 hover:bg-gray-400/90 active:scale-95"
+              }`}
           >
             {specialty}
           </button>

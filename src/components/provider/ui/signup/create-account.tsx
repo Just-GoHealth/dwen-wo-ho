@@ -18,6 +18,8 @@ interface CreateAccountProps {
   email?: string;
   fullName?: string;
   title?: string;
+  agreedToTerms: boolean;
+  onAgreedToTermsChange: (agreed: boolean) => void;
   onNext: (data: { email: string; fullName: string; title: string }) => void;
 }
 
@@ -25,9 +27,10 @@ const CreateAccount = ({
   email: propEmail,
   fullName: propFullName,
   title: propTitle,
+  agreedToTerms,
+  onAgreedToTermsChange,
   onNext,
 }: CreateAccountProps) => {
-  const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -52,15 +55,29 @@ const CreateAccount = ({
 
     setErrorMessage("");
 
+    console.log("=== CREATING ACCOUNT ===");
+    console.log("Email:", values.email);
+
     try {
+      // Create Account directly
+      console.log("Calling signupMutation with user details");
+
       const response = await signupMutation.mutateAsync({
         email: values.email,
+        password: values.password,
         fullName: values.fullName,
         professionalTitle: values.title,
-        password: values.password,
       });
 
-      if (response.success) {
+      console.log("Signup response:", response);
+
+      if (response.success || response) {
+        console.log("✅ Account created successfully. Verification email sent.");
+
+        // No need to store password in localStorage anymore
+        // We might store email/name if needed for the next step display, 
+        // but the parent component handles that via onNext arguments.
+
         // Move to verification step
         onNext({
           email: values.email,
@@ -68,12 +85,30 @@ const CreateAccount = ({
           title: values.title,
         });
       } else {
-        setErrorMessage(response.message || "Account creation failed");
+        console.error("❌ Signup failed - no success flag");
+        setErrorMessage(response.message || "Failed to create account");
       }
     } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message ||
-        "Account creation failed. Please try again.";
+      console.error("❌ Signup error:", error);
+      console.error("Error response:", error.response);
+      console.error("Error message:", error.message);
+
+      let errorMsg = "Failed to create account. Please try again.";
+
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        try {
+          if (error.message.trim().startsWith('{')) {
+            const parsed = JSON.parse(error.message);
+            errorMsg = parsed.message || error.message;
+          } else {
+            errorMsg = error.message;
+          }
+        } catch {
+          errorMsg = error.message;
+        }
+      }
       setErrorMessage(errorMsg);
     }
   };
@@ -91,13 +126,13 @@ const CreateAccount = ({
   return (
     <>
       <LoadingOverlay
-        text="Creating your account..."
+        text="Sending verification code..."
         isVisible={signupMutation.isPending}
       />
       <form
         id="create-account-form"
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-xl mx-auto space-y-4"
+        className="w-full max-w-xl mx-auto space-y-4 px-11"
       >
         {/* Header Section */}
         <div className="text-center">
@@ -193,7 +228,7 @@ const CreateAccount = ({
         <div className="flex items-center justify-center space-x-3 mt-4">
           <Checkbox
             checked={agreedToTerms}
-            onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+            onCheckedChange={(checked) => onAgreedToTermsChange(checked === true)}
             className="w-6 h-6 rounded border-2 border-gray-400 data-[state=checked]:bg-transparent data-[state=checked]:text-black"
           />
           <p className="text-lg font-bold text-gray-500">

@@ -22,11 +22,35 @@ interface ProviderSignInProps {
   onProfileIncomplete?: (step: number) => void;
 }
 
+const getCleanErrorMessage = (error: any): string => {
+  let message = "An unexpected error occurred.";
+
+  if (typeof error === "string") {
+    message = error;
+  } else if (error?.response?.data?.message) {
+    message = error.response.data.message;
+  } else if (error?.message) {
+    message = error.message;
+  }
+
+  // Try to parse if it looks like a JSON string
+  if (typeof message === "string" && message.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(message);
+      if (parsed.message) return parsed.message;
+      if (parsed.error) return parsed.error;
+    } catch {
+      // Not JSON, continue with original message
+    }
+  }
+
+  return message;
+};
+
 const SignInContent = ({
   email,
   onBack,
   onForgotPassword,
-  onProfileIncomplete,
 }: ProviderSignInProps) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -60,18 +84,63 @@ const SignInContent = ({
 
       if (response.success) {
         if (response.data?.userData) {
-          console.log(response.data?.token);
-          if (response.data?.token) {
-            localStorage.setItem("token", response.data.token);
+          const { token, userData } = response.data;
+
+          if (token) {
+            localStorage.setItem("token", token);
           }
-          // Set user data and route to appropriate dashboard
-          console.log(response.data?.userData);
-          if (response.data.userData?.userRole == "ROLE_CURATOR") {
+
+          console.log("LOGIN SUCCESS DATA:", userData);
+
+
+          // Check for pending status
+          if (userData.applicationStatus === "PENDING" || (response as any).message === "ACCOUNT PENDING") {
+            const params = new URLSearchParams();
+            params.set("email", values.email);
+            params.set("step", "specialty"); // Keeps it at the end of the flow
+            params.set("pending", "true");
+            if (userData.providerName) params.set("name", userData.providerName);
+            const title = (userData as any).professionalTitle || userData.specialty || "Dr.";
+            params.set("title", title);
+
+            if (userData.specialty) params.set("specialty", userData.specialty);
+            if (userData.profilePhotoURL || userData.profileURL) params.set("photo", userData.profilePhotoURL || userData.profileURL);
+
+            router.push(`${ROUTES.provider.signUp}?${params.toString()}`);
+            return;
+          }
+
+          // Check for missing fields and route accordingly
+          const emailParams = encodeURIComponent(values.email);
+
+          if (!userData.profileURL) {
+            console.log("Redirecting to Photo Step");
+            router.push(`/provider/signup?email=${emailParams}&step=photo`);
+            return;
+          }
+
+          if (!userData.officePhoneNumber) { // Bio step uses phone number
+            console.log("Redirecting to Bio Step");
+            router.push(`/provider/signup?email=${emailParams}&step=bio`);
+            return;
+          }
+
+          if (!userData.specialty) {
+            console.log("Redirecting to Specialty Step");
+            router.push(`/provider/signup?email=${emailParams}&step=specialty`);
+            return;
+          }
+
+          if (userData?.userRole == "ROLE_CURATOR") {
             router.replace(ROUTES.curator.schools);
+            return;
           }
+
+          // Default to profile if everything else is good
+          // router.push(ROUTES.provider.profile);
         }
 
-        // Check if user is verified
+        // Check if user is verified (fallback logic if needed, but above checks should catch incomplete profiles first)
         if (response.data?.isVerified === false) {
           setUserInfo({
             name: response.data?.fullName || "Dr. Amanda Gorman",
@@ -80,30 +149,64 @@ const SignInContent = ({
           });
           setShowPendingModal(true);
         } else {
-          // router.push(ROUTES.provider.profile);
-          // If user is not verified, show pending modal
+          // If verified and complete (and not caught by above checks), go to dashboard/profile
+          router.push(ROUTES.provider.profile);
         }
       } else {
-        setErrorMessage(response.message || "Sign in failed");
+        setErrorMessage(getCleanErrorMessage(response.message || "Sign in failed"));
       }
     } catch (error: any) {
-      const message = error?.response?.data?.message;
-      const errorMsg = message || "Sign in failed. Please try again.";
-      setErrorMessage(errorMsg);
-      if (
-        message == "Profile is not complete. Please upload your profile photo."
-      ) {
-        // Change to the sign-in flow and skip to the profile step
-        onProfileIncomplete?.(0);
-      } else if (
-        message ==
-        "Profile is not complete. Please update your office phone number."
-      ) {
-        onProfileIncomplete?.(1);
-      } else if (
-        message == "Profile is not complete. Please add your specialty."
-      ) {
-        onProfileIncomplete?.(2);
+      console.error("❌ Sign in error:", error);
+
+      const errorMessage = getCleanErrorMessage(error);
+
+      // Check for raw JSON error message that indicates pending account
+      // This handles the case where api returns 400/500 but with specific JSON body
+      let isPendingError = false;
+      try {
+        if (error?.message && error.message.includes("ACCOUNT PENDING")) {
+          isPendingError = true;
+        } else if (error?.response?.data?.message === "ACCOUNT PENDING") {
+          isPendingError = true;
+        }
+      } catch {
+        // ignore parsing error
+      }
+
+      if (isPendingError || errorMessage.includes("ACCOUNT PENDING")) {
+        console.log("⚠️ Account pending error caught, redirecting...");
+
+        const params = new URLSearchParams();
+        params.set("email", values.email);
+        params.set("step", "specialty");
+        params.set("pending", "true");
+
+        // Fallback values since we might not have user data from a failed login
+        // If token exists in localStorage, we might be able to use it later, 
+        // but for now redirecting to the pending view is the priority.
+        params.set("title", "Dr.");
+
+        router.push(`${ROUTES.provider.signUp}?${params.toString()}`);
+        return;
+      }
+
+      // Check for missing fields and route accordingly (using the cleaned message if applicable, or checking the error object structure if needed)
+      // The original logic checked 'message' which was derived from error.message
+
+      if (errorMessage.includes("Profile is not complete")) {
+        console.log("⚠️ Profile incomplete, redirecting...");
+
+        if (errorMessage.includes("upload your profile photo")) {
+          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=photo`);
+        } else if (errorMessage.includes("office phone number")) {
+          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=bio`);
+        } else if (errorMessage.includes("add your specialty")) {
+          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=specialty`);
+        } else {
+          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=photo`);
+        }
+      } else {
+        setErrorMessage(errorMessage);
       }
     }
   };
@@ -129,10 +232,7 @@ const SignInContent = ({
         );
       }
     } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message ||
-        "Failed to send recovery email. Please try again.";
-      setErrorMessage(errorMsg);
+      setErrorMessage(getCleanErrorMessage(error));
     }
   };
 

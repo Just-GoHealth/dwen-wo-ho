@@ -13,9 +13,6 @@ export const axiosInstance = axios.create({
 
 export const axiosFormData = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "multipart/form-data",
-  },
 });
 
 // Request interceptor - Add auth token to all requests
@@ -23,7 +20,9 @@ axiosInstance.interceptors.request.use(
   (config) => {
     // Get token from localStorage
     const token =
-      typeof window !== "undefined" ? localStorage.getItem("curatorToken") : null;
+      typeof window !== "undefined"
+        ? localStorage.getItem("token") || localStorage.getItem("curatorToken")
+        : null;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -40,7 +39,9 @@ axiosInstance.interceptors.request.use(
 axiosFormData.interceptors.request.use(
   (config) => {
     const token =
-      typeof window !== "undefined" ? localStorage.getItem("curatorToken") : null;
+      typeof window !== "undefined"
+        ? localStorage.getItem("token") || localStorage.getItem("curatorToken")
+        : null;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

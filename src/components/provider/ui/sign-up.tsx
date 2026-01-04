@@ -11,6 +11,11 @@ import SignUpProfile from "./signup/sign-up-profile";
 
 interface ProviderSignUpProps {
   email?: string;
+  fullName?: string;
+  title?: string;
+  specialty?: string;
+  profileImage?: string;
+  isPending?: boolean;
   onBack?: () => void;
   profileStep: number | null;
 }
@@ -19,14 +24,20 @@ type SignUpStep = "create" | "verify" | "profile";
 
 const SignUpContent = ({
   email: propEmail,
+  fullName: propFullName,
+  title: propTitle,
+  specialty,
+  profileImage,
+  isPending,
   onBack,
   profileStep,
 }: ProviderSignUpProps) => {
   const [currentStep, setCurrentStep] = useState<SignUpStep>("create");
+  const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false);
   const [signUpData, setSignUpData] = useState({
     email: propEmail || "",
-    fullName: "",
-    title: "Dr.",
+    fullName: propFullName || "",
+    title: propTitle || "Dr.",
   });
 
   const handleCreateAccountNext = (data: {
@@ -79,6 +90,8 @@ const SignUpContent = ({
             email={signUpData.email}
             fullName={signUpData.fullName}
             title={signUpData.title}
+            agreedToTerms={agreedToTerms}
+            onAgreedToTermsChange={setAgreedToTerms}
             onNext={handleCreateAccountNext}
           />
         );
@@ -98,6 +111,9 @@ const SignUpContent = ({
             email={signUpData.email}
             fullName={signUpData.fullName}
             title={signUpData.title}
+            specialty={specialty}
+            profileImage={profileImage}
+            isPending={isPending}
             onBack={() => setCurrentStep("verify")}
             startStep={profileStep || 0}
           />
@@ -117,7 +133,7 @@ const SignUpContent = ({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-center px-6 lg:px-20">
+      <div className="flex-1 flex flex-col justify-center px-6 lg:px-0">
         {renderStepContent()}
       </div>
 
@@ -139,7 +155,8 @@ const SignUpContent = ({
             <button
               form="create-account-form"
               type="submit"
-              className="rounded-full ml-2 px-8 py-1 border-4 bg-[#955aa4]/80 text-white text-lg font-bold border-[#955aa4] uppercase hover:bg-[#955aa4] transition-colors shadow-md"
+              disabled={!agreedToTerms}
+              className="rounded-full ml-2 px-8 py-1 border-4 text-lg font-bold uppercase transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed bg-[#955aa4]/80 text-white border-[#955aa4] hover:bg-[#955aa4] disabled:hover:bg-[#955aa4]/80"
             >
               Next
             </button>
