@@ -6,10 +6,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "pub-35fc99d1cb2b4cc1b75216788a3543fb.r2.dev",
+        port: "",
+        pathname: "/**",
       },
     ],
   },
-  /* config options here */
   async rewrites() {
     return [
       {

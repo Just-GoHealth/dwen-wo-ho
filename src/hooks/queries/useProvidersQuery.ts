@@ -5,14 +5,14 @@ import { ENDPOINTS } from "@/constants/endpoints";
 import { toast } from "sonner";
 import { IProviderResponse } from "@/types/provider.type";
 
-interface Provider {
+export interface Provider {
   id: string;
   email: string;
-  fullName: string;
-  professionalTitle: string;
-  status: "Active" | "Inactive";
-  createdAt: string;
-  updatedAt: string;
+  providerName: string;
+  profilePhotoURL?:string;
+  specialty: string;
+  applicationStatus: "PENDING" | "APPROVED" | "REJECTED";
+  applicationDate: string;
   lastActive?: string;
 }
 
@@ -98,8 +98,7 @@ export const useProvidersQuery = () => {
     useProvider,
     // Mutations
     approveProvider: approveProviderMutation.mutate,
-    isApproving: approveProviderMutation.isPending,
     rejectProvider: rejectProviderMutation.mutate,
-    isRejecting: rejectProviderMutation.isPending,
+    isModerating: approveProviderMutation.isPending || rejectProviderMutation.isPending,
   };
 };

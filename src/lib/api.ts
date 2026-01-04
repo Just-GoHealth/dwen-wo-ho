@@ -120,7 +120,6 @@ export async function api(endpoint: string, options: RequestInit = {}) {
         throw new Error(responseText || "API request failed");
       }
     }
-
     // Try to parse response as JSON, fallback to returning success object with text
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {

@@ -11,24 +11,21 @@ import { ENDPOINTS } from "@/constants/endpoints";
 import { ILockIn } from "@/types/lockin.type";
 
 // API functions
-const getSchools = async (): Promise<School[]> => {
-  const result = await api("/api/v1/schools");
-  return result.data;
+const getSchools = async (type?: string): Promise<School[]> => {
+  const params = new URLSearchParams();
+  if (type) params.append("type", type);
+
+  const result = await api(`/api/v1/schools?${params.toString()}`);
+
+  console.log({ result });
+  return result || [];
 };
 
 const getSchool = async (schoolId: string): Promise<School> => {
-  const response = await axiosInstance.get(`/api/v1/schools/${schoolId}`);
-  return checkResponse(response, 200)?.data;
-};
+  const result = await api(`/api/v1/schools/${schoolId}`);
 
-const getSchoolLockIn = async (schoolId: string): Promise<ILockIn> => {
-  const response = await axiosInstance.get(ENDPOINTS.getSchoolLockIn(schoolId));
-  return checkResponse(response, 200);
-};
-
-const createSchool = async (data: ICreateSchool): Promise<School> => {
-  const response = await axiosFormData.post(`/api/v1/schools`, data);
-  return checkResponse(response, 201);
+  console.log({ result });
+  return result.data;
 };
 
 const disableSchool = async (schoolId: string): Promise<School> => {
@@ -36,6 +33,16 @@ const disableSchool = async (schoolId: string): Promise<School> => {
     method: "PUT",
   });
   return result.data;
+};
+
+const getSchoolLockIn = async (schoolId: string): Promise<ILockIn> => {
+  const result = await api(`/api/v1/schools/${schoolId}/lockin`);
+  return result.data;
+};
+
+const createSchool = async (data: ICreateSchool): Promise<School> => {
+  const result = await axiosFormData.post(ENDPOINTS.createSchool, data);
+  return checkResponse(result, 201);
 };
 
 const SCHOOLS_QUERY_KEY = "schools";
@@ -96,6 +103,7 @@ export const useDisableSchool = () => {
       toast.error(error.message || "Failed to disable school");
     },
   });
+
 };
 
 // Deprecated default export for backward compatibility relative to file name,
