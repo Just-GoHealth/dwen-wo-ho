@@ -38,7 +38,7 @@ const SignUpContent = ({
   const [signUpData, setSignUpData] = useState({
     email: propEmail || "",
     fullName: propFullName || "",
-    title: propTitle || "Dr.",
+    title: propTitle || "",
   });
 
   const handleCreateAccountNext = (data: {
