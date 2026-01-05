@@ -49,7 +49,11 @@ const PendingVerificationModal = ({
               <div className="flex items-center gap-3">
                 <JustGoHealth />
               </div>
-              <span className="text-[#955aa4] font-bold text-lg absolute top-7 left-1/2 -translate-x-1/2">Pending Page</span>
+              {!isLoading && (
+                <span className="text-[#955aa4] font-bold text-lg absolute top-7 left-1/2 -translate-x-1/2">
+                  Pending Page
+                </span>
+              )}
             </div>
 
             {/* Content */}

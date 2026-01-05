@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormSelect } from "@/components/ui/form-select";
@@ -21,6 +21,7 @@ interface CreateAccountProps {
   agreedToTerms: boolean;
   onAgreedToTermsChange: (agreed: boolean) => void;
   onNext: (data: { email: string; fullName: string; title: string }) => void;
+  onValidityChange?: (isValid: boolean) => void;
 }
 
 const CreateAccount = ({
@@ -30,13 +31,14 @@ const CreateAccount = ({
   agreedToTerms,
   onAgreedToTermsChange,
   onNext,
+  onValidityChange,
 }: CreateAccountProps) => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const { signupMutation } = useAuthQuery();
 
-  const { register, handleSubmit, errors, watch, setValue } =
+  const { register, handleSubmit, errors, watch, setValue, formState: { isValid } } =
     useSelectedValuesFromReactHookForm(ProviderSignUpSchema, {
       mode: "onChange",
       defaultValues: {
@@ -46,6 +48,11 @@ const CreateAccount = ({
         password: "",
       },
     });
+
+  // Notify parent of validity change
+  useEffect(() => {
+    onValidityChange?.(isValid);
+  }, [isValid, onValidityChange]);
 
   const onSubmit = async (values: ProviderSignUpFormData) => {
     if (!agreedToTerms) {

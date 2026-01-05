@@ -34,6 +34,7 @@ const SignUpContent = ({
 }: ProviderSignUpProps) => {
   const [currentStep, setCurrentStep] = useState<SignUpStep>("create");
   const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false);
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const [signUpData, setSignUpData] = useState({
     email: propEmail || "",
     fullName: propFullName || "",
@@ -93,6 +94,7 @@ const SignUpContent = ({
             agreedToTerms={agreedToTerms}
             onAgreedToTermsChange={setAgreedToTerms}
             onNext={handleCreateAccountNext}
+            onValidityChange={setIsFormValid}
           />
         );
 
@@ -155,7 +157,7 @@ const SignUpContent = ({
             <button
               form="create-account-form"
               type="submit"
-              disabled={!agreedToTerms}
+              disabled={!agreedToTerms || !isFormValid}
               className="rounded-full ml-2 px-8 py-1 border-4 text-lg font-bold uppercase transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed bg-[#955aa4]/80 text-white border-[#955aa4] hover:bg-[#955aa4] disabled:hover:bg-[#955aa4]/80"
             >
               Next

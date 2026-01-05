@@ -91,10 +91,6 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
 
   return (
     <>
-      <LoadingOverlay
-        text="Verifying email..."
-        isVisible={checkEmailMutation.isPending}
-      />
       <div className="min-h-screen h-full flex flex-col justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-white"></div>
         <div className="absolute inset-0 backdrop-blur-[100px]"></div>

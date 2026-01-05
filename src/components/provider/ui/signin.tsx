@@ -15,6 +15,8 @@ import {
 } from "@/schemas/provider.auth.schema";
 import useAuthQuery from "@/hooks/queries/useAuthQuery";
 
+import LoadingOverlay from "@/components/ui/loading-overlay";
+
 interface ProviderSignInProps {
   email: string;
   onBack: () => void;
@@ -55,6 +57,7 @@ const SignInContent = ({
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showPendingModal, setShowPendingModal] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
   const [userInfo, setUserInfo] = useState({
     name: "Dr. Amanda Gorman",
@@ -92,21 +95,53 @@ const SignInContent = ({
 
           console.log("LOGIN SUCCESS DATA:", userData);
 
-
           // Check for pending status
-          if (userData.applicationStatus === "PENDING" || (response as any).message === "ACCOUNT PENDING") {
-            const params = new URLSearchParams();
-            params.set("email", values.email);
-            params.set("step", "specialty"); // Keeps it at the end of the flow
-            params.set("pending", "true");
-            if (userData.providerName) params.set("name", userData.providerName);
-            const title = (userData as any).professionalTitle || userData.specialty || "Dr.";
-            params.set("title", title);
+          if (
+            userData.applicationStatus === "PENDING" ||
+            (response as any).message === "ACCOUNT PENDING"
+          ) {
+            // Smart timestamp derivation
+            let timeAgo = "Recently";
+            const createdDate =
+              (userData as any).applicationTimestamp ||
+              (userData as any).createdAt ||
+              (userData as any).created_at ||
+              (userData as any).joinedAt;
 
-            if (userData.specialty) params.set("specialty", userData.specialty);
-            if (userData.profilePhotoURL || userData.profileURL) params.set("photo", userData.profilePhotoURL || userData.profileURL);
+            if (createdDate) {
+              const date = new Date(createdDate);
+              const now = new Date();
+              const diffInSeconds = Math.floor(
+                (now.getTime() - date.getTime()) / 1000
+              );
 
-            router.push(`${ROUTES.provider.signUp}?${params.toString()}`);
+              if (diffInSeconds < 60) {
+                timeAgo = "Just now";
+              } else if (diffInSeconds < 3600) {
+                const mins = Math.floor(diffInSeconds / 60);
+                timeAgo = `${mins} minute${mins > 1 ? "s" : ""} ago`;
+              } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                timeAgo = `${hours} hour${hours > 1 ? "s" : ""} ago`;
+              } else {
+                const days = Math.floor(diffInSeconds / 86400);
+                timeAgo = `${days} day${days > 1 ? "s" : ""} ago`;
+              }
+            }
+
+            setUserInfo({
+              name: userData.providerName || "Provider",
+              title:
+                (userData as any).professionalTitle ||
+                userData.specialty ||
+                "Health Provider",
+              timeAgo: timeAgo,
+              profileImage:
+                userData.profilePhotoURL ||
+                userData.profileURL ||
+                undefined,
+            } as any);
+            setShowPendingModal(true);
             return;
           }
 
@@ -119,7 +154,8 @@ const SignInContent = ({
             return;
           }
 
-          if (!userData.officePhoneNumber) { // Bio step uses phone number
+          if (!userData.officePhoneNumber) {
+            // Bio step uses phone number
             console.log("Redirecting to Bio Step");
             router.push(`/provider/signup?email=${emailParams}&step=bio`);
             return;
@@ -127,7 +163,9 @@ const SignInContent = ({
 
           if (!userData.specialty) {
             console.log("Redirecting to Specialty Step");
-            router.push(`/provider/signup?email=${emailParams}&step=specialty`);
+            router.push(
+              `/provider/signup?email=${emailParams}&step=specialty`
+            );
             return;
           }
 
@@ -136,24 +174,29 @@ const SignInContent = ({
             return;
           }
 
-          // Default to profile if everything else is good
-          // router.push(ROUTES.provider.profile);
+          // Default to schools page for approved/verified users
+          setIsRedirecting(true);
+          router.push(ROUTES.curator.schools);
         }
 
         // Check if user is verified (fallback logic if needed, but above checks should catch incomplete profiles first)
         if (response.data?.isVerified === false) {
           setUserInfo({
             name: response.data?.fullName || "Dr. Amanda Gorman",
-            title: response.data?.professionalTitle || "Clinical Psychologist",
+            title:
+              response.data?.professionalTitle || "Clinical Psychologist",
             timeAgo: "2 hours ago",
           });
           setShowPendingModal(true);
         } else {
-          // If verified and complete (and not caught by above checks), go to dashboard/profile
-          router.push(ROUTES.provider.profile);
+          // If verified and complete (and not caught by above checks), go to schools page
+          setIsRedirecting(true);
+          router.push(ROUTES.curator.schools);
         }
       } else {
-        setErrorMessage(getCleanErrorMessage(response.message || "Sign in failed"));
+        setErrorMessage(
+          getCleanErrorMessage(response.message || "Sign in failed")
+        );
       }
     } catch (error: any) {
       console.error("❌ Sign in error:", error);
@@ -174,19 +217,16 @@ const SignInContent = ({
       }
 
       if (isPendingError || errorMessage.includes("ACCOUNT PENDING")) {
-        console.log("⚠️ Account pending error caught, redirecting...");
-
-        const params = new URLSearchParams();
-        params.set("email", values.email);
-        params.set("step", "specialty");
-        params.set("pending", "true");
-
-        // Fallback values since we might not have user data from a failed login
-        // If token exists in localStorage, we might be able to use it later, 
-        // but for now redirecting to the pending view is the priority.
-        params.set("title", "Dr.");
-
-        router.push(`${ROUTES.provider.signUp}?${params.toString()}`);
+        console.log("⚠️ Account pending error caught, showing modal...");
+        // In catch block, we might not have user data. 
+        // We can try to decode token if we had one (unlikely in error), 
+        // or just show generic info.
+        setUserInfo({
+          name: "Provider", // Fallback
+          title: "Health Provider",
+          timeAgo: "Recently",
+        });
+        setShowPendingModal(true);
         return;
       }
 
@@ -197,13 +237,29 @@ const SignInContent = ({
         console.log("⚠️ Profile incomplete, redirecting...");
 
         if (errorMessage.includes("upload your profile photo")) {
-          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=photo`);
+          router.push(
+            `/provider/signup?email=${encodeURIComponent(
+              email
+            )}&step=photo`
+          );
         } else if (errorMessage.includes("office phone number")) {
-          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=bio`);
+          router.push(
+            `/provider/signup?email=${encodeURIComponent(
+              email
+            )}&step=bio`
+          );
         } else if (errorMessage.includes("add your specialty")) {
-          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=specialty`);
+          router.push(
+            `/provider/signup?email=${encodeURIComponent(
+              email
+            )}&step=specialty`
+          );
         } else {
-          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=photo`);
+          router.push(
+            `/provider/signup?email=${encodeURIComponent(
+              email
+            )}&step=photo`
+          );
         }
       } else {
         setErrorMessage(errorMessage);
@@ -253,7 +309,7 @@ const SignInContent = ({
       </div>
 
       <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="px-24">
-        <h1 className="text-5xl text-center font-extrabold">Sign in to your Accoun</h1>
+        <h1 className="text-5xl text-center font-extrabold">Sign in to your Account</h1>
         <div className="my-16">
           <div className="flex flex-col">
             <input
@@ -273,12 +329,11 @@ const SignInContent = ({
                 {...register("password")}
                 placeholder="********"
                 type={showPassword ? "text" : "password"}
-                className={`font-bold w-full rounded-xl outline-none placeholder:text-gray-500 focus:border-3 focus:border-[#2bb673] ${errors?.password
-                  ? "border-red-500 text-red-500"
-                  : password?.length > 0
-                    ? "border-[#2bb673] text-[#2bb673]"
-                    : "border-gray-300 text-gray-500"
-                  } text-xl text-gray-500 p-4 bg-gray-200/50`}
+                autoFocus
+                className={`font-bold w-full rounded-xl outline-none placeholder:text-gray-500 border-[3px] focus:border-[#2bb673] transition-colors ${errors?.password
+                    ? "border-red-500 text-red-500"
+                    : "border-[#2bb673] text-gray-500"
+                  } text-xl p-4 bg-gray-200/50`}
               />
               <button
                 type="button"
@@ -347,11 +402,15 @@ const SignInContent = ({
         </button>
       </div>
 
-      {/* Pending Verification Modal */}
       <PendingVerificationModal
         isOpen={showPendingModal}
         onClose={() => setShowPendingModal(false)}
         userInfo={userInfo}
+      />
+
+      <LoadingOverlay
+        text="Signing in..."
+        isVisible={loginMutation.isPending || isRedirecting}
       />
     </div>
   );
