@@ -267,14 +267,14 @@ const SignUpProfile = ({
           </div>
         </div>
       ) : (
-        <div className="h-full flex flex-col ">
+        <div className="h-full flex flex-col pb-10">
           {/* Main Content */}
           <div className="flex-1  flex flex-col justify-center">
             <div className="w-full max-w-4xl mx-auto">{renderStepContent()}</div>
           </div>
 
           {/* Bottom Navigation - Flex column footer (pushed to bottom by flex-1 above) */}
-          <div className="flex flex-col sm:flex-row border-t border-gray-500 px-4 sm:px-6 lg:px-6 py-4 items-center justify-between space-y-4 sm:space-y-0 mt-8 w-full bg-white">
+          <div className="flex flex-col sm:flex-row border-t border-gray-500 px-4 sm:px-6 lg:px-6 py-4 items-center justify-between space-y-4 sm:space-y-0 mt-8 fixed bottom-0 right-0 w-full lg:w-1/2 bg-white">
             <Button
               onClick={handleBack}
               className="rounded-full mr-2 px-8 py-1 border-4 bg-white text-[#955aa4] text-lg font-bold border-[#955aa4] uppercase flex items-center justify-center hover:bg-white"
@@ -342,7 +342,7 @@ const SignUpProfile = ({
 
             <Button
               onClick={handleNext}
-              disabled={isSubmitting}
+              disabled={isSubmitting || (currentStep === 2 && !profileData.specialty)}
               className="rounded-full ml-2 px-8 py-1 border-4 text-lg font-bold uppercase transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed bg-[#955aa4]/80 text-white border-[#955aa4] hover:bg-[#955aa4] disabled:hover:bg-[#955aa4]/80"
             >
               {isSubmitting ? (
