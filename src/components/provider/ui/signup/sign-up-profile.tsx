@@ -193,7 +193,7 @@ const SignUpProfile = ({
         });
 
         // Route to sign in page as per requirements
-        router.push(`${ROUTES.provider.singIn}?email=${encodeURIComponent(email)}`);
+        router.push(`${ROUTES.provider.auth}?step=sign-in&email=${encodeURIComponent(email)}`);
 
       } catch (error) {
         console.error("Specialty submission error:", error);
