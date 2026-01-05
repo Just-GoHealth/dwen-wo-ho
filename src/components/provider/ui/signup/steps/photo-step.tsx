@@ -209,7 +209,7 @@ const PhotoStep = ({ profilePhoto, onChange, onNext, onBack }: PhotoStepProps) =
       />
 
       {/* Bottom Navigation - matching create account page */}
-      <div className="flex flex-col sm:flex-row border-t border-gray-500 px-4 sm:px-6 lg:px-6 py-4 items-center justify-between space-y-4 sm:space-y-0 mt-8 bottom-0 fixed">
+      <div className="flex flex-col sm:flex-row border-t border-gray-500 px-4 sm:px-6 lg:px-6 py-4 items-center justify-between space-y-4 sm:space-y-0 mt-8 fixed bottom-0 right-0 w-full lg:w-1/2 bg-white">
         <Button
           onClick={onBack}
           className="rounded-full mr-2 px-8 py-1 border-4 bg-white text-[#955aa4] text-lg font-bold border-[#955aa4] uppercase flex items-center justify-center hover:bg-white"
