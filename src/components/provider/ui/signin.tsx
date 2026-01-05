@@ -106,7 +106,12 @@ const SignInContent = ({
             if (userData.specialty) params.set("specialty", userData.specialty);
             if (userData.profilePhotoURL || userData.profileURL) params.set("photo", userData.profilePhotoURL || userData.profileURL);
 
-            router.push(`${ROUTES.provider.signUp}?${params.toString()}`);
+            // Construct new URL: /provider/signup/[email]?params
+            const emailEncoded = encodeURIComponent(values.email);
+            // We remove email from params since it is in the path
+            params.delete("email");
+
+            router.push(`${ROUTES.provider.signUp}/${emailEncoded}?${params.toString()}`);
             return;
           }
 
@@ -115,19 +120,19 @@ const SignInContent = ({
 
           if (!userData.profileURL) {
             console.log("Redirecting to Photo Step");
-            router.push(`/provider/signup?email=${emailParams}&step=photo`);
+            router.push(`/provider/signup/${emailParams}?step=photo`);
             return;
           }
 
           if (!userData.officePhoneNumber) { // Bio step uses phone number
             console.log("Redirecting to Bio Step");
-            router.push(`/provider/signup?email=${emailParams}&step=bio`);
+            router.push(`/provider/signup/${emailParams}?step=bio`);
             return;
           }
 
           if (!userData.specialty) {
             console.log("Redirecting to Specialty Step");
-            router.push(`/provider/signup?email=${emailParams}&step=specialty`);
+            router.push(`/provider/signup/${emailParams}?step=specialty`);
             return;
           }
 
@@ -177,7 +182,8 @@ const SignInContent = ({
         console.log("⚠️ Account pending error caught, redirecting...");
 
         const params = new URLSearchParams();
-        params.set("email", values.email);
+        // Email is now in the path, so we don't need it in params for the new route
+        // params.set("email", values.email); 
         params.set("step", "specialty");
         params.set("pending", "true");
 
@@ -186,7 +192,8 @@ const SignInContent = ({
         // but for now redirecting to the pending view is the priority.
         params.set("title", "Dr.");
 
-        router.push(`${ROUTES.provider.signUp}?${params.toString()}`);
+        const emailEncoded = encodeURIComponent(values.email);
+        router.push(`${ROUTES.provider.signUp}/${emailEncoded}?${params.toString()}`);
         return;
       }
 
@@ -196,14 +203,16 @@ const SignInContent = ({
       if (errorMessage.includes("Profile is not complete")) {
         console.log("⚠️ Profile incomplete, redirecting...");
 
+        const emailEncoded = encodeURIComponent(email);
+
         if (errorMessage.includes("upload your profile photo")) {
-          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=photo`);
+          router.push(`/provider/signup/${emailEncoded}?step=photo`);
         } else if (errorMessage.includes("office phone number")) {
-          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=bio`);
+          router.push(`/provider/signup/${emailEncoded}?step=bio`);
         } else if (errorMessage.includes("add your specialty")) {
-          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=specialty`);
+          router.push(`/provider/signup/${emailEncoded}?step=specialty`);
         } else {
-          router.push(`/provider/signup?email=${encodeURIComponent(email)}&step=photo`);
+          router.push(`/provider/signup/${emailEncoded}?step=photo`);
         }
       } else {
         setErrorMessage(errorMessage);

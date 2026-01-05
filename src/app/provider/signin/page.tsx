@@ -108,17 +108,17 @@ const SignInContent = () => {
         // Determine which step to redirect to
         if (error.message.includes("upload your profile photo")) {
           console.log("→ Redirecting to photo step");
-          router.push(`/provider/signup?email=${encodeURIComponent(values.email)}&step=photo`);
+          router.push(`/provider/signup/${encodeURIComponent(values.email)}?step=photo`);
         } else if (error.message.includes("office phone number")) {
           console.log("→ Redirecting to bio step");
-          router.push(`/provider/signup?email=${encodeURIComponent(values.email)}&step=bio`);
+          router.push(`/provider/signup/${encodeURIComponent(values.email)}?step=bio`);
         } else if (error.message.includes("add your specialty")) {
           console.log("→ Redirecting to specialty step");
-          router.push(`/provider/signup?email=${encodeURIComponent(values.email)}&step=specialty`);
+          router.push(`/provider/signup/${encodeURIComponent(values.email)}?step=specialty`);
         } else {
           // Default to photo step
           console.log("→ Redirecting to photo step (default)");
-          router.push(`/provider/signup?email=${encodeURIComponent(values.email)}&step=photo`);
+          router.push(`/provider/signup/${encodeURIComponent(values.email)}?step=photo`);
         }
       } else {
         setErrorMessage(errorMsg);
