@@ -106,7 +106,9 @@ const PendingVerificationModal = ({
                         <p className="text-lg font-bold text-black mb-1">{userInfo.timeAgo}</p>
                       )}
                       <h2 className="text-4xl font-bold text-black mb-1">
-                        {userInfo.name}
+                        {userInfo.name.length > 12
+                          ? `${userInfo.name.substring(0, 12)}...`
+                          : userInfo.name}
                       </h2>
                       <p className="text-2xl font-bold text-black opacity-80">{userInfo.title}</p>
                     </div>
@@ -119,7 +121,7 @@ const PendingVerificationModal = ({
                       <div className="absolute inset-0 m-auto w-5 h-5 bg-black rounded-full"></div>
                     </div>
                     <span className="text-6xl font-extrabold text-black tracking-tight">
-                      Status: &nbsp;&nbsp;Pending...
+                      Status: &nbsp;&nbsp; <span className="font-medium">Pending...</span>
                     </span>
                   </div>
                 </>
