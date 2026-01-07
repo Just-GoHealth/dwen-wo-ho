@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { useMutation } from "@tanstack/react-query";
+import { axiosFormData, checkResponse } from "@/configs/axiosInstance";
 
 const useAuthQuery = () => {
   const loginMutation = useMutation({
@@ -28,6 +29,11 @@ const useAuthQuery = () => {
     mutationFn: (data: { email: string }) => checkEmail(data),
   });
 
+  const sendVerificationEmailMutation = useMutation({
+    mutationKey: ["auth", "sendVerificationEmail"],
+    mutationFn: (data: { email: string }) => sendVerificationEmail(data),
+  });
+
   const recoverAccountMutation = useMutation({
     mutationKey: ["auth", "recoverAccount"],
     mutationFn: (data: { email: string }) => recoverAccount(data),
@@ -53,9 +59,7 @@ const useAuthQuery = () => {
   const updateProfileMutation = useMutation({
     mutationKey: ["auth", "updateProfile"],
     mutationFn: (data: {
-      officePhoneNumber?: string;
-      status?: string;
-      [key: string]: any;
+      [key: string]: unknown;
     }) => updateProfile(data),
   });
 
@@ -65,7 +69,13 @@ const useAuthQuery = () => {
   });
 
   async function login(data: { email: string; password: string }) {
-    return api(ENDPOINTS.login, { method: "POST", body: JSON.stringify(data) });
+    console.log("🔑 login() called");
+    console.log("Request data:", data);
+
+    const result = await api(ENDPOINTS.login, { method: "POST", body: JSON.stringify(data) });
+
+    console.log("🔑 login() result:", result);
+    return result;
   }
 
   async function signup(data: {
@@ -74,10 +84,22 @@ const useAuthQuery = () => {
     fullName: string;
     professionalTitle: string;
   }) {
-    return api(ENDPOINTS.signup, {
+    console.log("🔐 signup() called");
+    console.log("Endpoint:", ENDPOINTS.signup);
+    console.log("Request data:", {
+      email: data.email,
+      password: "***REDACTED***",
+      fullName: data.fullName,
+      professionalTitle: data.professionalTitle,
+    });
+
+    const result = await api(ENDPOINTS.signup, {
       method: "POST",
       body: JSON.stringify(data),
     });
+
+    console.log("🔐 signup() result:", result);
+    return result;
   }
 
   async function checkEmail(data: { email: string }) {
@@ -88,10 +110,30 @@ const useAuthQuery = () => {
   }
 
   async function verifyEmail(data: { email: string; code: string }) {
-    return api(ENDPOINTS.verifyEmail, {
+    console.log("✉️ verifyEmail() called");
+    console.log("Endpoint:", ENDPOINTS.verifyEmail);
+    console.log("Request data:", data);
+
+    const result = await api(ENDPOINTS.verifyEmail, {
       method: "POST",
       body: JSON.stringify(data),
     });
+
+    console.log("✉️ verifyEmail() result:", result);
+    return result;
+  }
+
+  async function sendVerificationEmail(data: { email: string }) {
+    console.log("📧 sendVerificationEmail called with:", data);
+    console.log("Endpoint:", ENDPOINTS.sendVerificationEmail);
+
+    const result = await api(ENDPOINTS.sendVerificationEmail, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+
+    console.log("📧 sendVerificationEmail result:", result);
+    return result;
   }
 
   async function recoverAccount(data: { email: string }) {
@@ -122,13 +164,12 @@ const useAuthQuery = () => {
   }
 
   async function addPhoto(data: FormData) {
-    return api(ENDPOINTS.addPhoto, { method: "POST", body: data });
+    const response = await axiosFormData.post(ENDPOINTS.addPhoto, data);
+    return checkResponse(response, 200);
   }
 
   async function updateProfile(data: {
-    officePhoneNumber?: string;
-    status?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }) {
     return api(ENDPOINTS.updateProfile, {
       method: "POST",
@@ -148,6 +189,7 @@ const useAuthQuery = () => {
     signupMutation,
     verifyEmailMutation,
     checkEmailMutation,
+    sendVerificationEmailMutation,
     recoverAccountMutation,
     submitRecoveryCodeMutation,
     resetPasswordMutation,

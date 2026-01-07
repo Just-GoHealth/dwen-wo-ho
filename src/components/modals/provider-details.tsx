@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { FiX, FiMail, FiPhone, FiCalendar, FiMapPin, FiAward, FiUsers, FiFileText, FiPlus, FiMinus } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiX, FiMail, FiPhone, FiCalendar, FiAward, FiUsers, FiFileText, FiPlus, FiMinus } from "react-icons/fi";
 import { MdVerified } from "react-icons/md";
 import Image from "next/image";
-import { api } from "@/lib/api";
 import { timeAgo } from "@/lib/utils/timeAgo";
 import { useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
 import { ProviderDetails, AssociatedSchool, AssociatedPartner } from "@/types/provider";
@@ -33,7 +31,6 @@ const ProviderDetailsModal = ({
   const [schools, setSchools] = useState<AssociatedSchool[]>([]);
   const [partners, setPartners] = useState<AssociatedPartner[]>([]);
 
-  // Update local state when provider data is loaded
   useEffect(() => {
     if (providerData) {
       setSchools(mockSchools);
@@ -41,17 +38,16 @@ const ProviderDetailsModal = ({
     }
   }, [providerData]);
 
-  // Reset tab when modal opens
   useEffect(() => {
     if (isOpen) {
       setActiveTab("overview");
     }
   }, [isOpen]);
 
-  // Map providerData to the shape expected by the UI, or use passed prop
   const provider: ProviderDetails | null = providerData
     ? {
-        ...providerData,
+        id: providerData.id ?? "",
+        email: providerData.email,
         fullName: providerData.providerName,
         professionalTitle: providerData.specialty,
         profileImage: providerData.profilePhotoURL,
@@ -59,9 +55,11 @@ const ProviderDetailsModal = ({
         officePhoneNumber: "0538920991",
         specialties: [providerData.specialty],
         createdAt: providerData.applicationDate,
-        updatedAt: providerData.lastActive || providerData.applicationDate,
+        updatedAt: providerData.lastActive ?? providerData.applicationDate,
+        applicationStatus: providerData.applicationStatus,
+        applicationDate: providerData.applicationDate,
       }
-    : providerProp || null;
+    : providerProp ?? null;
 
   const showLoading = isQueryLoading && !provider;
 
@@ -69,8 +67,18 @@ const ProviderDetailsModal = ({
 
   const tabs = [
     { id: "overview" as TabType, label: "Overview", icon: FiFileText },
-    { id: "schools" as TabType, label: "Schools", icon: FiAward, count: schools.filter(s => s.isAssociated).length },
-    { id: "partners" as TabType, label: "Partners", icon: FiUsers, count: partners.filter(p => p.isAssociated).length },
+    { 
+      id: "schools" as TabType, 
+      label: "Schools", 
+      icon: FiAward, 
+      count: schools.filter(s => s.isAssociated).length 
+    },
+    { 
+      id: "partners" as TabType, 
+      label: "Partners", 
+      icon: FiUsers, 
+      count: partners.filter(p => p.isAssociated).length 
+    },
   ];
 
   const handleToggleSchool = (id: string) => {
@@ -123,20 +131,18 @@ const ProviderDetailsModal = ({
           </button>
 
           <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white/30 shadow-lg shrink-0">
-
-              <Image
-                src={provider?.profileImage || "/auth/lawyer.jpg"}
-                alt={provider?.fullName || "Provider"}
-                width={96}
-                height={96}
-                className="w-full h-full object-cover"
-              />
-            
+            <Image
+              src={provider?.profileImage ?? "/auth/lawyer.jpg"}
+              alt={provider?.fullName ?? "Provider"}
+              width={96}
+              height={96}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <div className="text-white">
             <h2 className="text-2xl font-bold mb-1">
-              {provider?.fullName || "Provider"}
+              {provider?.fullName ?? "Provider"}
             </h2>
             <p className="text-white/90 text-sm mb-2">
               {provider?.professionalTitle}
@@ -177,15 +183,12 @@ const ProviderDetailsModal = ({
           </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {showLoading ? (
-            <div className="flex flex-col items-center justify-center py-12 space-y-4">
-              <div className="relative w-16 h-16">
-                <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-[#955aa4] rounded-full border-t-transparent animate-spin"></div>
-              </div>
-              <p className="text-gray-500 font-medium animate-pulse">Loading details...</p>
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#955aa4] mb-4"></div>
+              <p className="text-gray-500 font-medium">Loading provider details...</p>
             </div>
           ) : (
             <>
@@ -310,7 +313,11 @@ const ProviderDetailsModal = ({
                               <p className="text-sm text-gray-500">Joined {school.joinedDate}</p>
                             </div>
                           </div>
-                          <button onClick={() => handleToggleSchool(school.id)} className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-red-400 text-red-500 hover:bg-red-50 transition-colors" aria-label="Remove school">
+                          <button 
+                            onClick={() => handleToggleSchool(school.id)} 
+                            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-red-400 text-red-500 hover:bg-red-50 transition-colors" 
+                            aria-label="Remove school"
+                          >
                             <FiMinus className="w-3 h-3" />
                           </button>
                         </div>
@@ -334,7 +341,11 @@ const ProviderDetailsModal = ({
                                 <p className="text-sm text-gray-500">Joined {school.joinedDate}</p>
                               </div>
                             </div>
-                            <button onClick={() => handleToggleSchool(school.id)} className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-400 text-green-500 hover:bg-green-50 transition-colors" aria-label="Add school">
+                            <button 
+                              onClick={() => handleToggleSchool(school.id)} 
+                              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-400 text-green-500 hover:bg-green-50 transition-colors" 
+                              aria-label="Add school"
+                            >
                               <FiPlus className="w-3 h-3" />
                             </button>
                           </div>
@@ -369,7 +380,11 @@ const ProviderDetailsModal = ({
                               <p className="text-sm text-gray-500">Joined {partner.joinedDate}</p>
                             </div>
                           </div>
-                          <button onClick={() => handleTogglePartner(partner.id)} className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-red-400 text-red-500 hover:bg-red-50 transition-colors" aria-label="Remove partner">
+                          <button 
+                            onClick={() => handleTogglePartner(partner.id)} 
+                            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-red-400 text-red-500 hover:bg-red-50 transition-colors" 
+                            aria-label="Remove partner"
+                          >
                             <FiMinus className="w-3 h-3" />
                           </button>
                         </div>
@@ -393,7 +408,11 @@ const ProviderDetailsModal = ({
                                 <p className="text-sm text-gray-500">Joined {partner.joinedDate}</p>
                               </div>
                             </div>
-                            <button onClick={() => handleTogglePartner(partner.id)} className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-400 text-green-500 hover:bg-green-50 transition-colors" aria-label="Add partner">
+                            <button 
+                              onClick={() => handleTogglePartner(partner.id)} 
+                              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-400 text-green-500 hover:bg-green-50 transition-colors" 
+                              aria-label="Add partner"
+                            >
                               <FiPlus className="w-3 h-3" />
                             </button>
                           </div>

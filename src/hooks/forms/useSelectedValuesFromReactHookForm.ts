@@ -7,7 +7,7 @@ export function useSelectedValuesFromReactHookForm<T extends FieldValues>(
   options: Omit<UseFormProps<T>, "resolver"> = {}
 ) {
   const form = useForm<T>({
-    resolver: zodResolver(schema as any),
+    resolver: zodResolver(schema as any), // eslint-disable-line @typescript-eslint/no-explicit-any
     ...options,
   });
 

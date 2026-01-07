@@ -4,14 +4,15 @@ import React, { useState } from "react";
 import { MdSchool, MdLocationOn } from "react-icons/md";
 import Image from "next/image";
 import WidthConstraint from "@/components/ui/width-constraint";
-import { FiCalendar } from "react-icons/fi";
 import { useSchoolsQuery } from "@/hooks/queries/useSchoolsQuery";
-
-const filterOptions = ["All", "JHS", "SHS", "NMTC", "UNIVERSITY"];
+import { School } from "@/types/school";
+import Link from "next/link";
+import { ROUTES } from "@/constants/routes";
+import { useSchools } from "@/hooks/queries/useSchools";
 
 export default function SchoolsPage() {
   const [activeFilter, setActiveFilter] = useState("SHS");
-  const { schools, isLoading, isError } = useSchoolsQuery(activeFilter);
+  const { data: schools, isLoading, isError } = useSchools(activeFilter);
 
   console.log("schools", schools);
 
@@ -107,7 +108,7 @@ export default function SchoolsPage() {
         {/* Schools Grid */}
         {!isLoading && schoolsList.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {schoolsList.map((school) => (
+            {schoolsList.map((school: School) => (
               <div
                 key={school.id}
                 className="group bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:border-[#955aa4]/30 transition-all duration-300 flex flex-col relative overflow-hidden"

@@ -35,50 +35,74 @@ const disableSchool = async (schoolId: string): Promise<School> => {
   return result.data;
 };
 
+const createSchool = async (data: ICreateSchool): Promise<School> => {
+  const formData = new FormData();
+  formData.append("name", data.name);
+  formData.append("nickname", data.nickname);
+  formData.append("type", data.type);
+  formData.append("baseline", data.baseline);
+  formData.append("campuses", JSON.stringify(data.campuses));
+  
+  if (data.logo) {
+    formData.append("logo", data.logo);
+  }
+
+  const response = await axiosFormData.post(ENDPOINTS.schools, formData);
+  return checkResponse(response, 201);
+};
+
 const SCHOOLS_QUERY_KEY = "schools";
 const SCHOOLS_LOCKIN_QUERY_KEY = "schools_lockin";
 
-export const useSchoolsQuery = (type?: string) => {
+export const useSchools = () => {
+  return useQuery({
+    queryKey: [SCHOOLS_QUERY_KEY],
+    queryFn: getSchools,
+  });
+};
+
+export const useSchool = (schoolId: string) => {
+  return useQuery({
+    queryKey: [SCHOOLS_QUERY_KEY, schoolId],
+    queryFn: () => getSchool(schoolId),
+    enabled: !!schoolId,
+  });
+};
+
+export const useSchoolLockin = (schoolId: string) => {
+  return useQuery({
+    queryKey: [SCHOOLS_LOCKIN_QUERY_KEY, schoolId],
+    queryFn: () => getSchoolLockIn(schoolId),
+    enabled: !!schoolId,
+  });
+};
+
+export const useCreateSchool = () => {
   const queryClient = useQueryClient();
 
-  // Fetch all schools
-  const schoolsQuery = useQuery({
-    queryKey: [SCHOOLS_QUERY_KEY, type],
-    queryFn: () => getSchools(type),
-  });
-
-  // Get single school
-  const useSchool = (schoolId: string) =>
-    useQuery({
-      queryKey: [SCHOOLS_QUERY_KEY, schoolId],
-      queryFn: () => getSchool(schoolId),
-      enabled: !!schoolId,
-    });
-
-  // create school mutation
-  const createSchoolMutation = useMutation({
+  return useMutation({
     mutationFn: createSchool,
     onSuccess: (success) => {
       console.log(success);
       queryClient.invalidateQueries({ queryKey: [SCHOOLS_QUERY_KEY] });
-
       toast.success("School created successfully");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to create school");
     },
   });
+};
 
-  // Disable school mutation
-  const disableSchoolMutation = useMutation({
+export const useDisableSchool = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationFn: disableSchool,
     onSuccess: (data, schoolId) => {
-      // Invalidate schools queries to trigger refetch
       queryClient.invalidateQueries({ queryKey: [SCHOOLS_QUERY_KEY] });
       queryClient.invalidateQueries({
         queryKey: [SCHOOLS_QUERY_KEY, schoolId],
       });
-
       toast.success("School disabled successfully");
     },
     onError: (error: Error) => {

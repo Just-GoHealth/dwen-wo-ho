@@ -5,10 +5,14 @@ import { CuratorSidebar } from "@/components/curator/ui/sidebar";
 import { ROUTES } from "@/constants/routes";
 import CreateModal from "@/components/curator/ui/create-modal";
 import { useState } from "react";
-import SchoolCreationModal from "@/components/modals/school-creation";
+// import SchoolCreationModal from "@/components/modals/school-creation";
 import MemberCreationModal from "@/components/modals/member-creation";
 import PartnerCreationModal from "@/components/modals/partner-creation";
 import ReachModal from "@/components/modals/reach";
+import { useSchools } from "@/hooks/queries/useSchools";
+import { useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
+import SchoolCreationModal from "@/components/modals/school-creation";
+
 
 export default function DashboardLayout({
   children,
@@ -21,6 +25,9 @@ export default function DashboardLayout({
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [showReachModal, setShowReachModal] = useState(false);
+
+  const { schools } = useSchools();
+  const { providers } = useProvidersQuery();
 
   const handleLogout = () => {
     localStorage.removeItem("curatorToken");
@@ -67,8 +74,8 @@ export default function DashboardLayout({
           setShowSchoolModal(false);
           setShowCreateModal(true);
         }}
-        onSchoolCreated={(school) => {
-          console.log("School created:", school);
+        onSchoolCreated={() => {
+          console.log("School created:", schools);
           setShowSchoolModal(false);
           setShowCreateModal(true);
         }}

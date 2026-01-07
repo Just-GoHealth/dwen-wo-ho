@@ -1,0 +1,45 @@
+
+D:\dwen-wo-ho\src\app\curator\(account)\schools\[schoolId]\page.tsx
+  6:10  error  'useSchoolLockin' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\dwen-wo-ho\src\app\provider\profile\page.tsx
+  104:6  warning  React Hook useCallback has an unnecessary dependency: 'api'. Either exclude it or remove the dependency array. Outer scope values like 'api' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+
+D:\dwen-wo-ho\src\app\provider\signin\typage.tsx
+  76:11  error  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+D:\dwen-wo-ho\src\components\curator\ui\check-email.tsx
+  11:10  error  'ROUTES' is defined but never used               @typescript-eslint/no-unused-vars
+  60:9   error  'emailValue' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\dwen-wo-ho\src\components\modals\provider-details.tsx
+  157:6  warning  React Hook useCallback has missing dependencies: 'mockPartners' and 'mockSchools'. Either include them or remove the dependency array. Outer scope values like 'api' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+
+D:\dwen-wo-ho\src\components\modals\school-creation.tsx
+  246:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\dwen-wo-ho\src\components\provider\ui\check-email.tsx
+   6:10  error  'Label' is defined but never used                @typescript-eslint/no-unused-vars
+  25:9   error  'router' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  38:21  error  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  60:9   error  'emailValue' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\dwen-wo-ho\src\components\provider\ui\new-password.tsx
+  11:8   error  'useAuthQuery' is defined but never used           @typescript-eslint/no-unused-vars
+  27:10  error  'errorMessage' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  30:10  error  'isLoading' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  42:18  error  'errors' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  65:21  error  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+D:\dwen-wo-ho\src\components\provider\ui\sign-up.tsx
+  1:1   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  6:10  error    'useRouter' is defined but never used                                                                  @typescript-eslint/no-unused-vars
+
+D:\dwen-wo-ho\src\components\provider\ui\signin.tsx
+    9:8   error    'Link' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+   89:28  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  131:28  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+✖ 21 problems (15 errors, 6 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
+

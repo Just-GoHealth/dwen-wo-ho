@@ -3,32 +3,26 @@
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // "use client";
 
-// import { useState, useEffect } from "react";
-// import { useRouter } from "next/navigation";
-// import JustGoHealth from "@/components/logo-purple";
-// import { Button } from "@/components/ui/button";
-// import { api } from "@/lib/api";
-// import { ROUTES } from "@/constants/routes";
-// import {
-//   FiChevronDown,
-//   FiX,
-//   FiHome,
-//   FiUsers,
-//   FiFileText,
-//   FiPlus,
-//   FiLogOut,
-//   FiArrowRight,
-//   FiMenu,
-// } from "react-icons/fi";
-// import { MdSchool, MdHealthAndSafety } from "react-icons/md";
-// import SchoolCreationModal from "@/components/modals/school-creation";
-// import MemberCreationModal from "@/components/modals/member-creation";
-// import ReachModal from "@/components/modals/reach";
-// import LineupModal from "@/components/modals/lineup";
-// import PartnerCreationModal from "@/components/modals/partner-creation";
-// import ProviderDetailsModal from "@/components/modals/provider-details";
-// import Image from "next/image";
-// import { CuratorSidebar } from "@/components/curator/ui/sidebar";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+import { api } from "@/lib/api";
+import { ENDPOINTS } from "@/constants/endpoints";
+import { ROUTES } from "@/constants/routes";
+import {
+  FiChevronDown,
+  FiX,
+
+} from "react-icons/fi";
+import { MdSchool, MdHealthAndSafety } from "react-icons/md";
+import SchoolCreationModal from "@/components/modals/school-creation";
+import MemberCreationModal from "@/components/modals/member-creation";
+import ReachModal from "@/components/modals/reach";
+import LineupModal from "@/components/modals/lineup";
+import PartnerCreationModal from "@/components/modals/partner-creation";
+import ProviderDetailsModal from "@/components/modals/provider-details";
+import Image from "next/image";
+
 
 // interface School {
 //   id: string;
@@ -40,163 +34,164 @@
 //   avatar?: string;
 // }
 
-// interface Provider {
-//   id: string;
-//   email: string;
-//   fullName: string;
-//   professionalTitle: string;
-//   status: "Active" | "Inactive";
-//   createdAt: string;
-//   updatedAt: string;
-//   lastActive?: string;
-// }
+interface Provider {
+  id: string;
+  email: string;
+  fullName: string;
+  professionalTitle: string;
+  status: "Active" | "Inactive";
+  createdAt: string;
+  updatedAt: string;
+  lastActive?: string;
+}
 
-// const CuratorDashboard = () => {
-//   const [activeTab, setActiveTab] = useState("home");
-//   const [filter, setFilter] = useState("All");
-//   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-//   const [showLogoutModal, setShowLogoutModal] = useState(false);
-//   const [showCreateModal, setShowCreateModal] = useState(false);
-//   const [showSchoolModal, setShowSchoolModal] = useState(false);
-//   const [showMemberModal, setShowMemberModal] = useState(false);
-//   const [showReachModal, setShowReachModal] = useState(false);
-//   const [showLineupModal, setShowLineupModal] = useState(false);
-//   const [showPartnerModal, setShowPartnerModal] = useState(false);
-//   const [showProviderModal, setShowProviderModal] = useState(false);
-//   const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
-//   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-//   const router = useRouter();
+const mockSchools: School[] = [
+  {
+    id: "1",
+    name: "Achimota High School",
+    status: "Active",
+    lastActivity: "2m ago",
+    activityType: "New Visit",
+    avatar: "/auth/lawyer.jpg",
+  },
+  {
+    id: "2",
+    name: "Ashesi University",
+    status: "Active",
+    lastActivity: "2d ago",
+    activityType: "New Provider",
+  },
+  {
+    id: "3",
+    name: "Korle-Bu NMTC",
+    status: "Inactive",
+    lastActivity: "2h ago",
+    activityType: "New Screen",
+    avatar: "/auth/man.jpg",
+  },
+  {
+    id: "4",
+    name: "Accra Technical Uni.",
+    status: "Active",
+    lastActivity: "Now",
+    activityType: "New Results",
+  },
+  {
+    id: "5",
+    name: "KNUST",
+    status: "Inactive",
+    lastActivity: "2w ago",
+    activityType: "Provider Visit",
+  },
+  {
+    id: "6",
+    name: "Achimota High School",
+    status: "Active",
+    lastActivity: "2m ago",
+    activityType: "New Visit",
+    avatar: "/auth/lawyer.jpg",
+  },
+];
 
-//   useEffect(() => {
-//     const savedTab = localStorage.getItem("curatorActiveTab");
-//     if (savedTab) {
-//       setActiveTab(savedTab);
-//     }
-//   }, []);
+// const mockProviders: Provider[] = [
+//   {
+//     id: "1",
+//     email: "frances.kwame@example.com",
+//     fullName: "Dr. Frances Kwame Nkrumah",
+//     professionalTitle: "Clinical Psychologist",
+//     status: "Active",
+//     createdAt: "2024-01-15T10:30:00Z",
+//     updatedAt: "2024-01-15T10:30:00Z",
+//     lastActive: "2m ago",
+//   },
+//   {
+//     id: "2",
+//     email: "emily.owusu@example.com",
+//     fullName: "Prof. Emily Owusu",
+//     professionalTitle: "Clinical Psychologist",
+//     status: "Active",
+//     createdAt: "2024-01-14T14:20:00Z",
+//     updatedAt: "2024-01-14T14:20:00Z",
+//     lastActive: "3m ago",
+//   },
+//   {
+//     id: "3",
+//     email: "hannah.asan@example.com",
+//     fullName: "Ms. Hannah Yaa Asante",
+//     professionalTitle: "Mental Health Nurse",
+//     status: "Active",
+//     createdAt: "2024-01-13T09:15:00Z",
+//     updatedAt: "2024-01-13T09:15:00Z",
+//     lastActive: "5m ago",
+//   },
+//   {
+//     id: "4",
+//     email: "john.doe@example.com",
+//     fullName: "Dr. John Doe",
+//     professionalTitle: "Psychiatrist",
+//     status: "Active",
+//     createdAt: "2024-01-12T16:45:00Z",
+//     updatedAt: "2024-01-12T16:45:00Z",
+//     lastActive: "1h ago",
+//   },
+//   {
+//     id: "5",
+//     email: "sarah.smith@example.com",
+//     fullName: "Ms. Sarah Smith",
+//     professionalTitle: "Therapist",
+//     status: "Active",
+//     createdAt: "2024-01-11T11:30:00Z",
+//     updatedAt: "2024-01-11T11:30:00Z",
+//     lastActive: "2h ago",
+//   },
+//   {
+//     id: "6",
+//     email: "michael.brown@example.com",
+//     fullName: "Dr. Michael Brown",
+//     professionalTitle: "Family Medicine",
+//     status: "Inactive",
+//     createdAt: "2024-01-10T13:20:00Z",
+//     updatedAt: "2024-01-10T13:20:00Z",
+//     lastActive: "1d ago",
+//   },
+// ];
 
-//   const handleTabChange = (tab: string) => {
-//     setActiveTab(tab);
-//     localStorage.setItem("curatorActiveTab", tab);
-//   };
+const CuratorDashboard = () => {
+  const [activeTab, setActiveTab] = useState("home");
+  const [filter, setFilter] = useState("All");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSchoolModal, setShowSchoolModal] = useState(false);
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [showReachModal, setShowReachModal] = useState(false);
+  const [showLineupModal, setShowLineupModal] = useState(false);
+  const [showPartnerModal, setShowPartnerModal] = useState(false);
+  const [showProviderModal, setShowProviderModal] = useState(false);
+  const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
 
-//   const handleProviderSelect = (providerEmail: string) => {
-//     setSelectedProviderEmail(providerEmail);
-//     setShowProviderModal(true);
-//   };
+  const router = useRouter();
 
-//   const mockSchools: School[] = [
-//     {
-//       id: "1",
-//       name: "Achimota High School",
-//       status: "Active",
-//       lastActivity: "2m ago",
-//       activityType: "New Visit",
-//       avatar: "/auth/lawyer.jpg",
-//     },
-//     {
-//       id: "2",
-//       name: "Ashesi University",
-//       status: "Active",
-//       lastActivity: "2d ago",
-//       activityType: "New Provider",
-//     },
-//     {
-//       id: "3",
-//       name: "Korle-Bu NMTC",
-//       status: "Inactive",
-//       lastActivity: "2h ago",
-//       activityType: "New Screen",
-//       avatar: "/auth/man.jpg",
-//     },
-//     {
-//       id: "4",
-//       name: "Accra Technical Uni.",
-//       status: "Active",
-//       lastActivity: "Now",
-//       activityType: "New Results",
-//     },
-//     {
-//       id: "5",
-//       name: "KNUST",
-//       status: "Inactive",
-//       lastActivity: "2w ago",
-//       activityType: "Provider Visit",
-//     },
-//     {
-//       id: "6",
-//       name: "Achimota High School",
-//       status: "Active",
-//       lastActivity: "2m ago",
-//       activityType: "New Visit",
-//       avatar: "/auth/lawyer.jpg",
-//     },
-//   ];
+  useEffect(() => {
+    const savedTab = localStorage.getItem("curatorActiveTab");
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, []);
 
-//   const [schools] = useState<School[]>(mockSchools);
-//   const [providers, setProviders] = useState<Provider[]>([]);
 
-//   const mockProviders: Provider[] = [
-//     {
-//       id: "1",
-//       email: "frances.kwame@example.com",
-//       fullName: "Dr. Frances Kwame Nkrumah",
-//       professionalTitle: "Clinical Psychologist",
-//       status: "Active",
-//       createdAt: "2024-01-15T10:30:00Z",
-//       updatedAt: "2024-01-15T10:30:00Z",
-//       lastActive: "2m ago",
-//     },
-//     {
-//       id: "2",
-//       email: "emily.owusu@example.com",
-//       fullName: "Prof. Emily Owusu",
-//       professionalTitle: "Clinical Psychologist",
-//       status: "Active",
-//       createdAt: "2024-01-14T14:20:00Z",
-//       updatedAt: "2024-01-14T14:20:00Z",
-//       lastActive: "3m ago",
-//     },
-//     {
-//       id: "3",
-//       email: "hannah.asan@example.com",
-//       fullName: "Ms. Hannah Yaa Asante",
-//       professionalTitle: "Mental Health Nurse",
-//       status: "Active",
-//       createdAt: "2024-01-13T09:15:00Z",
-//       updatedAt: "2024-01-13T09:15:00Z",
-//       lastActive: "5m ago",
-//     },
-//     {
-//       id: "4",
-//       email: "john.doe@example.com",
-//       fullName: "Dr. John Doe",
-//       professionalTitle: "Psychiatrist",
-//       status: "Active",
-//       createdAt: "2024-01-12T16:45:00Z",
-//       updatedAt: "2024-01-12T16:45:00Z",
-//       lastActive: "1h ago",
-//     },
-//     {
-//       id: "5",
-//       email: "sarah.smith@example.com",
-//       fullName: "Ms. Sarah Smith",
-//       professionalTitle: "Therapist",
-//       status: "Active",
-//       createdAt: "2024-01-11T11:30:00Z",
-//       updatedAt: "2024-01-11T11:30:00Z",
-//       lastActive: "2h ago",
-//     },
-//     {
-//       id: "6",
-//       email: "michael.brown@example.com",
-//       fullName: "Dr. Michael Brown",
-//       professionalTitle: "Family Medicine",
-//       status: "Inactive",
-//       createdAt: "2024-01-10T13:20:00Z",
-//       updatedAt: "2024-01-10T13:20:00Z",
-//       lastActive: "1d ago",
-//     },
-//   ];
+
+  const handleProviderSelect = (providerEmail: string) => {
+    setSelectedProviderEmail(providerEmail);
+    setShowProviderModal(true);
+  };
+
+
+
+  const [schools] = useState<School[]>(mockSchools);
+  const [providers, setProviders] = useState<Provider[]>([]);
+
+
 
 //   useEffect(() => {
 //     const loadProviders = async () => {
@@ -212,7 +207,9 @@
 //           return;
 //         }
 
-//         const response = await api.getProviders({ token });
+//         const response = await api(ENDPOINTS.providers, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
 //         if (response.success) {
 //           setProviders(response.data || []);
@@ -326,92 +323,90 @@
 //             </div>
 //           </div>
 
-//           {/* Content Grid */}
-//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
-//             {activeTab === "home"
-//               ? filteredSchools.map((school) => (
-//                   <div
-//                     key={school.id}
-//                     className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 hover:scale-[1.02]"
-//                   >
-//                     <div className="flex items-start gap-4 mb-4">
-//                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
-//                         {school.avatar ? (
-//                           <Image
-//                             width={48}
-//                             height={48}
-//                             src={school.avatar}
-//                             alt={school.name}
-//                             className="w-full h-full object-cover rounded-xl"
-//                           />
-//                         ) : (
-//                           <MdSchool className="text-white text-xl" />
-//                         )}
-//                       </div>
-//                       <div className="flex-1 min-w-0">
-//                         <h3 className="font-bold text-gray-900 text-base lg:text-lg truncate mb-1">
-//                           {school.name}
-//                         </h3>
-//                         <p className="text-orange-500 text-xs lg:text-sm truncate font-medium">
-//                           {school.activityType} • {school.lastActivity}
-//                         </p>
-//                       </div>
-//                     </div>
-//                     <div className="flex justify-center">
-//                       <div
-//                         className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${
-//                           school.status === "Active"
-//                             ? "bg-green-100 text-green-700 border border-green-200"
-//                             : "bg-gray-100 text-gray-600 border border-gray-200"
-//                         }`}
-//                       >
-//                         {school.status}
-//                       </div>
-//                     </div>
-//                   </div>
-//                 ))
-//               : filteredProviders.map((provider) => (
-//                   <div
-//                     key={provider.id}
-//                     onClick={() => handleProviderSelect(provider.email)}
-//                     className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02]"
-//                   >
-//                     <div className="flex items-start gap-4 mb-4">
-//                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center flex-shrink-0 shadow-md">
-//                         <MdHealthAndSafety className="text-white text-xl" />
-//                       </div>
-//                       <div className="flex-1 min-w-0">
-//                         <h3 className="font-bold text-gray-900 group-hover:text-[#955aa4] transition-colors text-base lg:text-lg truncate mb-1">
-//                           {provider.fullName}
-//                         </h3>
-//                         <p className="text-gray-600 text-sm lg:text-base truncate mb-1">
-//                           {provider.professionalTitle}
-//                         </p>
-//                         {provider.lastActive && (
-//                           <p className="text-orange-500 text-xs lg:text-sm font-medium">
-//                             {provider.lastActive}
-//                           </p>
-//                         )}
-//                       </div>
-//                     </div>
-//                     <div className="flex justify-center">
-//                       <div
-//                         className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${
-//                           provider.status === "Active"
-//                             ? "bg-green-100 text-green-700 border border-green-200"
-//                             : provider.status === "Inactive"
-//                             ? "bg-gray-100 text-gray-600 border border-gray-200"
-//                             : "bg-gray-100 text-gray-600 border border-gray-200"
-//                         }`}
-//                       >
-//                         {provider.status}
-//                       </div>
-//                     </div>
-//                   </div>
-//                 ))}
-//           </div>
-//         </div>
-//       </div>
+          {/* Content Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
+            {activeTab === "home"
+              ? filteredSchools.map((school) => (
+                <div
+                  key={school.id}
+                  className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 hover:scale-[1.02]"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-md">
+                      {school.avatar ? (
+                        <Image
+                          width={48}
+                          height={48}
+                          src={school.avatar}
+                          alt={school.name}
+                          className="w-full h-full object-cover rounded-xl"
+                        />
+                      ) : (
+                        <MdSchool className="text-white text-xl" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 text-base lg:text-lg truncate mb-1">
+                        {school.name}
+                      </h3>
+                      <p className="text-orange-500 text-xs lg:text-sm truncate font-medium">
+                        {school.activityType} • {school.lastActivity}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div
+                      className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${school.status === "Active"
+                        ? "bg-green-100 text-green-700 border border-green-200"
+                        : "bg-gray-100 text-gray-600 border border-gray-200"
+                        }`}
+                    >
+                      {school.status}
+                    </div>
+                  </div>
+                </div>
+              ))
+              : filteredProviders.map((provider) => (
+                <div
+                  key={provider.id}
+                  onClick={() => handleProviderSelect(provider.email)}
+                  className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02]"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] flex items-center justify-center flex-shrink-0 shadow-md">
+                      <MdHealthAndSafety className="text-white text-xl" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 group-hover:text-[#955aa4] transition-colors text-base lg:text-lg truncate mb-1">
+                        {provider.fullName}
+                      </h3>
+                      <p className="text-gray-600 text-sm lg:text-base truncate mb-1">
+                        {provider.professionalTitle}
+                      </p>
+                      {provider.lastActive && (
+                        <p className="text-orange-500 text-xs lg:text-sm font-medium">
+                          {provider.lastActive}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div
+                      className={`px-4 py-2 rounded-full font-semibold text-sm shadow-sm ${provider.status === "Active"
+                        ? "bg-green-100 text-green-700 border border-green-200"
+                        : provider.status === "Inactive"
+                          ? "bg-gray-100 text-gray-600 border border-gray-200"
+                          : "bg-gray-100 text-gray-600 border border-gray-200"
+                        }`}
+                    >
+                      {provider.status}
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
 
 //       {/* Clean Logout Modal */}
 //       {showLogoutModal && (

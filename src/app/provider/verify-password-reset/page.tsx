@@ -12,14 +12,14 @@ import useGetSearchParams from "@/hooks/useGetSearchParams";
 import Stepper from "@/components/stepper";
 import { ArrowRightIcon } from "lucide-react";
 import { api } from "@/lib/api";
+import { ENDPOINTS } from "@/constants/endpoints";
 
 const VerifyContent = () => {
   const [isRunning, setIsRunning] = useState(true);
   const [seconds, setSeconds] = useState(120); // 2 minutes
   const email = useGetSearchParams("email");
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -44,18 +44,22 @@ const VerifyContent = () => {
       // Make a request to sent email to user before countdown starts
 
       try {
-        const response = await api.recoverAccount({ email: email as string });
+        const response = await api(ENDPOINTS.recoverAccount, {
+          method: "POST",
+          body: JSON.stringify({ email: email as string }),
+        });
 
         if (response.success) {
+          // console.log("Email sent");
         } else {
-          setErrorMessage(response.message || "The provided email is invalid");
+          console.error(response.message || "The provided email is invalid");
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         const errorMsg =
-          error.response?.data?.message || "Sign in failed. Please try again.";
-        setErrorMessage(errorMsg);
+          (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Sign in failed. Please try again.";
+        console.error(errorMsg);
       } finally {
-        setIsLoading(false);
+        // setIsLoading(false);
       }
     })();
   }, [email, router]);

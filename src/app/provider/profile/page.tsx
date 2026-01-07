@@ -5,16 +5,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import JustGoHealth from "@/components/logo-purple";
 import { Button } from "@/components/ui/button";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Star, 
-  Edit3, 
-  Settings, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Clock,
+  Star,
+  Edit3,
+  Settings,
   LogOut,
   Shield,
   Award,
@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import PendingVerificationModal from "@/components/modals/pending-verification";
 import { api } from "@/lib/api";
+import { ENDPOINTS } from "@/constants/endpoints";
 import Image from "next/image";
 
 const Profile = () => {
@@ -37,7 +38,7 @@ const Profile = () => {
     title: "Clinical Psychologist",
     timeAgo: "2 hours ago"
   });
-  
+
   // Mock data - in real app this would come from API/context
   const providerData = {
     name: "Dr. Sarah Johnson",
@@ -54,7 +55,7 @@ const Profile = () => {
     certifications: ["Board Certified Family Medicine", "ACLS Certified"],
     availability: {
       monday: "9:00 AM - 5:00 PM",
-      tuesday: "9:00 AM - 5:00 PM", 
+      tuesday: "9:00 AM - 5:00 PM",
       wednesday: "9:00 AM - 3:00 PM",
       thursday: "9:00 AM - 5:00 PM",
       friday: "9:00 AM - 4:00 PM",
@@ -73,12 +74,14 @@ const Profile = () => {
         return;
       }
 
-      const response = await api.getProfile({ token });
-      
+      const response = await api(ENDPOINTS.profile, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       if (response.success && response.data) {
         const profile = response.data;
         setIsVerified(profile.isVerified || false);
-        
+
         if (!profile.isVerified) {
           setUserInfo({
             name: profile.fullName || "Dr. Amanda Gorman",
@@ -98,14 +101,14 @@ const Profile = () => {
       setIsVerified(false);
       setShowPendingModal(true);
     }
-  }, [router, api]);
+  }, [router]);
 
   useEffect(() => {
     checkVerificationStatus();
-    
+
     // Check every 10 seconds
     const interval = setInterval(checkVerificationStatus, 10000);
-    
+
     return () => clearInterval(interval);
   }, [checkVerificationStatus]);
 
@@ -133,19 +136,19 @@ const Profile = () => {
               <Button variant="ghost" size="sm" className="text-gray-600">
                 <Bell className="w-5 h-5" />
               </Button>
-              <Button 
+              <Button
                 onClick={handleLogout}
-                variant="ghost" 
-                size="sm" 
+                variant="ghost"
+                size="sm"
                 className="text-red-600 hover:text-red-700"
               >
-                  <Image 
-                    src="/arrow-diagonal.png" 
-                    alt="Arrow right" 
-                    width={32} 
-                    height={32}
-                    className="w-8 h-8 hover:scale-125 transition-all duration-300"
-                  />
+                <Image
+                  src="/arrow-diagonal.png"
+                  alt="Arrow right"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 hover:scale-125 transition-all duration-300"
+                />
                 Logout
               </Button>
             </div>
@@ -163,13 +166,13 @@ const Profile = () => {
                 <Image
                   width={128}
                   height={128}
-                  src={providerData.profileImage} 
+                  src={providerData.profileImage}
                   alt={providerData.name}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 p-0"
               >
                 <Camera className="w-4 h-4" />
@@ -186,7 +189,7 @@ const Profile = () => {
                   <p className="text-xl text-[#955aa4] font-semibold mb-4">
                     {providerData.title}
                   </p>
-                  
+
                   <div className="flex items-center space-x-6 mb-4">
                     <div className="flex items-center space-x-2">
                       <Star className="w-5 h-5 text-yellow-400 fill-current" />
@@ -203,7 +206,7 @@ const Profile = () => {
 
                   <div className="flex flex-wrap gap-2">
                     {providerData.specialties.map((specialty, index) => (
-                      <span 
+                      <span
                         key={index}
                         className="px-3 py-1 bg-[#955aa4]/10 text-[#955aa4] rounded-full text-sm font-medium"
                       >
@@ -232,11 +235,10 @@ const Profile = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                      activeTab === tab.id
-                        ? "border-[#955aa4] text-[#955aa4]"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                    className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                      ? "border-[#955aa4] text-[#955aa4]"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span>{tab.label}</span>
@@ -297,7 +299,7 @@ const Profile = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6">
                     <p className="text-sm text-gray-500 mb-2">Certifications</p>
                     <div className="space-y-2">

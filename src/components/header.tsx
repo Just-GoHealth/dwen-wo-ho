@@ -91,7 +91,7 @@ const Header = ({ className, logo }: { className?: string; logo?: string }) => {
 
   return (
     <header
-      className={`py-4 flex flex-col items-center z-[50] overflow-clip fixed top-0 w-screen text-black ${className} bg-gray-100`}
+      className={`py-4 pr-6 flex flex-col items-center z-[50] overflow-clip fixed top-0 w-screen text-black ${className} bg-gray-100`}
       ref={navRef}
     >
       <WidthConstraint className="flex w-full items-center justify-between gap-4">
@@ -125,7 +125,14 @@ const Header = ({ className, logo }: { className?: string; logo?: string }) => {
           {!check ? <AlignRight /> : <X />}
         </button>
         <div className="hidden lg:flex gap-4 items-center">
-         
+          {/* <Link href={ROUTES.curator.signIn}>
+            <Button
+              variant="outline"
+              className="text-[#955aa4] border-[#955aa4] hover:bg-[#955aa4] hover:text-white"
+            >
+              Curator Portal
+            </Button>
+          </Link> */}
           <Button
             onClick={handleGetStarted}
             className="bg-gray-300 text-black hover:bg-gray-300 "

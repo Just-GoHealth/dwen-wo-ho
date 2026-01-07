@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 "use client";
 
 import JustGoHealth from "@/components/logo-purple";
@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Image from "next/image";
 import { api } from "@/lib/api";
-import { ROUTES } from "@/constants/routes";
+
+import { ENDPOINTS } from "@/constants/endpoints";
 import LoadingOverlay from "@/components/ui/loading-overlay";
 import { useSelectedValuesFromReactHookForm } from "@/hooks/forms/useSelectedValuesFromReactHookForm";
 import {
@@ -30,7 +31,10 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
       setIsLoading(true);
       setErrorMessage("");
 
-      const response = await api.curatorCheckEmail({ email, password: "" });
+      const response = await api(ENDPOINTS.curatorCheckEmail, {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
 
       if (response && response.success) {
         onEmailSubmit(email);
@@ -47,13 +51,12 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
     }
   };
 
-  const { register, handleSubmit, errors, watch } =
+  const { register, handleSubmit, errors } =
     useSelectedValuesFromReactHookForm(CuratorEmailSchema, {
       mode: "onChange",
     });
 
-  // Watch the email field for real-time value
-  const emailValue = watch("email");
+
 
   const onSubmit = (values: CuratorEmailFormData) => {
     checkEmailExists(values.email);
@@ -106,19 +109,17 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                     <input
                       {...register("email")}
                       placeholder="curator@justgohealth.com"
-                      className={`flex-1 px-6 py-5 bg-transparent text-gray-700 font-semibold text-lg placeholder-gray-500 focus:outline-none ${
-                        errors?.email ? "text-red-600" : "text-green-600"
-                      }`}
+                      className={`flex-1 px-6 py-5 bg-transparent text-gray-700 font-semibold text-lg placeholder-gray-500 focus:outline-none ${errors?.email ? "text-red-600" : "text-green-600"
+                        }`}
                     />
                     <Button
                       type="submit"
                       variant="ghost"
                       disabled={isLoading}
-                      className={`px-6 h-auto transition-all duration-300 ${
-                        !errors?.email && !isLoading
-                          ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
-                          : "bg-gray-400/50 text-gray-500 cursor-not-allowed"
-                      }`}
+                      className={`px-6 h-auto transition-all duration-300 ${!errors?.email && !isLoading
+                        ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
+                        : "bg-gray-400/50 text-gray-500 cursor-not-allowed"
+                        }`}
                     >
                       {isLoading ? (
                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -146,7 +147,7 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
 
                 <div className="text-center">
                   <p className="text-gray-600 text-sm">
-                    Don't have curator access?
+                    Don&apos;t have curator access?
                     <span className="text-purple-600 font-semibold ml-1 cursor-pointer hover:text-purple-800 transition-colors">
                       Contact administrator
                     </span>

@@ -5,6 +5,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Upload, X, MapPin } from "lucide-react";
+import Image from "next/image";
+import { useCreateSchool } from "@/hooks/queries/useSchoolsQuery";
+import { ICreateSchool } from "@/types/school";
 
 interface SchoolCreationModalProps {
   isOpen: boolean;
@@ -23,7 +26,32 @@ const campusOptions = [
   "Sunyani",
 ];
 
-  const schoolTypes = ["JHS", "SHS", "NMTC", "UNIVERSITY"];
+const schoolTypes = ["High School", "NMTC", "University"];
+
+type SchoolFormData = {
+  name: string;
+  nickname: string;
+  campuses: string[];
+  type: string;
+  logo: File | undefined;
+};
+
+const SchoolCreationModal = ({
+  isOpen,
+  onClose,
+  onSchoolCreated,
+}: SchoolCreationModalProps) => {
+  const [showCampusDropdown, setShowCampusDropdown] = useState(false);
+  const [selectedCampuses, setSelectedCampuses] = useState<string[]>([]);
+  const [formData, setFormData] = useState<SchoolFormData>({
+    name: "",
+    nickname: "",
+    campuses: [] as string[],
+    type: "",
+    logo: undefined,
+  });
+
+  const createSchoolMutation = useCreateSchool();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -54,11 +82,37 @@ const campusOptions = [
     setFormData((prev) => ({ ...prev, logo: undefined }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Creating school:", { ...formData, campuses: selectedCampuses });
-    onSchoolCreated?.(formData);
-    onClose();
+    
+    if (!formData.name || !formData.type) {
+      return;
+    }
+
+    const schoolData: ICreateSchool = {
+      name: formData.name,
+      nickname: formData.nickname,
+      type: formData.type,
+      baseline: "",
+      campuses: selectedCampuses,
+      logo: formData.logo ?? null,
+    };
+
+    createSchoolMutation.mutate(schoolData, {
+      onSuccess: () => {
+        onSchoolCreated?.(schoolData);
+        onClose();
+        
+        setFormData({
+          name: "",
+          nickname: "",
+          campuses: [],
+          type: "",
+          logo: undefined,
+        });
+        setSelectedCampuses([]);
+      },
+    });
   };
 
   return (
@@ -126,122 +180,135 @@ const campusOptions = [
                     </div>
                   </div>
 
-                  {/* Type */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-gray-700">Institution Type</label>
-                    <div className="flex flex-wrap gap-3">
-                      {schoolTypes.map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => handleInputChange("type", type)}
-                          className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
-                            formData.type === type
-                              ? "bg-[#955aa4] text-white shadow-md shadow-[#955aa4]/20"
-                              : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent hover:border-gray-200"
+                {/* Type */}
+                <div className="flex items-center gap-6">
+                  <label className="text-lg font-bold text-gray-900 w-24">
+                    Type
+                  </label>
+                  <div className="flex-1 flex gap-4">
+                    {schoolTypes.map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => handleInputChange("type", type)}
+                        className={`px-6 py-2 rounded-lg font-bold transition-colors ${formData.type === type
+                          ? "bg-[#955aa4] text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
+                      >
+                        {type}
+                      </button>
+                    ))}
                   </div>
+                </div>
 
-                  {/* Campuses */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-semibold text-gray-700">Campuses</label>
-                      {selectedCampuses.length > 0 && (
-                        <span className="text-xs font-medium text-[#955aa4] bg-[#955aa4]/10 px-2 py-1 rounded-full">
-                          {selectedCampuses.length} selected
+                {/* Campuses */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-gray-700">Campuses</label>
+                    {selectedCampuses.length > 0 && (
+                      <span className="text-xs font-medium text-[#955aa4] bg-[#955aa4]/10 px-2 py-1 rounded-full">
+                        {selectedCampuses.length} selected
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowCampusDropdown(!showCampusDropdown)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-left flex items-center justify-between hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <MapPin className="w-4 h-4" />
+                        <span className={selectedCampuses.length > 0 ? "text-gray-900" : "text-gray-500"}>
+                          {selectedCampuses.length > 0 
+                            ? selectedCampuses.join(", ")
+                            : "Select campus locations"
+                          }
                         </span>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showCampusDropdown ? "rotate-180" : ""}`} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {showCampusDropdown && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-20 overflow-hidden"
+                        >
+                          <div className="max-h-48 overflow-y-auto p-2">
+                            {campusOptions.map((campus) => (
+                              <button
+                                key={campus}
+                                type="button"
+                                onClick={() => handleCampusToggle(campus)}
+                                className={`w-full text-left px-4 py-2.5 rounded-lg flex items-center justify-between transition-colors ${
+                                  selectedCampuses.includes(campus)
+                                    ? "bg-[#955aa4]/5 text-[#955aa4]"
+                                    : "hover:bg-gray-50 text-gray-700"
+                                }`}
+                              >
+                                <span className="font-medium">{campus}</span>
+                                {selectedCampuses.includes(campus) && (
+                                  <span className="text-[#955aa4] font-bold">✓</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                {/* Logo */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">School Logo</label>
+                  <div className="flex items-center gap-6">
+                    <div className="flex-1">
+                      {formData.logo ? (
+                        <div className="relative inline-block">
+                          <Image
+                            src={URL.createObjectURL(formData.logo)}
+                            alt="Uploaded logo"
+                            width={128}
+                            height={128}
+                            className="w-32 h-32 object-cover rounded-lg border shadow-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveLogo}
+                            className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type="file"
+                            id="logo-upload"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            className="hidden"
+                          />
+                          <label
+                            htmlFor="logo-upload"
+                            className="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-[#955aa4]/30 transition-all group"
+                          >
+                            <div className="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                              <Upload className="w-5 h-5 text-[#955aa4]" />
+                            </div>
+                            <span className="text-sm font-medium text-gray-600 group-hover:text-[#955aa4] transition-colors">Click to upload logo</span>
+                            <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</span>
+                          </label>
+                        </>
                       )}
                     </div>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setShowCampusDropdown(!showCampusDropdown)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-left flex items-center justify-between hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <MapPin className="w-4 h-4" />
-                          <span className={selectedCampuses.length > 0 ? "text-gray-900" : "text-gray-500"}>
-                            {selectedCampuses.length > 0 
-                              ? selectedCampuses.join(", ")
-                              : "Select campus locations"
-                            }
-                          </span>
-                        </div>
-                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showCampusDropdown ? "rotate-180" : ""}`} />
-                      </button>
-                      
-                      <AnimatePresence>
-                        {showCampusDropdown && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-20 overflow-hidden"
-                          >
-                            <div className="max-h-48 overflow-y-auto p-2">
-                              {campusOptions.map((campus) => (
-                                <button
-                                  key={campus}
-                                  type="button"
-                                  onClick={() => handleCampusToggle(campus)}
-                                  className={`w-full text-left px-4 py-2.5 rounded-lg flex items-center justify-between transition-colors ${
-                                    selectedCampuses.includes(campus)
-                                      ? "bg-[#955aa4]/5 text-[#955aa4]"
-                                      : "hover:bg-gray-50 text-gray-700"
-                                  }`}
-                                >
-                                  <span className="font-medium">{campus}</span>
-                                  {selectedCampuses.includes(campus) && (
-                                    <span className="text-[#955aa4] font-bold">✓</span>
-                                  )}
-                                </button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
                   </div>
-
-                  {/* Logo */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-gray-700">School Logo</label>
-                    <div className="flex items-center gap-6">
-                      <div className="flex-1">
-                        <input
-                          type="file"
-                          id="logo-upload"
-                          accept="image/*"
-                          onChange={handleLogoUpload}
-                          className="hidden"
-                        />
-                        <label
-                          htmlFor="logo-upload"
-                          className="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 hover:border-[#955aa4]/30 transition-all group"
-                        >
-                          {formData.logo ? (
-                            <div className="text-center">
-                              <p className="text-[#955aa4] font-medium mb-1">{formData.logo.name}</p>
-                              <p className="text-xs text-gray-400">Click to change</p>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                <Upload className="w-5 h-5 text-[#955aa4]" />
-                              </div>
-                              <span className="text-sm font-medium text-gray-600 group-hover:text-[#955aa4] transition-colors">Click to upload logo</span>
-                              <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</span>
-                            </>
-                          )}
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                </div>
                 </form>
               </div>
 

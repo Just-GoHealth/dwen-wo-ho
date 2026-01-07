@@ -8,6 +8,7 @@ import JustGoHealth from "@/components/logo-purple";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { ROUTES } from "@/constants/routes";
+import { ENDPOINTS } from "@/constants/endpoints";
 import LoadingOverlay from "@/components/ui/loading-overlay";
 import {
   ArrowLeft,
@@ -57,7 +58,9 @@ const ProviderDetails = () => {
           return;
         }
 
-        const response = await api.getProvider(email, { token });
+        const response = await api(ENDPOINTS.provider(email), {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         if (response.success) {
           setProvider(response.data);
@@ -82,7 +85,10 @@ const ProviderDetails = () => {
 
     try {
       const token = localStorage.getItem("curatorToken") || "";
-      const response = await api.approveProvider(email, { token });
+      const response = await api(ENDPOINTS.approveProvider(email), {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.success) {
         setSuccessMessage("Provider approved successfully!");
@@ -109,7 +115,10 @@ const ProviderDetails = () => {
 
     try {
       const token = localStorage.getItem("curatorToken") || "";
-      const response = await api.rejectProvider(email, { token });
+      const response = await api(ENDPOINTS.rejectProvider(email), {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.success) {
         setSuccessMessage("Provider rejected successfully!");

@@ -1,0 +1,42 @@
+
+D:\dwen-wo-ho\src\components\curator\ui\signin.tsx
+  58:7  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+D:\dwen-wo-ho\src\components\modals\pending-verification.tsx
+  22:3  error  'onClose' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\dwen-wo-ho\src\components\modals\provider-details.tsx
+  54:9  warning  The 'mockSchools' array makes the dependencies of useCallback Hook (at line 161) change on every render. Move it inside the useCallback callback. Alternatively, wrap the initialization of 'mockSchools' in its own useMemo() Hook    react-hooks/exhaustive-deps
+  75:9  warning  The 'mockPartners' array makes the dependencies of useCallback Hook (at line 161) change on every render. Move it inside the useCallback callback. Alternatively, wrap the initialization of 'mockPartners' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+D:\dwen-wo-ho\src\components\provider\ui\signin.tsx
+   42:14  error  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+   54:3   error  'onProfileIncomplete' is defined but never used  @typescript-eslint/no-unused-vars
+  173:16  error  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+
+D:\dwen-wo-ho\src\components\provider\ui\signup\sign-up-profile.tsx
+   89:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  149:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\dwen-wo-ho\src\components\provider\ui\signup\steps\photo-step.tsx
+  126:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\dwen-wo-ho\src\hooks\queries\useAuthQuery.ts
+   75:79  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  152:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  162:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  176:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  183:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 24 problems (21 errors, 3 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

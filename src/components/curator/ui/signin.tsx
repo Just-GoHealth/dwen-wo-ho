@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, Suspense } from "react";
 import { ROUTES } from "@/constants/routes";
+import { ENDPOINTS } from "@/constants/endpoints";
 import { api } from "@/lib/api";
 import { useSelectedValuesFromReactHookForm } from "@/hooks/forms/useSelectedValuesFromReactHookForm";
 import {
@@ -20,7 +21,6 @@ interface CuratorSignInProps {
 
 const CuratorSignInContent = ({ email, onBack }: CuratorSignInProps) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const router = useRouter();
 
@@ -33,12 +33,17 @@ const CuratorSignInContent = ({ email, onBack }: CuratorSignInProps) => {
       },
     });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onSubmit = async (values: CuratorLoginFormData) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     setErrorMessage("");
 
     try {
-      const response = await api.curatorSignIn(values);
+      const response = await api(ENDPOINTS.curatorSignIn, {
+        method: "POST",
+        body: JSON.stringify(values),
+      });
 
       if (response.success) {
         // Store curator token
@@ -49,12 +54,12 @@ const CuratorSignInContent = ({ email, onBack }: CuratorSignInProps) => {
       } else {
         setErrorMessage(response.message || "Sign in failed");
       }
-    } catch (error: any) {
+    } catch (error) {
       const errorMsg =
-        error.response?.data?.message || "Sign in failed. Please try again.";
+        (error as any)?.response?.data?.message || "Sign in failed. Please try again.";
       setErrorMessage(errorMsg);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -100,13 +105,12 @@ const CuratorSignInContent = ({ email, onBack }: CuratorSignInProps) => {
                 {...register("password")}
                 placeholder="********"
                 type={showPassword ? "text" : "password"}
-                className={`font-bold w-full rounded-xl border-4 ${
-                  errors?.password
-                    ? "border-red-500 text-red-500"
-                    : password?.length > 0
+                className={`font-bold w-full rounded-xl border-4 ${errors?.password
+                  ? "border-red-500 text-red-500"
+                  : password?.length > 0
                     ? "border-green-600 text-green-600"
                     : "border-gray-300 text-gray-500"
-                } text-2xl text-gray-500 p-4 bg-gray-200/50`}
+                  } text-2xl text-gray-500 p-4 bg-gray-200/50`}
               />
               <button
                 type="button"
@@ -139,15 +143,14 @@ const CuratorSignInContent = ({ email, onBack }: CuratorSignInProps) => {
           form="login-form"
           type="submit"
           disabled={
-            !password?.length || isLoading || Object.keys(errors).length > 0
+            !password?.length || isSubmitting || Object.keys(errors).length > 0
           }
-          className={`text-xl px-6 py-2 border-4 font-bold rounded-md flex items-center gap-2 ${
-            !password?.length || isLoading || Object.keys(errors).length > 0
-              ? "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
-              : "border-[#2b3990] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
-          }`}
+          className={`text-xl px-6 py-2 border-4 font-bold rounded-md flex items-center gap-2 ${!password?.length || isSubmitting || Object.keys(errors).length > 0
+            ? "border-gray-400 text-gray-400 bg-gray-300 cursor-not-allowed"
+            : "border-[#2b3990] text-white bg-[#955aa4] hover:bg-[#955aa4]/80"
+            }`}
         >
-          {isLoading && (
+          {isSubmitting && (
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               <div
@@ -160,7 +163,7 @@ const CuratorSignInContent = ({ email, onBack }: CuratorSignInProps) => {
               ></div>
             </div>
           )}
-          {isLoading ? "Signing In..." : "Sign In"}
+          {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
       </div>
     </div>
