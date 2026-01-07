@@ -35,7 +35,6 @@ const PendingVerificationModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -79,10 +78,10 @@ const PendingVerificationModal = ({
               ) : (
                 // Loaded State
                 <>
-                  {/* Profile Section */}
-                  <div className="flex items-center justify-center gap-17 mb-10">
+                  <div className="grid grid-cols-[160px_1fr] gap-10 items-center max-w-2xl mx-auto mb-10">
+                    {/* Profile Section */}
                     {/* Profile Image */}
-                    <div className="flex-shrink-0">
+                    <div className="flex justify-center flex-shrink-0">
                       {userInfo.profileImage ? (
                         <Image
                           width={170}
@@ -101,28 +100,31 @@ const PendingVerificationModal = ({
                     </div>
 
                     {/* Name and Role */}
-                    <div className="text-left">
+                    <div className="text-left min-w-0">
                       {userInfo.timeAgo && (
                         <p className="text-lg font-bold text-black mb-1">{userInfo.timeAgo}</p>
                       )}
-                      <h2 className="text-4xl font-bold text-black mb-1">
-                        {userInfo.name.length > 12
-                          ? `${userInfo.name.substring(0, 12)}...`
-                          : userInfo.name}
+                      <h2 className="text-4xl font-bold text-black mb-1 break-words">
+                        {userInfo.name}
                       </h2>
                       <p className="text-2xl font-bold text-black opacity-80">{userInfo.title}</p>
                     </div>
-                  </div>
 
-                  {/* Status Section */}
-                  <div className="flex items-center justify-center gap-4 mb-10">
-                    <div className="relative w-12 h-12">
-                      <div className="absolute inset-0 border-[6px] border-black rounded-full text-white"></div>
-                      <div className="absolute inset-0 m-auto w-5 h-5 bg-black rounded-full"></div>
+                    {/* Status Section */}
+                    {/* Icon - Centered to match Photo */}
+                    <div className="flex justify-center flex-shrink-0">
+                      <div className="relative w-12 h-12">
+                        <div className="absolute inset-0 border-[6px] border-black rounded-full text-white"></div>
+                        <div className="absolute inset-0 m-auto w-5 h-5 bg-black rounded-full"></div>
+                      </div>
                     </div>
-                    <span className="text-6xl font-extrabold text-black tracking-tight">
-                      Status: &nbsp;&nbsp; <span className="font-medium">Pending...</span>
-                    </span>
+
+                    {/* Status Text */}
+                    <div className="text-left -ml-18 -mb-2">
+                      <span className="text-6xl font-extrabold text-black tracking-tight">
+                        Status: &nbsp;&nbsp; <span className="font-medium">Pending...</span>
+                      </span>
+                    </div>
                   </div>
                 </>
               )}
