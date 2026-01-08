@@ -6,33 +6,44 @@ import {
 } from "@/configs/axiosInstance";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { ICreateSchool, School } from "@/types/school";
+import { ICreateSchool, IUpdateSchool, School } from "@/types/school";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { ILockIn } from "@/types/lockin.type";
 
-// API functions
-const getSchools = async (type?: string): Promise<School[]> => {
-  const params = new URLSearchParams();
-  if (type) params.append("type", type);
+const getSchools = async (): Promise<School[]> => {
+  const result = await api(`/api/v1/schools`);
 
-  const result = await api(`/api/v1/schools?${params.toString()}`);
-
-  console.log({ result });
-  return result || [];
+  if (result?.success && Array.isArray(result.data)) {
+    return result.data;
+  }
+  
+  if (Array.isArray(result)) {
+    return result;
+  }
+  
+  return [];
 };
 
 const getSchool = async (schoolId: string): Promise<School> => {
   const result = await api(`/api/v1/schools/${schoolId}`);
 
-  console.log({ result });
-  return result.data;
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to fetch school");
 };
 
 const disableSchool = async (schoolId: string): Promise<School> => {
   const result = await api(`/api/v1/schools/${schoolId}/disable`, {
     method: "PUT",
   });
-  return result.data;
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to disable school");
 };
 
 const createSchool = async (data: ICreateSchool): Promise<School> => {
@@ -51,13 +62,28 @@ const createSchool = async (data: ICreateSchool): Promise<School> => {
   return checkResponse(response, 201);
 };
 
+const updateSchool = async (data: IUpdateSchool): Promise<School> => {
+  const formData = new FormData();
+  if (data.name) formData.append("name", data.name);
+  if (data.nickname) formData.append("nickname", data.nickname);
+  if (data.type) formData.append("type", data.type);
+  if (data.baseline) formData.append("baseline", data.baseline);
+  if (data.campuses) formData.append("campuses", JSON.stringify(data.campuses));
+  if (data.logo) formData.append("logo", data.logo);
+
+  const response = await axiosFormData.put(ENDPOINTS.updateSchool(data.id), formData);
+  return checkResponse(response, 200);
+};
+
 const SCHOOLS_QUERY_KEY = "schools";
 const SCHOOLS_LOCKIN_QUERY_KEY = "schools_lockin";
 
 export const useSchools = () => {
   return useQuery({
     queryKey: [SCHOOLS_QUERY_KEY],
-    queryFn: getSchools,
+    queryFn: () => getSchools(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };
 
@@ -67,6 +93,16 @@ export const useSchool = (schoolId: string) => {
     queryFn: () => getSchool(schoolId),
     enabled: !!schoolId,
   });
+};
+
+const getSchoolLockIn = async (schoolId: string) => {
+  const result = await api(ENDPOINTS.getSchoolLockIn(schoolId));
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to fetch school lockin");
 };
 
 export const useSchoolLockin = (schoolId: string) => {
@@ -82,8 +118,7 @@ export const useCreateSchool = () => {
 
   return useMutation({
     mutationFn: createSchool,
-    onSuccess: (success) => {
-      console.log(success);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SCHOOLS_QUERY_KEY] });
       toast.success("School created successfully");
     },
@@ -109,20 +144,22 @@ export const useDisableSchool = () => {
       toast.error(error.message || "Failed to disable school");
     },
   });
+};
 
-  // Return all queries and mutations
-  return {
-    // Queries
-    schools: schoolsQuery.data,
-    isLoading: schoolsQuery.isPending,
-    isError: schoolsQuery.isError,
-    error: schoolsQuery.error,
-    // Single school query helper
-    useSchool,
-    getSchoolLockinQuery,
-    // Mutations
-    createSchoolMutation,
-    disableSchool: disableSchoolMutation.mutate,
-    isDisabling: disableSchoolMutation.isPending,
-  };
+export const useUpdateSchool = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateSchool,
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: [SCHOOLS_QUERY_KEY] });
+      queryClient.invalidateQueries({
+        queryKey: [SCHOOLS_QUERY_KEY, String(variables.id)],
+      });
+      toast.success("School updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update school");
+    },
+  });
 };

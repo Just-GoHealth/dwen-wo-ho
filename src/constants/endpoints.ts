@@ -13,10 +13,6 @@ export const ENDPOINTS = {
   submitAccountRecoveryCode: "/api/v1/auth/submit-account-recovery-code",
   resetPassword: "/api/v1/auth/reset-password",
 
-  // Curator endpoints
-  curatorCheckEmail: "/api/v1/auth/curator/check-email",
-  curatorSignIn: "/api/v1/auth/curator/sign-in",
-
   // Specialties endpoints
   specialties: "/api/v1/specialties",
 
@@ -28,7 +24,11 @@ export const ENDPOINTS = {
 
   // Schools endpoints
   schools: "/api/v1/schools",
-  school: (id: string) => `/api/v1/schools/${id}`,
+  school: (id: string | number) => `/api/v1/schools/${id}`,
+  updateSchool: (id: string | number) => `/api/v1/schools/${id}`,
+  schoolPartners: (id: string | number) => `/api/v1/schools/${id}/partners`,
+  schoolProviders: (id: string | number) => `/api/v1/schools/${id}/providers`,
+  schoolReach: (id: string | number) => `/api/v1/schools/${id}/reach`,
   getSchoolLockIn: (id: string) => `/api/v1/lockin/${id}`,
-  disableSchool: (id: string) => `/api/v1/schools/${id}/disable`,
+  disableSchool: (id: string | number) => `/api/v1/schools/${id}/disable`,
 };

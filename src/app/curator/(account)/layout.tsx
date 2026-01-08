@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { CuratorSidebar } from "@/components/curator/ui/sidebar";
 import { ROUTES } from "@/constants/routes";
 import CreateModal from "@/components/curator/ui/create-modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // import SchoolCreationModal from "@/components/modals/school-creation";
 import MemberCreationModal from "@/components/modals/member-creation";
 import PartnerCreationModal from "@/components/modals/partner-creation";
@@ -20,25 +20,41 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      const curatorToken = localStorage.getItem("curatorToken");
+      if (!token && !curatorToken) {
+        router.push(ROUTES.provider.auth);
+      }
+    }
+  }, [router]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSchoolModal, setShowSchoolModal] = useState(false);
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [showReachModal, setShowReachModal] = useState(false);
 
-  const { schools } = useSchools();
-  const { providers } = useProvidersQuery();
+  const { schools, isLoading: schoolsLoading } = useSchools();
+  const { providers, isLoading: providersLoading } = useProvidersQuery();
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("curatorToken");
-    router.push(ROUTES.curator.signIn);
+    router.push(ROUTES.provider.auth);
   };
+
+  const schoolCount = Array.isArray(schools) ? schools.length : 0;
+  const providerCount = providers?.data && Array.isArray(providers.data) 
+    ? providers.data.length 
+    : 0;
 
   return (
     <div className="h-screen bg-white flex">
       <CuratorSidebar
-        schoolCount={schools?.length || 0}
-        providerCount={providers?.data?.length || 0}
+        schoolCount={schoolCount}
+        providerCount={providerCount}
         onCreateClick={() => setShowCreateModal(true)}
         onLogout={handleLogout}
       />

@@ -5,7 +5,8 @@ import { MdHealthAndSafety } from "react-icons/md";
 import WidthConstraint from "@/components/ui/width-constraint";
 import ProviderDetailsModal from "@/components/modals/provider-details";
 import ProviderCard from "@/components/curator/provider-card";
-import { useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
+import { useProvidersQuery, Provider } from "@/hooks/queries/useProvidersQuery";
+import { IProvider } from "@/types/provider.type";
 
 export default function ProvidersPage() {
   const [filter, setFilter] = useState("All");
@@ -15,8 +16,16 @@ export default function ProvidersPage() {
   // Fetch providers using the query hook
   const { providers, isLoading, isError, error } = useProvidersQuery();
 
-  // Use providers data or empty array
-  const providersList: IProvider[] = providers?.data || [];
+  // Map IProvider to Provider type (add id field using email)
+  const providersList: Provider[] = (providers?.data || []).map((provider: IProvider) => ({
+    id: provider.email,
+    email: provider.email,
+    providerName: provider.providerName,
+    profilePhotoURL: provider.profilePhotoURL || undefined,
+    specialty: provider.specialty || "",
+    applicationStatus: provider.applicationStatus,
+    applicationDate: provider.applicationDate,
+  }));
 
   const handleProviderSelect = (providerEmail: string) => {
     setSelectedProviderEmail(providerEmail);

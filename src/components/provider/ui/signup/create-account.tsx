@@ -78,14 +78,9 @@ const CreateAccount = ({
 
       console.log("Signup response:", response);
 
-      if (response.success || response) {
+      if (response?.success || response) {
         console.log("✅ Account created successfully. Verification email sent.");
 
-        // No need to store password in localStorage anymore
-        // We might store email/name if needed for the next step display, 
-        // but the parent component handles that via onNext arguments.
-
-        // Move to verification step
         onNext({
           email: values.email,
           fullName: values.fullName,
@@ -93,7 +88,8 @@ const CreateAccount = ({
         });
       } else {
         console.error("❌ Signup failed - no success flag");
-        setErrorMessage(response.message || "Failed to create account");
+        const errorResponse = response as { message?: string } | null | undefined;
+        setErrorMessage(errorResponse?.message || "Failed to create account");
       }
     } catch (error: any) {
       console.error("❌ Signup error:", error);

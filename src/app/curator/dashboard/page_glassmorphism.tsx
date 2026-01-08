@@ -193,7 +193,7 @@ const CuratorDashboard = () => {
       try {
         const token = localStorage.getItem("curatorToken");
         if (!token) {
-          router.push(ROUTES.curator.signIn);
+          router.push(ROUTES.provider.auth);
           return;
         }
 
@@ -222,7 +222,7 @@ const CuratorDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("curatorToken");
-    router.push(ROUTES.curator.signIn);
+    router.push(ROUTES.provider.auth);
   };
 
   const filteredSchools = schools.filter((school) => {

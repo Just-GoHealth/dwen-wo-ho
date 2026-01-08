@@ -26,7 +26,7 @@ const campusOptions = [
   "Sunyani",
 ];
 
-const schoolTypes = ["High School", "NMTC", "University"];
+const schoolTypes = ["JHS", "SHS", "NMTC", "University"];
 
 type SchoolFormData = {
   name: string;
@@ -71,7 +71,6 @@ const SchoolCreationModal = ({
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.target;
     const file = input.files?.[0];
-    console.log(file);
     setFormData((prev) => ({
       ...prev,
       logo: file,

@@ -2,21 +2,32 @@
 
 import React, { useState } from "react";
 import { MdSchool, MdLocationOn } from "react-icons/md";
+import { FiCalendar } from "react-icons/fi";
 import Image from "next/image";
 import WidthConstraint from "@/components/ui/width-constraint";
-import { useSchoolsQuery } from "@/hooks/queries/useSchoolsQuery";
 import { School } from "@/types/school";
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
-import { useSchools } from "@/hooks/queries/useSchools";
+import { useSchools } from "@/hooks/queries/useSchoolsQuery";
+
+type FilterType = "all" | "JHS" | "SHS" | "NMTC" | "University";
+
+const filterOptions: { label: string; value: FilterType }[] = [
+  { label: "All", value: "all" },
+  { label: "JHS", value: "JHS" },
+  { label: "SHS", value: "SHS" },
+  { label: "NMTC", value: "NMTC" },
+  { label: "University", value: "University" },
+];
 
 export default function SchoolsPage() {
-  const [activeFilter, setActiveFilter] = useState("SHS");
-  const { data: schools, isLoading, isError } = useSchools(activeFilter);
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const { data: allSchools = [], isLoading, isError } = useSchools();
 
-  console.log("schools", schools);
-
-  const schoolsList = schools || [];
+  const schoolsList =
+    activeFilter === "all"
+      ? allSchools
+      : allSchools.filter((school) => school.type === activeFilter);
 
  
 
@@ -56,16 +67,15 @@ export default function SchoolsPage() {
           <div className="flex flex-wrap gap-2">
             {filterOptions.map((filter) => (
               <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
+                key={filter.value}
+                onClick={() => setActiveFilter(filter.value)}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  activeFilter === filter
+                  activeFilter === filter.value
                     ? "bg-[#955aa4] text-white shadow-md shadow-[#955aa4]/20"
                     : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
-                } ${filter === "All" ? "opacity-50 cursor-not-allowed" : ""}`}
-                disabled={filter === "All"}
+                }`}
               >
-                {filter}
+                {filter.label}
               </button>
             ))}
           </div>
@@ -167,11 +177,13 @@ export default function SchoolsPage() {
                     )}
                   </div>
 
-                  <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#955aa4] group-hover:text-white transition-all duration-300 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </button>
+                  <Link href={`${ROUTES.curator.schools}/${school.id}`}>
+                    <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#955aa4] group-hover:text-white transition-all duration-300 shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </button>
+                  </Link>
                 </div>
               </div>
             ))}
@@ -186,7 +198,9 @@ export default function SchoolsPage() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No schools found</h3>
             <p className="text-gray-500 max-w-md">
-              There are no schools registered under the <span className="font-semibold text-[#955aa4]">{activeFilter}</span> category yet.
+              {activeFilter === "all"
+                ? "There are no schools registered yet."
+                : `There are no schools registered under the ${filterOptions.find((f) => f.value === activeFilter)?.label} category yet.`}
             </p>
           </div>
         )}

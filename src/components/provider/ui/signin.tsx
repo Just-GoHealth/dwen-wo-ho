@@ -91,9 +91,10 @@ const SignInContent = ({
 
           if (token) {
             localStorage.setItem("token", token);
+            if (userData?.userRole === "ROLE_CURATOR") {
+              localStorage.setItem("curatorToken", token);
+            }
           }
-
-          console.log("LOGIN SUCCESS DATA:", userData);
 
           // Check for pending status
           if (
@@ -145,38 +146,34 @@ const SignInContent = ({
             return;
           }
 
-          // Check for missing fields and route accordingly
+          if (userData?.userRole === "ROLE_CURATOR") {
+            if (token) {
+              localStorage.setItem("curatorToken", token);
+            }
+            setIsRedirecting(true);
+            router.push(ROUTES.curator.schools);
+            return;
+          }
+
           const emailParams = encodeURIComponent(values.email);
 
           if (!userData.profileURL) {
-            console.log("Redirecting to Photo Step");
             router.push(`/provider/signup?email=${emailParams}&step=photo`);
             return;
           }
 
           if (!userData.officePhoneNumber) {
-            // Bio step uses phone number
-            console.log("Redirecting to Bio Step");
             router.push(`/provider/signup?email=${emailParams}&step=bio`);
             return;
           }
 
-          if (!userData.specialty) {
-            console.log("Redirecting to Specialty Step");
-            router.push(
-              `/provider/signup?email=${emailParams}&step=specialty`
-            );
+          if (!userData.specialty || !userData.specialty.trim()) {
+            router.push(`/provider/signup?email=${emailParams}&step=specialty`);
             return;
           }
 
-          if (userData?.userRole == "ROLE_CURATOR") {
-            router.replace(ROUTES.curator.schools);
-            return;
-          }
-
-          // Default to schools page for approved/verified users
           setIsRedirecting(true);
-          router.push(ROUTES.curator.schools);
+          router.push(ROUTES.provider.profile);
         }
 
         // Check if user is verified (fallback logic if needed, but above checks should catch incomplete profiles first)
@@ -189,9 +186,8 @@ const SignInContent = ({
           });
           setShowPendingModal(true);
         } else {
-          // If verified and complete (and not caught by above checks), go to schools page
           setIsRedirecting(true);
-          router.push(ROUTES.curator.schools);
+          router.push(ROUTES.provider.profile);
         }
       } else {
         setErrorMessage(
@@ -199,7 +195,6 @@ const SignInContent = ({
         );
       }
     } catch (error: any) {
-      console.error("❌ Sign in error:", error);
 
       const errorMessage = getCleanErrorMessage(error);
 
@@ -217,7 +212,6 @@ const SignInContent = ({
       }
 
       if (isPendingError || errorMessage.includes("ACCOUNT PENDING")) {
-        console.log("⚠️ Account pending error caught, showing modal...");
         // In catch block, we might not have user data. 
         // We can try to decode token if we had one (unlikely in error), 
         // or just show generic info.
@@ -234,7 +228,6 @@ const SignInContent = ({
       // The original logic checked 'message' which was derived from error.message
 
       if (errorMessage.includes("Profile is not complete")) {
-        console.log("⚠️ Profile incomplete, redirecting...");
 
         if (errorMessage.includes("upload your profile photo")) {
           router.push(
