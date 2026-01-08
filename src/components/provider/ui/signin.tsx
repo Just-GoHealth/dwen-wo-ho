@@ -131,7 +131,7 @@ const SignInContent = ({
             }
 
             setUserInfo({
-              name: userData.providerName || "Provider",
+              name: `${(userData as any).title ? `${(userData as any).title} ` : ""}${userData.providerName || "Provider"}`,
               title:
                 (userData as any).professionalTitle ||
                 userData.specialty ||
@@ -179,7 +179,7 @@ const SignInContent = ({
         // Check if user is verified (fallback logic if needed, but above checks should catch incomplete profiles first)
         if (response.data?.isVerified === false) {
           setUserInfo({
-            name: response.data?.fullName || "Dr. Amanda Gorman",
+            name: `${(response.data as any)?.title ? `${(response.data as any).title} ` : ""}${response.data?.fullName || "Dr. Amanda Gorman"}`,
             title:
               response.data?.professionalTitle || "Clinical Psychologist",
             timeAgo: "2 hours ago",
@@ -324,8 +324,8 @@ const SignInContent = ({
                 type={showPassword ? "text" : "password"}
                 autoFocus
                 className={`font-bold w-full rounded-xl outline-none placeholder:text-gray-500 border-[3px] focus:border-[#2bb673] transition-colors ${errors?.password
-                    ? "border-red-500 text-red-500"
-                    : "border-[#2bb673] text-gray-500"
+                  ? "border-red-500 text-red-500"
+                  : "border-[#2bb673] text-gray-500"
                   } text-xl p-4 bg-gray-200/50`}
               />
               <button
