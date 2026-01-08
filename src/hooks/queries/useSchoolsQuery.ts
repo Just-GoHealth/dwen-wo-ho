@@ -6,36 +6,73 @@ import {
 } from "@/configs/axiosInstance";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { ICreateSchool, School } from "@/types/school";
+import { ICreateSchool, IUpdateSchool, School } from "@/types/school";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { ILockIn } from "@/types/lockin.type";
 
-// API functions
 const getSchools = async (): Promise<School[]> => {
-  const result = await api("/api/v1/schools");
-  return result.data;
+  const result = await api(`/api/v1/schools`);
+
+  if (result?.success && Array.isArray(result.data)) {
+    return result.data;
+  }
+  
+  if (Array.isArray(result)) {
+    return result;
+  }
+  
+  return [];
 };
 
 const getSchool = async (schoolId: string): Promise<School> => {
-  const response = await axiosInstance.get(`/api/v1/schools/${schoolId}`);
-  return checkResponse(response, 200)?.data;
-};
+  const result = await api(`/api/v1/schools/${schoolId}`);
 
-const getSchoolLockIn = async (schoolId: string): Promise<ILockIn> => {
-  const response = await axiosInstance.get(ENDPOINTS.getSchoolLockIn(schoolId));
-  return checkResponse(response, 200);
-};
-
-const createSchool = async (data: ICreateSchool): Promise<School> => {
-  const response = await axiosFormData.post(`/api/v1/schools`, data);
-  return checkResponse(response, 201);
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to fetch school");
 };
 
 const disableSchool = async (schoolId: string): Promise<School> => {
   const result = await api(`/api/v1/schools/${schoolId}/disable`, {
     method: "PUT",
   });
-  return result.data;
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to disable school");
+};
+
+const createSchool = async (data: ICreateSchool): Promise<School> => {
+  const formData = new FormData();
+  formData.append("name", data.name);
+  formData.append("nickname", data.nickname);
+  formData.append("type", data.type);
+  formData.append("baseline", data.baseline);
+  formData.append("campuses", JSON.stringify(data.campuses));
+  
+  if (data.logo) {
+    formData.append("logo", data.logo);
+  }
+
+  const response = await axiosFormData.post(ENDPOINTS.schools, formData);
+  return checkResponse(response, 201);
+};
+
+const updateSchool = async (data: IUpdateSchool): Promise<School> => {
+  const formData = new FormData();
+  if (data.name) formData.append("name", data.name);
+  if (data.nickname) formData.append("nickname", data.nickname);
+  if (data.type) formData.append("type", data.type);
+  if (data.baseline) formData.append("baseline", data.baseline);
+  if (data.campuses) formData.append("campuses", JSON.stringify(data.campuses));
+  if (data.logo) formData.append("logo", data.logo);
+
+  const response = await axiosFormData.put(ENDPOINTS.updateSchool(data.id), formData);
+  return checkResponse(response, 200);
 };
 
 const SCHOOLS_QUERY_KEY = "schools";
@@ -44,7 +81,9 @@ const SCHOOLS_LOCKIN_QUERY_KEY = "schools_lockin";
 export const useSchools = () => {
   return useQuery({
     queryKey: [SCHOOLS_QUERY_KEY],
-    queryFn: getSchools,
+    queryFn: () => getSchools(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };
 
@@ -54,6 +93,16 @@ export const useSchool = (schoolId: string) => {
     queryFn: () => getSchool(schoolId),
     enabled: !!schoolId,
   });
+};
+
+const getSchoolLockIn = async (schoolId: string) => {
+  const result = await api(ENDPOINTS.getSchoolLockIn(schoolId));
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to fetch school lockin");
 };
 
 export const useSchoolLockin = (schoolId: string) => {
@@ -69,8 +118,7 @@ export const useCreateSchool = () => {
 
   return useMutation({
     mutationFn: createSchool,
-    onSuccess: (success) => {
-      console.log(success);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SCHOOLS_QUERY_KEY] });
       toast.success("School created successfully");
     },
@@ -98,6 +146,20 @@ export const useDisableSchool = () => {
   });
 };
 
-// Deprecated default export for backward compatibility relative to file name,
-// but functionally distinct. Ideally we remove this but I'll leave it as a proxy if needed
-// or just remove it to force errors. I will remove it to be clean.
+export const useUpdateSchool = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateSchool,
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: [SCHOOLS_QUERY_KEY] });
+      queryClient.invalidateQueries({
+        queryKey: [SCHOOLS_QUERY_KEY, String(variables.id)],
+      });
+      toast.success("School updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update school");
+    },
+  });
+};

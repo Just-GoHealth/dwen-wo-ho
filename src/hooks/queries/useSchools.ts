@@ -3,28 +3,50 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { School } from "@/types/school";
 
-// API functions
+const SCHOOLS_QUERY_KEY = "schools";
+
 const getSchools = async (): Promise<School[]> => {
-  return api("/api/v1/schools");
+  const result = await api("/api/v1/schools");
+  
+  if (result?.success && Array.isArray(result.data)) {
+    return result.data;
+  }
+  
+  if (Array.isArray(result)) {
+    return result;
+  }
+  
+  return [];
 };
 
 const getSchool = async (schoolId: string): Promise<School> => {
-  return api(`/api/v1/schools/${schoolId}`);
+  const result = await api(`/api/v1/schools/${schoolId}`);
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to fetch school");
 };
 
 const disableSchool = async (schoolId: string): Promise<School> => {
-  return api(`/api/v1/schools/${schoolId}/disable`, { method: "PUT" });
+  const result = await api(`/api/v1/schools/${schoolId}/disable`, { method: "PUT" });
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to disable school");
 };
-
-const SCHOOLS_QUERY_KEY = "schools";
 
 export const useSchools = () => {
   const queryClient = useQueryClient();
 
-  // Fetch all schools
   const schoolsQuery = useQuery({
     queryKey: [SCHOOLS_QUERY_KEY],
     queryFn: getSchools,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   // Get single school

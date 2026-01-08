@@ -79,7 +79,7 @@ const PatientsHero = () => {
         >
           <motion.div
             variants={itemVariants}
-            className="flex flex-col gap-5 items-center"
+            className="flex flex-col gap-5 items-center mt-12"
           >
             <motion.div
               variants={itemVariants}
@@ -112,7 +112,7 @@ const PatientsHero = () => {
           >
             <motion.div
               variants={imageVariants}
-              className="aspect-video bg-gray-50 rounded-lg overflow-hidden"
+              className="aspect-video bg-gray-50 rounded-lg overflow-hidden mt-8"
             >
               <Image
                 src="/hero/woman-painting.jpeg"

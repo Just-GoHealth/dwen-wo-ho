@@ -1,453 +1,439 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { FiX, FiPlus, FiMinus } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiX, FiMail, FiPhone, FiCalendar, FiAward, FiUsers, FiFileText, FiPlus, FiMinus } from "react-icons/fi";
 import { MdVerified } from "react-icons/md";
 import Image from "next/image";
-import { api } from "@/lib/api";
-
-interface ProviderDetails {
-  id: string;
-  email: string;
-  fullName: string;
-  professionalTitle: string;
-  status?: string;
-  officePhoneNumber?: string;
-  specialties?: string[];
-  profileImage?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface School {
-  id: string;
-  name: string;
-  joinedDate: string;
-  isAssociated: boolean;
-}
-
-interface Partner {
-  id: string;
-  name: string;
-  joinedDate: string;
-  isAssociated: boolean;
-}
+import { timeAgo } from "@/lib/utils/timeAgo";
+import { useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
+import { ProviderDetails, AssociatedSchool, AssociatedPartner } from "@/types/provider";
+import { mockSchools, mockPartners } from "@/data/mock-provider-data";
 
 interface ProviderDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   providerEmail: string;
+  provider?: ProviderDetails;
 }
 
-// Mock data for schools and partners
-const mockSchools: School[] = [
-  {
-    id: "1",
-    name: "Achimota High School",
-    joinedDate: "3d ago",
-    isAssociated: true,
-  },
-  {
-    id: "2",
-    name: "Achimota High School",
-    joinedDate: "3d ago",
-    isAssociated: false,
-  },
-  {
-    id: "3",
-    name: "Achimota High School",
-    joinedDate: "3d ago",
-    isAssociated: false,
-  },
-];
-
-const mockPartners: Partner[] = [
-  {
-    id: "1",
-    name: "SRC Prempeh College",
-    joinedDate: "3d ago",
-    isAssociated: true,
-  },
-  {
-    id: "2",
-    name: "OKB Hope Foundation",
-    joinedDate: "3d ago",
-    isAssociated: true,
-  },
-  {
-    id: "3",
-    name: "Mental Health Authority",
-    joinedDate: "3d ago",
-    isAssociated: false,
-  },
-  {
-    id: "4",
-    name: "SRC Prempeh College",
-    joinedDate: "3d ago",
-    isAssociated: false,
-  },
-  {
-    id: "5",
-    name: "OKB Hope Foundation",
-    joinedDate: "3d ago",
-    isAssociated: false,
-  },
-];
+type TabType = "overview" | "schools" | "partners";
 
 const ProviderDetailsModal = ({
   isOpen,
   onClose,
   providerEmail,
+  provider: providerProp,
 }: ProviderDetailsModalProps) => {
-  const [provider, setProvider] = useState<ProviderDetails | null>(null);
-  const [schools, setSchools] = useState<School[]>([]);
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Mock data for schools and partners
-
-
-  const loadProviderDetails = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem("curatorToken");
-      if (!token) return;
-
-      // Load provider details
-      const response = await api(`/api/v1/curator/providers/${providerEmail}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.success) {
-        setProvider(response.data);
-      } else {
-        // Use mock data for testing
-        setProvider({
-          id: "1",
-          email: providerEmail,
-          fullName: "Prof. Frances Kwame Nkrumah",
-          professionalTitle: "Clinical Psychologist",
-          status: "We're all alone in this together. Let's talk!",
-          officePhoneNumber: "0538920991",
-          specialties: ["Clinical Psychology", "Mental Health"],
-          profileImage: "/auth/lawyer.jpg",
-          createdAt: "2024-01-15T10:30:00Z",
-          updatedAt: "2024-01-15T10:30:00Z",
-        });
-      }
-
-      // Set mock data for schools and partners
-      setSchools(mockSchools);
-      setPartners(mockPartners);
-    } catch (error) {
-      console.error("Error loading provider details:", error);
-      // Use mock data as fallback
-      setProvider({
-        id: "1",
-        email: providerEmail,
-        fullName: "Prof. Frances Kwame Nkrumah",
-        professionalTitle: "Clinical Psychologist",
-        status: "We're all alone in this together. Let's talk!",
-        officePhoneNumber: "0538920991",
-        specialties: ["Clinical Psychology", "Mental Health"],
-        profileImage: "/auth/lawyer.jpg",
-        createdAt: "2024-01-15T10:30:00Z",
-        updatedAt: "2024-01-15T10:30:00Z",
-      });
-      setSchools(mockSchools);
-      setPartners(mockPartners);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [providerEmail]);
+  const { useProvider } = useProvidersQuery();
+  const { data: providerData, isLoading: isQueryLoading } = useProvider(providerEmail);
+  
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [schools, setSchools] = useState<AssociatedSchool[]>([]);
+  const [partners, setPartners] = useState<AssociatedPartner[]>([]);
 
   useEffect(() => {
-    if (isOpen && providerEmail) {
-      loadProviderDetails();
+    if (providerData) {
+      setSchools(mockSchools);
+      setPartners(mockPartners);
     }
-  }, [isOpen, providerEmail, loadProviderDetails]);
+  }, [providerData]);
 
-  const handleToggleAssociation = (type: "school" | "partner", id: string) => {
-    if (type === "school") {
-      setSchools((prev) =>
-        prev.map((school) =>
-          school.id === id
-            ? { ...school, isAssociated: !school.isAssociated }
-            : school
-        )
-      );
-    } else {
-      setPartners((prev) =>
-        prev.map((partner) =>
-          partner.id === id
-            ? { ...partner, isAssociated: !partner.isAssociated }
-            : partner
-        )
-      );
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab("overview");
     }
-  };
+  }, [isOpen]);
+
+  const provider: ProviderDetails | null = providerData
+    ? {
+        id: providerData.id ?? "",
+        email: providerData.email,
+        fullName: providerData.providerName,
+        professionalTitle: providerData.specialty,
+        profileImage: providerData.profilePhotoURL,
+        status: "We're all alone in this together. Let's talk!",
+        officePhoneNumber: "0538920991",
+        specialties: [providerData.specialty],
+        createdAt: providerData.applicationDate,
+        updatedAt: providerData.lastActive ?? providerData.applicationDate,
+        applicationStatus: providerData.applicationStatus,
+        applicationDate: providerData.applicationDate,
+      }
+    : providerProp ?? null;
+
+  const showLoading = isQueryLoading && !provider;
 
   if (!isOpen) return null;
 
+  const tabs = [
+    { id: "overview" as TabType, label: "Overview", icon: FiFileText },
+    { 
+      id: "schools" as TabType, 
+      label: "Schools", 
+      icon: FiAward, 
+      count: schools.filter(s => s.isAssociated).length 
+    },
+    { 
+      id: "partners" as TabType, 
+      label: "Partners", 
+      icon: FiUsers, 
+      count: partners.filter(p => p.isAssociated).length 
+    },
+  ];
+
+  const handleToggleSchool = (id: string) => {
+    setSchools((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, isAssociated: !s.isAssociated } : s))
+    );
+  };
+
+  const handleTogglePartner = (id: string) => {
+    setPartners((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, isAssociated: !p.isAssociated } : p))
+    );
+  };
+
+  const getStatusBadge = () => {
+    if (!provider?.applicationStatus) return null;
+    
+    const statusConfig = {
+      PENDING: { bg: "bg-yellow-100", text: "text-yellow-700", border: "border-yellow-200" },
+      APPROVED: { bg: "bg-green-100", text: "text-green-700", border: "border-green-200" },
+      REJECTED: { bg: "bg-red-100", text: "text-red-700", border: "border-red-200" },
+    };
+
+    const config = statusConfig[provider.applicationStatus];
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${config.bg} ${config.text} border ${config.border}`}>
+        {provider.applicationStatus}
+      </span>
+    );
+  };
+
   return (
     <div
-      className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 p-2 sm:p-4"
-      onClick={onClose}>
-      {/* Modal Container Wrapper */}
-      <div className="relative max-w-4xl w-full">
-        {/* Close Button - Positioned Above Modal */}
-        <button
-          title="Close"
-          aria-label="Close modal"
-          className="absolute -top-5 -right-5 sm:-top-6 sm:-right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-red-500 via-red-600 to-rose-600 hover:from-red-600 hover:via-red-700 hover:to-rose-700 text-white rounded-full shadow-[0_4px_20px_rgba(239,68,68,0.6)] hover:shadow-[0_8px_30px_rgba(239,68,68,0.8)] transition-all duration-300 flex items-center justify-center z-[100] border-[6px] border-white group hover:scale-110 active:scale-95 ring-4 ring-red-300/50 hover:ring-red-400/70 animate-pulse-subtle backdrop-blur-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}>
-          <FiX className="w-7 h-7 sm:w-8 sm:h-8 font-bold stroke-[3.5] group-hover:rotate-180 transition-transform duration-300 drop-shadow-lg" />
-          {/* Ripple effect on hover */}
-          <span className="absolute inset-0 rounded-full bg-white/20 scale-0 group-hover:scale-100 group-hover:opacity-0 transition-all duration-500"></span>
-        </button>
+      className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="relative bg-gray-900 p-6 flex items-center gap-6">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all duration-200 hover:rotate-90"
+            aria-label="Close modal"
+          >
+            <FiX className="w-5 h-5" />
+          </button>
 
-        {/* Modal Content */}
-        <div
-          className="bg-white/95 backdrop-blur-lg rounded-2xl border border-white/30 p-4 sm:p-6 lg:p-8 w-full shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide"
-          onClick={(e) => e.stopPropagation()}>
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center mb-6 lg:mb-8 gap-4 sm:gap-6 pr-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full">
-              {/* Profile Image */}
-              <div className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-full overflow-hidden flex-shrink-0 mx-auto sm:mx-0 shadow-2xl ring-4 ring-[#955aa4]/20">
-                {provider?.profileImage ? (
-                  <Image
-                    src={provider.profileImage}
-                    alt={provider.fullName}
-                    width={192}
-                    height={192}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-3xl sm:text-4xl lg:text-6xl">
-                      {provider?.fullName?.charAt(0) || "P"}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Provider Info */}
-              <div className="flex-1 text-center sm:text-left">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3">
-                  <h2 className="text-xl sm:text-2xl lg:text-4xl font-bold text-gray-800">
-                    {provider?.fullName}
-                  </h2>
-                  <MdVerified className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-[#955aa4]" />
-                </div>
-                <p className="text-base sm:text-lg lg:text-xl text-[#955aa4] font-semibold mt-1 sm:mt-2">
-                  {provider?.professionalTitle}
-                </p>
-                <p className="text-sm sm:text-base lg:text-lg text-gray-700 mt-1">
-                  📞 {provider?.officePhoneNumber}
-                </p>
-                <p className="text-sm sm:text-base lg:text-lg text-gray-700 mt-1 break-words">{`Status: "${provider?.status ||
-                  "We're all alone in this together. Let's talk!"
-                  }"`}</p>
-              </div>
-            </div>
+          <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white/30 shadow-lg shrink-0">
+            <Image
+              src={provider?.profileImage ?? "/auth/lawyer.jpg"}
+              alt={provider?.fullName ?? "Provider"}
+              width={96}
+              height={96}
+              className="w-full h-full object-cover"
+            />
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-gray-200/60 mb-6 lg:mb-8"></div>
+          <div className="text-white">
+            <h2 className="text-2xl font-bold mb-1">
+              {provider?.fullName ?? "Provider"}
+            </h2>
+            <p className="text-white/90 text-sm mb-2">
+              {provider?.professionalTitle}
+            </p>
+            {getStatusBadge()}
+          </div>
+        </div>
 
-          {/* Content Sections */}
-          {(() => {
-            const associatedSchools = schools.filter((s) => s.isAssociated);
-            const availableSchools = schools.filter((s) => !s.isAssociated);
-            const associatedPartners = partners.filter((p) => p.isAssociated);
-            const availablePartners = partners.filter((p) => !p.isAssociated);
+        {/* Tabs */}
+        <div className="px-6 mt-4 mb-4">
+          <div className="flex gap-2 border-b border-gray-200">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-3 font-semibold text-sm transition-all duration-200 border-b-2 ${
+                    activeTab === tab.id
+                      ? "border-[#955aa4] text-[#955aa4]"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                  {tab.count !== undefined && (
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      activeTab === tab.id
+                        ? "bg-[#955aa4]/10 text-[#955aa4]"
+                        : "bg-gray-100 text-gray-600"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-            return (
-              <div className="space-y-6 lg:space-y-8">
-                {/* Current Associations */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                  {/* Schools */}
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+          {showLoading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#955aa4] mb-4"></div>
+              <p className="text-gray-500 font-medium">Loading provider details...</p>
+            </div>
+          ) : (
+            <>
+              {/* Overview Tab */}
+              {activeTab === "overview" && (
+                <div className="space-y-6">
+                  {/* Status Message */}
+                  {provider?.status && (
+                    <div className="bg-gradient-to-r from-[#955aa4]/5 to-purple-50 rounded-xl p-4 border border-[#955aa4]/10">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <span className="text-lg">💬</span>
+                        Status Message
+                      </h4>
+                      <p className="text-gray-700 italic">"{provider.status}"</p>
+                    </div>
+                  )}
+
+                  {/* Contact Info Section */}
                   <div>
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-3 lg:mb-4">
-                      Schools ({associatedSchools.length})
-                    </h3>
-                    <div className="space-y-2 lg:space-y-3">
-                      {associatedSchools.map((school) => (
-                        <div
-                          key={school.id}
-                          className="flex items-center justify-between p-2 sm:p-3 bg-white/70 backdrop-blur-sm rounded-xl border border-white/30 shadow-sm">
-                          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] rounded-lg flex items-center justify-center flex-shrink-0">
-                              <span className="text-white text-sm sm:text-base lg:text-lg">
-                                🏫
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 truncate">
-                                {school.name}
-                              </p>
-                              <p className="text-xs sm:text-sm text-gray-500">
-                                Joined {school.joinedDate}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handleToggleAssociation("school", school.id)
-                            }
-                            className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full border-2 border-red-400 text-red-500 flex items-center justify-center hover:bg-red-50 transition-colors flex-shrink-0"
-                            aria-label="Remove school">
-                            <FiMinus className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <FiUsers className="w-5 h-5 text-[#955aa4]" />
+                      Contact Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-500">
+                          <FiMail className="w-5 h-5" />
                         </div>
-                      ))}
+                        <div>
+                          <p className="text-xs text-gray-500">Email Address</p>
+                          <p className="text-sm font-medium text-gray-900">{provider?.email}</p>
+                        </div>
+                      </div>
+                      {provider?.officePhoneNumber && (
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-500">
+                            <FiPhone className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Phone Number</p>
+                            <p className="text-sm font-medium text-gray-900">{provider.officePhoneNumber}</p>
+                          </div>
+                        </div>
+                      )}
+                      {provider?.applicationDate && (
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-500">
+                            <FiCalendar className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Application Date</p>
+                            <p className="text-sm font-medium text-gray-900">{timeAgo(provider.applicationDate)}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Partners */}
-                  <div>
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-3 lg:mb-4">
-                      Partners ({associatedPartners.length})
-                    </h3>
-                    <div className="space-y-2 lg:space-y-3">
-                      {associatedPartners.map((partner) => (
-                        <div
-                          key={partner.id}
-                          className="flex items-center justify-between p-2 sm:p-3 bg-white/70 backdrop-blur-sm rounded-xl border border-white/30 shadow-sm">
-                          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <span className="text-white text-sm sm:text-base lg:text-lg">
-                                🤝
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 truncate">
-                                {partner.name}
-                              </p>
-                              <p className="text-xs sm:text-sm text-gray-500">
-                                Joined {partner.joinedDate}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handleToggleAssociation("partner", partner.id)
-                            }
-                            className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full border-2 border-red-400 text-red-500 flex items-center justify-center hover:bg-red-50 transition-colors flex-shrink-0"
-                            aria-label="Remove partner">
-                            <FiMinus className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                        </div>
-                      ))}
+                  {/* Specialties */}
+                  {provider?.specialties && provider.specialties.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <FiAward className="w-5 h-5 text-[#955aa4]" />
+                        Specialties
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {provider.specialties.map((specialty, index) => (
+                          <span
+                            key={index}
+                            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-[#955aa4]/30 transition-colors"
+                          >
+                            {specialty}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )}
 
-                <div className="border-t border-gray-200/60" />
-
-                {/* Add More Sections */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                  {/* Add More Schools */}
-                  <div>
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-3 lg:mb-4">
-                      Add More Schools ({availableSchools.length})
-                    </h3>
-                    <div className="space-y-2 lg:space-y-3">
-                      {availableSchools.map((school) => (
-                        <div
-                          key={school.id}
-                          className="flex items-center justify-between p-2 sm:p-3 bg-gray-100/50 backdrop-blur-sm rounded-xl border border-gray-200/50 opacity-60">
-                          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gray-300/70 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <span className="text-gray-400 text-sm sm:text-base lg:text-lg">
-                                🏫
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-bold text-sm sm:text-base lg:text-lg text-gray-400 truncate">
-                                {school.name}
-                              </p>
-                              <p className="text-xs sm:text-sm text-gray-300">
-                                Joined {school.joinedDate}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handleToggleAssociation("school", school.id)
-                            }
-                            className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full border-2 border-gray-400 text-gray-400 flex items-center justify-center hover:bg-gray-400/10 transition-colors flex-shrink-0"
-                            aria-label="Add school">
-                            <FiPlus className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                        </div>
-                      ))}
+                  {/* Additional Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-500 mb-1">Member Since</p>
+                      <p className="font-semibold text-gray-900">
+                        {provider?.createdAt ? new Date(provider.createdAt).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        }) : 'N/A'}
+                      </p>
                     </div>
-                  </div>
-
-                  {/* Add More Partners */}
-                  <div>
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-3 lg:mb-4">
-                      Add More Partners ({availablePartners.length})
-                    </h3>
-                    <div className="space-y-2 lg:space-y-3">
-                      {availablePartners.map((partner) => (
-                        <div
-                          key={partner.id}
-                          className="flex items-center justify-between p-2 sm:p-3 bg-gray-100/50 backdrop-blur-sm rounded-xl border border-gray-200/50 opacity-60">
-                          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gray-300/70 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <span className="text-gray-400 text-sm sm:text-base lg:text-lg">
-                                🤝
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-bold text-sm sm:text-base lg:text-lg text-gray-400 truncate">
-                                {partner.name}
-                              </p>
-                              <p className="text-xs sm:text-sm text-gray-300">
-                                Joined {partner.joinedDate}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handleToggleAssociation("partner", partner.id)
-                            }
-                            className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full border-2 border-gray-400 text-gray-400 flex items-center justify-center hover:bg-gray-400/10 transition-colors flex-shrink-0"
-                            aria-label="Add partner">
-                            <FiPlus className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                        </div>
-                      ))}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-500 mb-1">Last Updated</p>
+                      <p className="font-semibold text-gray-900">
+                        {provider?.updatedAt ? timeAgo(provider.updatedAt) : 'N/A'}
+                      </p>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
+              )}
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-gray-200/60">
+              {/* Schools Tab */}
+              {activeTab === "schools" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-semibold text-gray-900">Associated Schools</h4>
+                  </div>
+                  {schools.filter((s) => s.isAssociated).length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <FiAward className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                      <p>No schools associated yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {schools.filter((s) => s.isAssociated).map((school) => (
+                        <div key={school.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-[#955aa4]/30 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-[#955aa4] to-[#7C4DFF] rounded-lg flex items-center justify-center">
+                              <span className="text-white text-lg">🏫</span>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{school.name}</p>
+                              <p className="text-sm text-gray-500">Joined {school.joinedDate}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleToggleSchool(school.id)} 
+                            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-red-400 text-red-500 hover:bg-red-50 transition-colors" 
+                            aria-label="Remove school"
+                          >
+                            <FiMinus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Available Schools</h4>
+                    {schools.filter((s) => !s.isAssociated).length === 0 ? (
+                      <p className="text-gray-500">All schools are already associated.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {schools.filter((s) => !s.isAssociated).map((school) => (
+                          <div key={school.id} className="flex items-center justify-between p-4 bg-gray-100 border border-gray-200 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center">
+                                <span className="text-gray-600 text-lg">🏫</span>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900">{school.name}</p>
+                                <p className="text-sm text-gray-500">Joined {school.joinedDate}</p>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => handleToggleSchool(school.id)} 
+                              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-400 text-green-500 hover:bg-green-50 transition-colors" 
+                              aria-label="Add school"
+                            >
+                              <FiPlus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Partners Tab */}
+              {activeTab === "partners" && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-semibold text-gray-900">Associated Partners</h4>
+                  </div>
+                  {partners.filter((p) => p.isAssociated).length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <FiUsers className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                      <p>No partners associated yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {partners.filter((p) => p.isAssociated).map((partner) => (
+                        <div key={partner.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-[#955aa4]/30 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                              <span className="text-white text-lg">🤝</span>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{partner.name}</p>
+                              <p className="text-sm text-gray-500">Joined {partner.joinedDate}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleTogglePartner(partner.id)} 
+                            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-red-400 text-red-500 hover:bg-red-50 transition-colors" 
+                            aria-label="Remove partner"
+                          >
+                            <FiMinus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Available Partners</h4>
+                    {partners.filter((p) => !p.isAssociated).length === 0 ? (
+                      <p className="text-gray-500">All partners are already associated.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {partners.filter((p) => !p.isAssociated).map((partner) => (
+                          <div key={partner.id} className="flex items-center justify-between p-4 bg-gray-100 border border-gray-200 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center">
+                                <span className="text-gray-600 text-lg">🤝</span>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900">{partner.name}</p>
+                                <p className="text-sm text-gray-500">Joined {partner.joinedDate}</p>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => handleTogglePartner(partner.id)} 
+                              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-400 text-green-500 hover:bg-green-50 transition-colors" 
+                              aria-label="Add partner"
+                            >
+                              <FiPlus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 p-6 bg-gray-50">
+          <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gray-200/70 backdrop-blur-sm text-gray-700 rounded-xl font-bold hover:bg-gray-300/70 transition-all duration-200 text-center">
+              className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+            >
               Close
-            </button>
-            <button
-              onClick={() => {
-                // Handle save changes
-                console.log("Saving changes...");
-                onClose();
-              }}
-              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-[#955aa4] text-white rounded-xl font-bold hover:bg-[#955aa4]/80 transition-all duration-200 shadow-lg hover:shadow-xl text-center">
-              Save Changes
             </button>
           </div>
         </div>

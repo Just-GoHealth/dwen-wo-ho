@@ -12,8 +12,9 @@ export default function DashboardLayout({
   const router = useRouter();
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("curatorToken");
-    router.push(ROUTES.curator.signIn);
+    router.push(ROUTES.provider.auth);
   };
 
   const handleCreateClick = () => {

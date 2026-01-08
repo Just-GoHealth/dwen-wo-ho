@@ -68,19 +68,19 @@ const SignInContent = () => {
 
       console.log("✅ Sign in response:", response);
 
-      if (response.success) {
+      if (response?.success) {
         // Store token if needed
-        if (response.data?.token) {
+        if (response?.data?.token) {
           console.log("🔑 Token received, storing in localStorage");
-          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("token", response?.data?.token);
         }
 
         // Check if user is verified
-        if (response.data?.isVerified === false) {
+        if (response?.data?.isVerified === false) {
           console.log("⚠️ User not verified, showing pending modal");
           setUserInfo({
-            name: response.data?.fullName || "Dr. Amanda Gorman",
-            title: response.data?.professionalTitle || "Clinical Psychologist",
+            name: response?.data?.fullName || "Dr. Amanda Gorman",
+            title: response?.data?.professionalTitle || "Clinical Psychologist",
             timeAgo: "2 hours ago",
           });
           setShowPendingModal(true);
@@ -89,8 +89,8 @@ const SignInContent = () => {
           router.push("/provider/profile");
         }
       } else {
-        console.error("❌ Sign in failed:", response.message);
-        setErrorMessage(response.message || "Sign in failed");
+        console.error("❌ Sign in failed:", response?.message);
+        setErrorMessage(response?.message ?? "Sign in failed");
       }
     } catch (error: any) {
       console.error("❌ Sign in error:", error);

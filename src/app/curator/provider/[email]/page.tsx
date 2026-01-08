@@ -54,7 +54,7 @@ const ProviderDetails = () => {
       try {
         const token = localStorage.getItem("curatorToken") || "";
         if (!token) {
-          router.push(ROUTES.curator.signIn);
+          router.push(ROUTES.provider.auth);
           return;
         }
 
@@ -64,15 +64,44 @@ const ProviderDetails = () => {
 
         if (response.success) {
           setProvider(response.data);
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem(`provider_${email}`);
+          }
         } else {
           setErrorMessage("Failed to load provider details");
+          tryFallbackData();
         }
-      } catch (error: any) {
-        console.error("Error loading provider:", error);
-        setErrorMessage("Failed to load provider details. Please try again.");
+      } catch (error: unknown) {
+        tryFallbackData();
       } finally {
         setIsLoading(false);
       }
+    };
+
+    const tryFallbackData = () => {
+      if (typeof window !== "undefined") {
+        const fallbackDataStr = sessionStorage.getItem(`provider_${email}`);
+        if (fallbackDataStr) {
+          try {
+            const fallbackData = JSON.parse(fallbackDataStr);
+            setProvider({
+              id: fallbackData.email || "",
+              email: fallbackData.email || "",
+              fullName: fallbackData.providerName || "",
+              professionalTitle: fallbackData.specialty || "",
+              officePhoneNumber: fallbackData.officePhoneNumber || undefined,
+              status: (fallbackData.applicationStatus as "PENDING" | "APPROVED" | "REJECTED") || "PENDING",
+              profileImage: fallbackData.profilePhotoURL || undefined,
+              createdAt: fallbackData.applicationDate || new Date().toISOString(),
+              updatedAt: fallbackData.applicationDate || new Date().toISOString(),
+            });
+            setErrorMessage("");
+            return;
+          } catch {
+          }
+        }
+      }
+      setErrorMessage("Failed to load provider details. Please try again.");
     };
 
     loadProvider();

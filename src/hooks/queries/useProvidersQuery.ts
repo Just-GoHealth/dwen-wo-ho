@@ -5,33 +5,84 @@ import { ENDPOINTS } from "@/constants/endpoints";
 import { toast } from "sonner";
 import { IProviderResponse } from "@/types/provider.type";
 
-interface Provider {
+export interface Provider {
   id: string;
   email: string;
-  fullName: string;
-  professionalTitle: string;
-  status: "Active" | "Inactive";
-  createdAt: string;
-  updatedAt: string;
+  providerName: string;
+  profilePhotoURL?:string;
+  specialty: string;
+  applicationStatus: "PENDING" | "APPROVED" | "REJECTED";
+  applicationDate: string;
   lastActive?: string;
 }
 
-// API functions
 const getProviders = async (): Promise<IProviderResponse> => {
-  const response = await axiosInstance.get(ENDPOINTS.providers);
-  return checkResponse(response, 200);
+  try {
+    const response = await axiosInstance.get(ENDPOINTS.providers);
+    const data = checkResponse(response, 200);
+    
+    if (data && typeof data === "object" && "data" in data) {
+      return data as IProviderResponse;
+    }
+    
+    if (Array.isArray(data)) {
+      return {
+        success: true,
+        data,
+        message: "",
+      };
+    }
+    
+    return {
+      success: true,
+      data: [],
+      message: "",
+    };
+  } catch {
+    const result = await api(ENDPOINTS.providers);
+    if (result?.success) {
+      return {
+        success: true,
+        data: Array.isArray(result.data) ? result.data : [],
+        message: result.message ?? "",
+      };
+    }
+    return {
+      success: false,
+      data: [],
+      message: "Failed to fetch providers",
+    };
+  }
 };
 
 const getProvider = async (email: string): Promise<Provider> => {
-  return api(ENDPOINTS.provider(email));
+  const result = await api(ENDPOINTS.provider(email));
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to fetch provider");
 };
 
 const approveProvider = async (email: string): Promise<Provider> => {
-  return api(ENDPOINTS.approveProvider(email), { method: "PUT" });
+  const result = await api(ENDPOINTS.approveProvider(email), { method: "PUT" });
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to approve provider");
 };
 
 const rejectProvider = async (email: string): Promise<Provider> => {
-  return api(ENDPOINTS.rejectProvider(email), { method: "PUT" });
+  const result = await api(ENDPOINTS.rejectProvider(email), { method: "PUT" });
+  
+  if (result?.success && result.data) {
+    return result.data;
+  }
+  
+  throw new Error("Failed to reject provider");
 };
 
 const PROVIDERS_QUERY_KEY = "providers";
@@ -39,10 +90,11 @@ const PROVIDERS_QUERY_KEY = "providers";
 export const useProvidersQuery = () => {
   const queryClient = useQueryClient();
 
-  // Fetch all providers
   const providersQuery = useQuery({
     queryKey: [PROVIDERS_QUERY_KEY],
-    queryFn: () => getProviders(),
+    queryFn: getProviders,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   // Get single provider
@@ -98,8 +150,7 @@ export const useProvidersQuery = () => {
     useProvider,
     // Mutations
     approveProvider: approveProviderMutation.mutate,
-    isApproving: approveProviderMutation.isPending,
     rejectProvider: rejectProviderMutation.mutate,
-    isRejecting: rejectProviderMutation.isPending,
+    isModerating: approveProviderMutation.isPending || rejectProviderMutation.isPending,
   };
 };

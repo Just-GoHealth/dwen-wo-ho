@@ -193,7 +193,7 @@ const CuratorDashboard = () => {
       try {
         const token = localStorage.getItem("curatorToken");
         if (!token) {
-          router.push(ROUTES.curator.signIn);
+          router.push(ROUTES.provider.auth);
           return;
         }
 
@@ -206,8 +206,8 @@ const CuratorDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (response.success) {
-          setProviders(response.data || []);
+        if (response?.success) {
+          setProviders(response?.data || []);
         } else {
           setProviders(mockProviders);
         }
@@ -222,7 +222,7 @@ const CuratorDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("curatorToken");
-    router.push(ROUTES.curator.signIn);
+    router.push(ROUTES.provider.auth);
   };
 
   const filteredSchools = schools.filter((school) => {
@@ -647,3 +647,4 @@ const CuratorDashboard = () => {
 };
 
 export default CuratorDashboard;
+

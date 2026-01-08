@@ -83,7 +83,7 @@ const Header = ({ className, logo }: { className?: string; logo?: string }) => {
 
   const handleGetStarted = () => {
     if (pathname === "/providers") {
-      router.push(ROUTES.provider.checkEmail);
+      router.push(ROUTES.provider.auth);
     } else {
       router.push(ROUTES.patient.checkEmail);
     }

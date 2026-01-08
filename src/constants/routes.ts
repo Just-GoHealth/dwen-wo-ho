@@ -19,7 +19,6 @@ export const ROUTES = {
     newPassword: "/patient/new-password",
   },
   curator: {
-    signIn: "/curator/signin",
     dashboard: "/curator/dashboard",
     schools: "/curator/schools",
     providers: "/curator/providers",
