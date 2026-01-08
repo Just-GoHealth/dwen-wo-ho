@@ -84,7 +84,7 @@ const SignUpProfile = ({
       const data = getProfileQuery.data;
       setUserInfo((prev) => ({
         ...prev,
-        name: data.providerName || prev.name,
+        name: `${(data as any).title ? `${(data as any).title} ` : ""}${data.providerName || prev.name}`,
         // If professionalTitle is available in response use it, else fallback
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: (data as any).professionalTitle || data.specialty || prev.title,
@@ -147,7 +147,7 @@ const SignUpProfile = ({
           const data = response.data;
           setUserInfo(prev => ({
             ...prev,
-            name: data.providerName || prev.name,
+            name: `${(data as any).title ? `${(data as any).title} ` : ""}${data.providerName || prev.name}`,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             title: (data as any).professionalTitle || data.specialty || prev.title,
             specialty: data.specialty || prev.specialty,
