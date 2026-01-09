@@ -21,6 +21,10 @@ export const ENDPOINTS = {
   provider: (email: string) => `/api/v1/providers/${email}`,
   approveProvider: (email: string) => `/api/v1/providers/${email}/approve`,
   rejectProvider: (email: string) => `/api/v1/providers/${email}/reject`,
+  addSchoolToProvider: (email: string) => `/api/v1/providers/${email}/add-school`,
+  removeSchoolFromProvider: (email: string) => `/api/v1/providers/${email}/remove-school`,
+  addPartnerToProvider: (email: string) => `/api/v1/providers/${email}/add-partner`,
+  removePartnerFromProvider: (email: string) => `/api/v1/providers/${email}/remove-partner`,
 
   // Schools endpoints
   schools: "/api/v1/schools",

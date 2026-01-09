@@ -1,3 +1,6 @@
+import { handleTokenExpiration, isAuthError } from "./auth-utils";
+import { toast } from "sonner";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "https://justgo.up.railway.app";
@@ -85,6 +88,12 @@ export async function api(endpoint: string, options: RequestInit = {}) {
     });
 
     if (!response.ok) {
+      if (isAuthError(response.status) && !isPublicEndpoint(endpoint)) {
+        if (typeof window !== "undefined") {
+          toast.error("Your session has expired. Please log in again.");
+          handleTokenExpiration();
+        }
+      }
       throw await extractErrorFromResponse(response);
     }
 
