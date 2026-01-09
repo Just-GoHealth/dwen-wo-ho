@@ -41,7 +41,7 @@ const ProviderCard = ({
 
   return (
     <div
-      className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 group hover:scale-[1.02] flex flex-col items-center"
+      className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 group hover:scale-[1.02] flex flex-col items-center w-full"
     >
       {/* Provider Image - Centered at Top */}
       <div className="w-16 h-16 rounded-full overflow-hidden mb-4 ring-4 ring-gray-100 group-hover:ring-[#955aa4]/20 transition-all duration-300">
@@ -56,20 +56,20 @@ const ProviderCard = ({
 
       {/* Provider Info - Centered */}
       <div className="text-center w-full">
-        <h3 className="font-bold text-gray-900 group-hover:text-[#955aa4] transition-colors text-lg mb-1 truncate px-2">
+        <h3 className="font-bold text-gray-900 group-hover:text-[#955aa4] transition-colors text-lg mb-2 truncate px-1">
           {provider.providerName}
         </h3>
-        <p className="text-gray-600 text-sm mb-2 truncate px-2">
+        <p className="text-gray-600 text-sm mb-3 truncate px-1">
           {provider.specialty || "General Practice"}
         </p>
         
         {/* Time Added */}
-        <p className="text-orange-500 text-xs font-medium mb-3">
+        <p className="text-orange-500 text-xs font-medium mb-4">
           Added {timeAgo(provider.applicationDate)}
         </p>
 
         {/* Status Badge or Action Buttons */}
-        <div className="flex gap-2 justify-center w-full px-2">
+        <div className="flex gap-2 justify-center w-full px-1">
           {provider.applicationStatus === "APPROVED" ? (
             <>
               <div className="flex-1 flex items-center justify-center gap-1 px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold text-sm border border-green-200">

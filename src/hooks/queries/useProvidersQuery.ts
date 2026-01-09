@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { IProviderResponse } from "@/types/provider.type";
 
 export interface Provider {
-  id: string;
+  id?: string;
   email: string;
   providerName: string;
-  profilePhotoURL?:string;
-  specialty: string;
+  profilePhotoURL?: string | null;
+  specialty?: string | null;
+  officePhoneNumber?: string | null;
+  bio?: string | null;
   applicationStatus: "PENDING" | "APPROVED" | "REJECTED";
   applicationDate: string;
   lastActive?: string;

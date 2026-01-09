@@ -203,7 +203,7 @@ export default function ProvidersPage() {
         </div>
 
         {/* Providers Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {filteredProviders.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <MdHealthAndSafety className="text-6xl text-gray-300 mx-auto mb-4" />

@@ -35,4 +35,7 @@ export const ENDPOINTS = {
   schoolReach: (id: string | number) => `/api/v1/schools/${id}/reach`,
   getSchoolLockIn: (id: string) => `/api/v1/lockin/${id}`,
   disableSchool: (id: string | number) => `/api/v1/schools/${id}/disable`,
+
+  // Partners endpoints
+  partners: "/api/v1/partners",
 };

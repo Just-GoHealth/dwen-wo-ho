@@ -44,8 +44,11 @@ const ProviderDetailsModal = ({
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [associatedSchools, setAssociatedSchools] = useState<AssociatedSchool[]>([]);
   const [availableSchools, setAvailableSchools] = useState<AssociatedSchool[]>([]);
-  const [partners, setPartners] = useState<AssociatedPartner[]>([]);
+  const [associatedPartners, setAssociatedPartners] = useState<AssociatedPartner[]>([]);
+  const [availablePartners, setAvailablePartners] = useState<AssociatedPartner[]>([]);
+  const [allPartners, setAllPartners] = useState<AssociatedPartner[]>([]);
   const [schoolSearchQuery, setSchoolSearchQuery] = useState("");
+  const [partnerSearchQuery, setPartnerSearchQuery] = useState("");
   const [schoolToAdd, setSchoolToAdd] = useState<AssociatedSchool | null>(null);
   const [schoolToRemove, setSchoolToRemove] = useState<AssociatedSchool | null>(null);
   const [partnerToAdd, setPartnerToAdd] = useState<AssociatedPartner | null>(null);
@@ -58,14 +61,21 @@ const ProviderDetailsModal = ({
   useEffect(() => {
     if (isOpen && providerEmail) {
       loadProviderSchools();
-      loadProviderPartners();
+      loadAllPartners();
     }
   }, [isOpen, providerEmail]);
+
+  useEffect(() => {
+    if (isOpen && providerEmail && allPartners.length > 0) {
+      loadProviderPartners(allPartners);
+    }
+  }, [allPartners.length, isOpen, providerEmail]);
 
   useEffect(() => {
     if (isOpen) {
       setActiveTab("overview");
       setSchoolSearchQuery("");
+      setPartnerSearchQuery("");
     }
   }, [isOpen]);
 
@@ -103,18 +113,44 @@ const ProviderDetailsModal = ({
     }
   };
 
-  const loadProviderPartners = async () => {
+  const loadAllPartners = async () => {
+    try {
+      const response = await api(ENDPOINTS.partners);
+      if (response?.success && response.data) {
+        const partnersList = Array.isArray(response.data) ? response.data : [];
+        setAllPartners(partnersList.map((p: { id: string | number; name: string; logo?: string }) => ({
+          id: String(p.id),
+          name: p.name,
+          logo: p.logo,
+          isAssociated: false,
+        })));
+      }
+    } catch (error) {
+      console.error("Failed to load all partners:", error);
+    }
+  };
+
+  const loadProviderPartners = async (partnersList: AssociatedPartner[] = allPartners) => {
     setIsLoadingPartners(true);
     try {
       const response = await api(ENDPOINTS.provider(providerEmail));
       if (response?.success && response.data) {
         const providerPartners = response.data.partners || [];
-        setPartners(providerPartners.map((p: { id: string; name: string; logo?: string }) => ({
+        const associatedIds = new Set(providerPartners.map((p: { id: string | number }) => String(p.id)));
+        
+        const associated: AssociatedPartner[] = providerPartners.map((p: { id: string | number; name: string; logo?: string }) => ({
           id: String(p.id),
           name: p.name,
           logo: p.logo,
           isAssociated: true,
-        })));
+        }));
+
+        const available: AssociatedPartner[] = partnersList.length > 0
+          ? partnersList.filter((p) => !associatedIds.has(p.id))
+          : [];
+
+        setAssociatedPartners(associated);
+        setAvailablePartners(available);
       }
     } catch (error) {
       console.error("Failed to load provider partners:", error);
@@ -131,18 +167,26 @@ const ProviderDetailsModal = ({
     );
   }, [availableSchools, schoolSearchQuery]);
 
+  const filteredAvailablePartners = useMemo(() => {
+    if (!partnerSearchQuery.trim()) return availablePartners;
+    const query = partnerSearchQuery.toLowerCase();
+    return availablePartners.filter((partner) =>
+      partner.name.toLowerCase().includes(query)
+    );
+  }, [availablePartners, partnerSearchQuery]);
+
   const provider: ProviderDetails | null = providerData
     ? {
-        id: providerData.id ?? "",
+        id: providerData.id || providerData.email,
         email: providerData.email,
         fullName: providerData.providerName,
-        professionalTitle: providerData.specialty,
-        profileImage: providerData.profilePhotoURL,
-        status: "We're all alone in this together. Let's talk!",
-        officePhoneNumber: "0538920991",
-        specialties: [providerData.specialty],
+        professionalTitle: providerData.specialty || "",
+        profileImage: providerData.profilePhotoURL || undefined,
+        status: providerData.bio || undefined, // Use bio from API if available, otherwise undefined
+        officePhoneNumber: providerData.officePhoneNumber || undefined,
+        specialties: providerData.specialty ? [providerData.specialty] : undefined,
         createdAt: providerData.applicationDate,
-        updatedAt: providerData.lastActive ?? providerData.applicationDate,
+        updatedAt: providerData.lastActive || providerData.applicationDate,
         applicationStatus: providerData.applicationStatus,
         applicationDate: providerData.applicationDate,
       }
@@ -164,7 +208,7 @@ const ProviderDetailsModal = ({
       id: "partners" as TabType, 
       label: "Partners", 
       icon: FiUsers, 
-      count: partners.filter((p) => p.isAssociated).length 
+      count: associatedPartners.length 
     },
   ];
 
@@ -213,7 +257,7 @@ const ProviderDetailsModal = ({
       
       if (response?.success) {
         toast.success(`Partner "${partner.name}" added successfully`);
-        await loadProviderPartners();
+        await loadProviderPartners(allPartners);
         setPartnerToAdd(null);
       }
     } catch (error: unknown) {
@@ -231,7 +275,7 @@ const ProviderDetailsModal = ({
       
       if (response?.success) {
         toast.success(`Partner "${partner.name}" removed successfully`);
-        await loadProviderPartners();
+        await loadProviderPartners(allPartners);
         setPartnerToRemove(null);
       }
     } catch (error: unknown) {
@@ -239,6 +283,12 @@ const ProviderDetailsModal = ({
       toast.error(err.message || "Failed to remove partner");
     }
   };
+
+  useEffect(() => {
+    if (allPartners.length > 0) {
+      loadProviderPartners();
+    }
+  }, [allPartners.length]);
 
   const handleApproveClick = () => {
     if (onShowApproveModal) {
@@ -330,9 +380,11 @@ const ProviderDetailsModal = ({
               <h2 className="text-2xl font-bold mb-1">
                 {provider?.fullName ?? "Provider"}
               </h2>
-              <p className="text-white/90 text-sm mb-2">
-                {provider?.professionalTitle}
-              </p>
+              {provider?.professionalTitle && (
+                <p className="text-white/90 text-sm mb-2">
+                  {provider.professionalTitle}
+                </p>
+              )}
               {getStatusBadge()}
             </div>
           </div>
@@ -434,14 +486,14 @@ const ProviderDetailsModal = ({
                     </div>
 
                     {/* Specialties */}
-                    {provider?.specialties && provider.specialties.length > 0 && (
+                    {provider?.specialties && provider.specialties.length > 0 && provider.specialties.some(s => s && s.trim()) && (
                       <div>
                         <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                           <FiAward className="w-5 h-5 text-[#955aa4]" />
                           Specialties
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {provider.specialties.map((specialty, index) => (
+                          {provider.specialties.filter(s => s && s.trim()).map((specialty, index) => (
                             <span
                               key={index}
                               className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-[#955aa4]/30 transition-colors"
@@ -598,58 +650,121 @@ const ProviderDetailsModal = ({
 
                 {/* Partners Tab */}
                 {activeTab === "partners" && (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-semibold text-gray-900">Associated Partners</h4>
-                    </div>
-                    {isLoadingPartners ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#955aa4] mx-auto mb-2"></div>
-                        <p>Loading partners...</p>
-                      </div>
-                    ) : partners.filter((p) => p.isAssociated).length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <FiUsers className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                        <p>No partners associated yet</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {partners.filter((p) => p.isAssociated).map((partner) => (
-                          <div key={partner.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-[#955aa4]/30 transition-colors">
-                            <div className="flex items-center gap-3">
-                              {partner.logo ? (
-                                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
-                                  <Image
-                                    src={partner.logo}
-                                    alt={partner.name}
-                                    width={48}
-                                    height={48}
-                                    className="w-full h-full object-cover"
-                                  />
+                  <div className="space-y-6">
+                    {/* Associated Partners */}
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Associated Partners</h4>
+                      {isLoadingPartners ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#955aa4] mx-auto mb-2"></div>
+                          <p>Loading partners...</p>
+                        </div>
+                      ) : associatedPartners.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <FiUsers className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                          <p>No partners associated yet</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {associatedPartners.map((partner) => (
+                            <div key={partner.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-[#955aa4]/30 transition-colors">
+                              <div className="flex items-center gap-3">
+                                {partner.logo ? (
+                                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                                    <Image
+                                      src={partner.logo}
+                                      alt={partner.name}
+                                      width={48}
+                                      height={48}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <FiUsers className="w-6 h-6 text-white" />
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-semibold text-gray-900">{partner.name}</p>
                                 </div>
-                              ) : (
-                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                                  <FiUsers className="w-6 h-6 text-white" />
-                                </div>
-                              )}
-                              <div>
-                                <p className="font-semibold text-gray-900">{partner.name}</p>
                               </div>
+                              <button 
+                                onClick={() => setPartnerToRemove(partner)} 
+                                className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-red-400 text-red-500 hover:bg-red-50 transition-colors" 
+                                aria-label="Remove partner"
+                              >
+                                <FiMinus className="w-4 h-4" />
+                              </button>
                             </div>
-                            <button 
-                              onClick={() => setPartnerToRemove(partner)} 
-                              className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-red-400 text-red-500 hover:bg-red-50 transition-colors" 
-                              aria-label="Remove partner"
-                            >
-                              <FiMinus className="w-4 h-4" />
-                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Available Partners */}
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Available Partners</h4>
+                      {isLoadingPartners ? (
+                        <div className="text-center py-4 text-gray-500">
+                          <p>Loading...</p>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Search Bar */}
+                          <div className="relative mb-4">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <FiSearch className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Search partners..."
+                              value={partnerSearchQuery}
+                              onChange={(e) => setPartnerSearchQuery(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#955aa4]/20 focus:border-[#955aa4] transition-all text-gray-900 placeholder-gray-400"
+                            />
                           </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="mt-4">
-                      <h4 className="font-semibold text-gray-900 mb-2">Available Partners</h4>
-                      <p className="text-gray-500 text-sm">Partner management coming soon...</p>
+
+                          {filteredAvailablePartners.length === 0 ? (
+                            <p className="text-gray-500 text-center py-4">
+                              {partnerSearchQuery ? "No partners found matching your search." : "All partners are already associated."}
+                            </p>
+                          ) : (
+                            <div className="space-y-3">
+                              {filteredAvailablePartners.map((partner) => (
+                                <div key={partner.id} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                                  <div className="flex items-center gap-3">
+                                    {partner.logo ? (
+                                      <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                                        <Image
+                                          src={partner.logo}
+                                          alt={partner.name}
+                                          width={48}
+                                          height={48}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    ) : (
+                                      <div className="w-12 h-12 bg-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <FiUsers className="w-6 h-6 text-gray-600" />
+                                      </div>
+                                    )}
+                                    <div>
+                                      <p className="font-semibold text-gray-900">{partner.name}</p>
+                                    </div>
+                                  </div>
+                                  <button 
+                                    onClick={() => setPartnerToAdd(partner)} 
+                                    className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-green-400 text-green-500 hover:bg-green-50 transition-colors" 
+                                    aria-label="Add partner"
+                                  >
+                                    <FiPlus className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
