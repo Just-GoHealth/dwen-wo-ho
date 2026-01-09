@@ -14,6 +14,7 @@ import {
 } from "react-icons/fi";
 import { MdSchool, MdHealthAndSafety } from "react-icons/md";
 import { cn } from "@/lib/utils";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 
 interface SidebarProps {
   schoolCount: number;
@@ -169,49 +170,33 @@ export const CuratorSidebar = ({
         <div className="p-4 border-t border-gray-200">
           <Button
             onClick={handleLogoutClick}
-            className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+            variant="ghost"
+            className="w-full bg-transparent hover:bg-gray-100 text-black font-bold py-3 rounded-lg transition-all duration-200"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
-                <FiLogOut className="text-xl" />
-                <span className="text-lg">Logout</span>
+                <FiLogOut className="text-xl text-black" />
+                <span className="text-lg text-black">Logout</span>
               </div>
-              <FiArrowRight className="w-4 h-4" />
+              <FiArrowRight className="w-4 h-4 text-black" />
             </div>
           </Button>
         </div>
       </div>
 
-      {/* Clean Logout Modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 max-w-sm w-full shadow-xl">
-            <h2 className="text-lg sm:text-xl font-bold text-center mb-3 sm:mb-4 text-gray-800">
-              Logout Confirmation
-            </h2>
-            <p className="text-center text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
-              Are you sure you want to log out?
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => {
-                  onLogout();
-                  setShowLogoutModal(false);
-                }}
-                className="flex-1 py-2.5 sm:py-2 text-center font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm sm:text-base"
-              >
-                Yes, Logout
-              </button>
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="flex-1 py-2.5 sm:py-2 text-center font-medium bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm sm:text-base"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Logout Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={() => {
+          onLogout();
+          setShowLogoutModal(false);
+        }}
+        title="Logout Confirmation"
+        message="Are you sure you want to log out?"
+        confirmText="Yes, Logout"
+        variant="danger"
+      />
     </>
   );
 };
