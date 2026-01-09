@@ -72,18 +72,18 @@ const ProviderCard = ({
         <div className="flex gap-2 justify-center w-full px-2">
           {provider.applicationStatus === "APPROVED" ? (
             <>
-              <div className="flex-1 flex items-center justify-center gap-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold text-sm border border-gray-200">
+              <div className="flex-1 flex items-center justify-center gap-1 px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold text-sm border border-green-200">
                 <FiCheck className="w-4 h-4" />
                 Approved
               </div>
               <button
                 onClick={handleRejectClick}
                 disabled={isModerating}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-red-600 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {currentAction === "rejecting" ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
                     Rejecting...
                   </>
                 ) : (
@@ -99,11 +99,11 @@ const ProviderCard = ({
               <button
                 onClick={handleApproveClick}
                 disabled={isModerating}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-black hover:bg-gray-900 text-white rounded-lg font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {currentAction === "approving" ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Approving...
                   </>
                 ) : (
@@ -113,7 +113,7 @@ const ProviderCard = ({
                   </>
                 )}
               </button>
-              <div className="flex-1 flex items-center justify-center gap-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold text-sm border border-gray-200">
+              <div className="flex-1 flex items-center justify-center gap-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold text-sm border border-red-200">
                 <FiX className="w-4 h-4" />
                 Rejected
               </div>
@@ -123,11 +123,11 @@ const ProviderCard = ({
               <button
                 onClick={handleApproveClick}
                 disabled={isModerating}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-black hover:bg-gray-900 text-white rounded-lg font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {currentAction === "approving" ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Approving...
                   </>
                 ) : (
@@ -140,11 +140,11 @@ const ProviderCard = ({
               <button
                 onClick={handleRejectClick}
                 disabled={isModerating}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-red-600 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {currentAction === "rejecting" ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
                     Rejecting...
                   </>
                 ) : (
