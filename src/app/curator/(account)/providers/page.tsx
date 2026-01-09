@@ -7,14 +7,19 @@ import ProviderDetailsModal from "@/components/modals/provider-details";
 import ProviderCard from "@/components/curator/provider-card";
 import { useProvidersQuery, Provider } from "@/hooks/queries/useProvidersQuery";
 import { IProvider } from "@/types/provider.type";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 
 export default function ProvidersPage() {
   const [filter, setFilter] = useState("All");
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [modalProviderEmail, setModalProviderEmail] = useState("");
+  const [currentAction, setCurrentAction] = useState<"approving" | "rejecting" | null>(null);
 
   // Fetch providers using the query hook
-  const { providers, isLoading, isError, error } = useProvidersQuery();
+  const { providers, isLoading, isError, error, approveProvider, rejectProvider } = useProvidersQuery();
 
   // Map IProvider to Provider type (add id field using email)
   const providersList: Provider[] = (providers?.data || []).map((provider: IProvider) => ({
@@ -30,6 +35,42 @@ export default function ProvidersPage() {
   const handleProviderSelect = (providerEmail: string) => {
     setSelectedProviderEmail(providerEmail);
     setShowProviderModal(true);
+  };
+
+  const handleShowApproveModal = (email: string) => {
+    setModalProviderEmail(email);
+    setShowApproveModal(true);
+  };
+
+  const handleShowRejectModal = (email: string) => {
+    setModalProviderEmail(email);
+    setShowRejectModal(true);
+  };
+
+  const handleApproveConfirm = () => {
+    setShowApproveModal(false);
+    setCurrentAction("approving");
+    approveProvider(modalProviderEmail, {
+      onSettled: () => {
+        setCurrentAction(null);
+        setModalProviderEmail("");
+      },
+    });
+  };
+
+  const handleRejectConfirm = () => {
+    setShowRejectModal(false);
+    setCurrentAction("rejecting");
+    rejectProvider(modalProviderEmail, {
+      onSettled: () => {
+        setCurrentAction(null);
+        setModalProviderEmail("");
+      },
+    });
+  };
+
+  const getProviderName = (email: string) => {
+    return providersList.find((p) => p.email === email)?.providerName || "";
   };
 
   const filteredProviders = providersList?.filter((provider) => {
@@ -178,7 +219,11 @@ export default function ProvidersPage() {
               <ProviderCard
                 key={provider.email}
                 provider={provider}
-                onClick={handleProviderSelect}
+                onViewDetails={handleProviderSelect}
+                onShowApproveModal={handleShowApproveModal}
+                onShowRejectModal={handleShowRejectModal}
+                isModerating={currentAction !== null}
+                currentAction={currentAction}
               />
             ))
           )}
@@ -197,7 +242,7 @@ export default function ProvidersPage() {
                   )!,
                   id: providersList.find(
                     (p) => p.email === selectedProviderEmail
-                  )!.email, // Using email as ID for now
+                  )!.email,
                   fullName: providersList.find(
                     (p) => p.email === selectedProviderEmail
                   )!.providerName,
@@ -220,6 +265,36 @@ export default function ProvidersPage() {
                 }
               : undefined
           }
+        />
+
+        {/* Approve Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showApproveModal}
+          onClose={() => {
+            setShowApproveModal(false);
+            setModalProviderEmail("");
+          }}
+          onConfirm={handleApproveConfirm}
+          title="Approve Provider Confirmation"
+          message={`Are you sure you want to approve ${getProviderName(modalProviderEmail)} as a provider?`}
+          confirmText="Yes, Approve"
+          variant="success"
+          isLoading={currentAction === "approving"}
+        />
+
+        {/* Reject Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showRejectModal}
+          onClose={() => {
+            setShowRejectModal(false);
+            setModalProviderEmail("");
+          }}
+          onConfirm={handleRejectConfirm}
+          title="Reject Provider Confirmation"
+          message={`Are you sure you want to reject ${getProviderName(modalProviderEmail)}'s provider application?`}
+          confirmText="Yes, Reject"
+          variant="danger"
+          isLoading={currentAction === "rejecting"}
         />
       </div>
     </WidthConstraint>

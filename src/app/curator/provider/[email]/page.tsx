@@ -45,18 +45,35 @@ const ProviderDetails = () => {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token") || localStorage.getItem("curatorToken");
+      return !!token;
+    }
+    return null;
+  });
   const params = useParams();
   const router = useRouter();
   const email = decodeURIComponent(params.email as string);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token") || localStorage.getItem("curatorToken");
+      if (!token) {
+        router.replace(ROUTES.provider.auth);
+        setIsAuthenticated(false);
+        return;
+      }
+      setIsAuthenticated(true);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (isAuthenticated === false) return;
+    
     const loadProvider = async () => {
       try {
-        const token = localStorage.getItem("curatorToken") || "";
-        if (!token) {
-          router.push(ROUTES.provider.auth);
-          return;
-        }
+        const token = localStorage.getItem("token") || localStorage.getItem("curatorToken") || "";
 
         const response = await api(ENDPOINTS.provider(email), {
           headers: { Authorization: `Bearer ${token}` },
@@ -104,8 +121,10 @@ const ProviderDetails = () => {
       setErrorMessage("Failed to load provider details. Please try again.");
     };
 
-    loadProvider();
-  }, [email, router]);
+    if (isAuthenticated) {
+      loadProvider();
+    }
+  }, [email, router, isAuthenticated]);
 
   const handleApprove = async () => {
     setIsActionLoading(true);
@@ -178,6 +197,21 @@ const ProviderDetails = () => {
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
     }
   };
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#955aa4] mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated === false) {
+    return null;
+  }
 
   if (isLoading) {
     return (

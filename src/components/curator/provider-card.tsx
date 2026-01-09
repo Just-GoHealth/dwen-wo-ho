@@ -1,46 +1,47 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { timeAgo } from "@/lib/utils/timeAgo";
-import { Provider, useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
-import { FiCheck, FiX } from "react-icons/fi";
+import { Provider } from "@/hooks/queries/useProvidersQuery";
+import { FiCheck, FiX, FiChevronRight } from "react-icons/fi";
 
 interface ProviderCardProps {
   provider: Provider;
-  onClick: (email: string) => void;
+  onViewDetails: (email: string) => void;
+  onShowApproveModal: (email: string) => void;
+  onShowRejectModal: (email: string) => void;
+  isModerating?: boolean;
+  currentAction?: "approving" | "rejecting" | null;
 }
 
-type ModerationAction = "approving" | "rejecting" | null;
+const ProviderCard = ({ 
+  provider, 
+  onViewDetails,
+  onShowApproveModal,
+  onShowRejectModal,
+  isModerating = false,
+  currentAction = null,
+}: ProviderCardProps) => {
+  const defaultImage = "/auth/lawyer.jpg";
 
-const ProviderCard = ({ provider, onClick }: ProviderCardProps) => {
-  const defaultImage = "/auth/lawyer.jpg"; // Default fallback image
-  const [currentAction, setCurrentAction] = useState<ModerationAction>(null);
-  
-  const { approveProvider, rejectProvider } = useProvidersQuery();
-
-  const handleApprove = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click
-    setCurrentAction("approving");
-    approveProvider(provider.email, {
-      onSettled: () => setCurrentAction(null),
-    });
+  const handleApproveClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onShowApproveModal(provider.email);
   };
 
-  const handleReject = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click
-    setCurrentAction("rejecting");
-    rejectProvider(provider.email, {
-      onSettled: () => setCurrentAction(null),
-    });
+  const handleRejectClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onShowRejectModal(provider.email);
   };
 
-  const isModerating = currentAction !== null;
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onViewDetails(provider.email);
+  };
 
   return (
     <div
-      onClick={() => onClick(provider.email)}
-      className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-[#955aa4]/50 group hover:scale-[1.02] flex flex-col items-center"
+      className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-[#955aa4]/50 group hover:scale-[1.02] flex flex-col items-center"
     >
       {/* Provider Image - Centered at Top */}
       <div className="w-16 h-16 rounded-full overflow-hidden mb-4 ring-4 ring-gray-100 group-hover:ring-[#955aa4]/20 transition-all duration-300">
@@ -68,60 +69,103 @@ const ProviderCard = ({ provider, onClick }: ProviderCardProps) => {
         </p>
 
         {/* Status Badge or Action Buttons */}
-        {provider.applicationStatus === "PENDING" ? (
-          <div className="flex gap-2 justify-center w-full px-2">
-            <button
-              onClick={handleApprove}
-              disabled={isModerating}
-              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {currentAction === "approving" ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Approving...
-                </>
-              ) : (
-                <>
-                  <FiCheck className="w-4 h-4" />
-                  Approve
-                </>
-              )}
-            </button>
-            <button
-              onClick={handleReject}
-              disabled={isModerating}
-              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {currentAction === "rejecting" ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Rejecting...
-                </>
-              ) : (
-                <>
-                  <FiX className="w-4 h-4" />
-                  Reject
-                </>
-              )}
-            </button>
-          </div>
-        ) : provider.applicationStatus === "APPROVED" ? (
-          <div className="flex justify-center w-full px-2">
-            <button
-              disabled
-              className="w-full flex items-center justify-center gap-1 px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold text-sm border border-green-200 cursor-not-allowed opacity-75"
-            >
-              <FiCheck className="w-4 h-4" />
-              Approved
-            </button>
-          </div>
-        ) : (
-          <div className="flex justify-center">
-            <div className="px-4 py-2 rounded-full font-semibold text-sm shadow-sm bg-red-100 text-red-700 border border-red-200">
-              {provider.applicationStatus}
-            </div>
-          </div>
-        )}
+        <div className="flex gap-2 justify-center w-full px-2">
+          {provider.applicationStatus === "APPROVED" ? (
+            <>
+              <div className="flex-1 flex items-center justify-center gap-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold text-sm border border-gray-200">
+                <FiCheck className="w-4 h-4" />
+                Approved
+              </div>
+              <button
+                onClick={handleRejectClick}
+                disabled={isModerating}
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {currentAction === "rejecting" ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                    Rejecting...
+                  </>
+                ) : (
+                  <>
+                    <FiX className="w-4 h-4" />
+                    Reject
+                  </>
+                )}
+              </button>
+            </>
+          ) : provider.applicationStatus === "REJECTED" ? (
+            <>
+              <button
+                onClick={handleApproveClick}
+                disabled={isModerating}
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {currentAction === "approving" ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                    Approving...
+                  </>
+                ) : (
+                  <>
+                    <FiCheck className="w-4 h-4" />
+                    Approve
+                  </>
+                )}
+              </button>
+              <div className="flex-1 flex items-center justify-center gap-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold text-sm border border-gray-200">
+                <FiX className="w-4 h-4" />
+                Rejected
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleApproveClick}
+                disabled={isModerating}
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {currentAction === "approving" ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                    Approving...
+                  </>
+                ) : (
+                  <>
+                    <FiCheck className="w-4 h-4" />
+                    Approve
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleRejectClick}
+                disabled={isModerating}
+                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {currentAction === "rejecting" ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                    Rejecting...
+                  </>
+                ) : (
+                  <>
+                    <FiX className="w-4 h-4" />
+                    Reject
+                  </>
+                )}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* View Details Button */}
+        <button
+          onClick={handleViewDetails}
+          className="mt-3 text-sm text-gray-600 hover:text-[#955aa4] transition-colors underline flex items-center gap-1"
+        >
+          View Details
+          <FiChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

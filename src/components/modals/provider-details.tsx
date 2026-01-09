@@ -8,6 +8,7 @@ import { timeAgo } from "@/lib/utils/timeAgo";
 import { useProvidersQuery } from "@/hooks/queries/useProvidersQuery";
 import { ProviderDetails, AssociatedSchool, AssociatedPartner } from "@/types/provider";
 import { mockSchools, mockPartners } from "@/data/mock-provider-data";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 
 interface ProviderDetailsModalProps {
   isOpen: boolean;
@@ -30,6 +31,8 @@ const ProviderDetailsModal = ({
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [schools, setSchools] = useState<AssociatedSchool[]>([]);
   const [partners, setPartners] = useState<AssociatedPartner[]>([]);
+  const [schoolToAdd, setSchoolToAdd] = useState<AssociatedSchool | null>(null);
+  const [schoolToRemove, setSchoolToRemove] = useState<AssociatedSchool | null>(null);
 
   useEffect(() => {
     if (providerData) {
@@ -82,9 +85,32 @@ const ProviderDetailsModal = ({
   ];
 
   const handleToggleSchool = (id: string) => {
-    setSchools((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isAssociated: !s.isAssociated } : s))
-    );
+    const school = schools.find((s) => s.id === id);
+    if (!school) return;
+    
+    if (school.isAssociated) {
+      setSchoolToRemove(school);
+    } else {
+      setSchoolToAdd(school);
+    }
+  };
+
+  const handleConfirmAddSchool = () => {
+    if (schoolToAdd) {
+      setSchools((prev) =>
+        prev.map((s) => (s.id === schoolToAdd.id ? { ...s, isAssociated: true } : s))
+      );
+      setSchoolToAdd(null);
+    }
+  };
+
+  const handleConfirmRemoveSchool = () => {
+    if (schoolToRemove) {
+      setSchools((prev) =>
+        prev.map((s) => (s.id === schoolToRemove.id ? { ...s, isAssociated: false } : s))
+      );
+      setSchoolToRemove(null);
+    }
   };
 
   const handleTogglePartner = (id: string) => {
@@ -438,6 +464,28 @@ const ProviderDetailsModal = ({
           </div>
         </div>
       </div>
+
+      {/* Add School Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={schoolToAdd !== null}
+        onClose={() => setSchoolToAdd(null)}
+        onConfirm={handleConfirmAddSchool}
+        title="Add School Confirmation"
+        message={`Are you sure you want to add ${schoolToAdd?.name} to ${provider?.fullName || "this provider"}?`}
+        confirmText="Yes, Add School"
+        variant="success"
+      />
+
+      {/* Remove School Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={schoolToRemove !== null}
+        onClose={() => setSchoolToRemove(null)}
+        onConfirm={handleConfirmRemoveSchool}
+        title="Remove School Confirmation"
+        message={`Are you sure you want to remove ${schoolToRemove?.name} from ${provider?.fullName || "this provider"}?`}
+        confirmText="Yes, Remove School"
+        variant="danger"
+      />
     </div>
   );
 };

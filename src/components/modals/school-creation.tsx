@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Upload, X, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useCreateSchool } from "@/hooks/queries/useSchoolsQuery";
 import { ICreateSchool } from "@/types/school";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 interface SchoolCreationModalProps {
   isOpen: boolean;
@@ -52,6 +53,11 @@ const SchoolCreationModal = ({
   });
 
   const createSchoolMutation = useCreateSchool();
+  const campusDropdownRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(campusDropdownRef, () => {
+    setShowCampusDropdown(false);
+  });
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -211,7 +217,7 @@ const SchoolCreationModal = ({
                       </span>
                     )}
                   </div>
-                  <div className="relative">
+                  <div className="relative" ref={campusDropdownRef}>
                     <button
                       type="button"
                       onClick={() => setShowCampusDropdown(!showCampusDropdown)}
@@ -243,16 +249,13 @@ const SchoolCreationModal = ({
                                 key={campus}
                                 type="button"
                                 onClick={() => handleCampusToggle(campus)}
-                                className={`w-full text-left px-4 py-2.5 rounded-lg flex items-center justify-between transition-colors ${
+                                className={`w-full text-left px-4 py-2.5 rounded-lg transition-colors ${
                                   selectedCampuses.includes(campus)
-                                    ? "bg-[#955aa4]/5 text-[#955aa4]"
+                                    ? "bg-gray-100 text-gray-900 font-medium"
                                     : "hover:bg-gray-50 text-gray-700"
                                 }`}
                               >
-                                <span className="font-medium">{campus}</span>
-                                {selectedCampuses.includes(campus) && (
-                                  <span className="text-[#955aa4] font-bold">✓</span>
-                                )}
+                                <span>{campus}</span>
                               </button>
                             ))}
                           </div>
@@ -276,13 +279,30 @@ const SchoolCreationModal = ({
                             height={128}
                             className="w-32 h-32 object-cover rounded-lg border shadow-sm"
                           />
-                          <button
-                            type="button"
-                            onClick={handleRemoveLogo}
-                            className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1"
-                          >
-                            <X size={14} />
-                          </button>
+                          <div className="absolute top-1 right-1 flex gap-1">
+                            <input
+                              type="file"
+                              id="logo-change"
+                              accept="image/*"
+                              onChange={handleLogoUpload}
+                              className="hidden"
+                            />
+                            <label
+                              htmlFor="logo-change"
+                              className="bg-[#955aa4]/80 hover:bg-[#955aa4] text-white rounded-full p-1.5 cursor-pointer transition-colors"
+                              title="Change logo"
+                            >
+                              <Upload size={12} />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={handleRemoveLogo}
+                              className="bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
+                              title="Remove logo"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <>

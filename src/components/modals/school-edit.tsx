@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Upload, X, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useUpdateSchool } from "@/hooks/queries/useSchoolsQuery";
 import { School } from "@/types/school";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 interface SchoolEditModalProps {
   isOpen: boolean;
@@ -55,6 +56,11 @@ const SchoolEditModal = ({
   });
 
   const updateSchoolMutation = useUpdateSchool();
+  const campusDropdownRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(campusDropdownRef, () => {
+    setShowCampusDropdown(false);
+  });
 
   useEffect(() => {
     if (school && isOpen) {
@@ -223,7 +229,7 @@ const SchoolEditModal = ({
                         </span>
                       )}
                     </div>
-                    <div className="relative">
+                    <div className="relative" ref={campusDropdownRef}>
                       <button
                         type="button"
                         onClick={() => setShowCampusDropdown(!showCampusDropdown)}
@@ -262,16 +268,13 @@ const SchoolEditModal = ({
                                   key={campus}
                                   type="button"
                                   onClick={() => handleCampusToggle(campus)}
-                                  className={`w-full text-left px-4 py-2.5 rounded-lg flex items-center justify-between transition-colors ${
+                                  className={`w-full text-left px-4 py-2.5 rounded-lg transition-colors ${
                                     selectedCampuses.includes(campus)
-                                      ? "bg-[#955aa4]/5 text-[#955aa4]"
+                                      ? "bg-gray-100 text-gray-900 font-medium"
                                       : "hover:bg-gray-50 text-gray-700"
                                   }`}
                                 >
-                                  <span className="font-medium">{campus}</span>
-                                  {selectedCampuses.includes(campus) && (
-                                    <span className="text-[#955aa4] font-bold">✓</span>
-                                  )}
+                                  <span>{campus}</span>
                                 </button>
                               ))}
                             </div>

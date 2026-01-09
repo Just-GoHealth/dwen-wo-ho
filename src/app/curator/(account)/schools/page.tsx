@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { MdSchool, MdLocationOn } from "react-icons/md";
-import { FiCalendar } from "react-icons/fi";
+import { FiCalendar, FiSearch } from "react-icons/fi";
 import Image from "next/image";
 import WidthConstraint from "@/components/ui/width-constraint";
 import { School } from "@/types/school";
@@ -22,12 +22,29 @@ const filterOptions: { label: string; value: FilterType }[] = [
 
 export default function SchoolsPage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: allSchools = [], isLoading, isError } = useSchools();
 
-  const schoolsList =
-    activeFilter === "all"
+  const schoolsList = useMemo(() => {
+    let filtered = activeFilter === "all"
       ? allSchools
       : allSchools.filter((school) => school.type === activeFilter);
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((school) => {
+        const nameMatch = school.name?.toLowerCase().includes(query);
+        const nicknameMatch = school.nickname?.toLowerCase().includes(query);
+        const typeMatch = school.type?.toLowerCase().includes(query);
+        const campusesMatch = school.campuses?.some(campus => 
+          campus.toLowerCase().includes(query)
+        );
+        return nameMatch || nicknameMatch || typeMatch || campusesMatch;
+      });
+    }
+
+    return filtered;
+  }, [allSchools, activeFilter, searchQuery]);
 
  
 
@@ -62,6 +79,20 @@ export default function SchoolsPage() {
           </div>
 
 
+
+          {/* Search Bar */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <FiSearch className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search schools by name, nickname, type, or location..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#955aa4]/20 focus:border-[#955aa4] transition-all text-gray-900 placeholder-gray-400"
+            />
+          </div>
 
           {/* Filters */}
           <div className="flex flex-wrap gap-2">
@@ -165,7 +196,7 @@ export default function SchoolsPage() {
                 {/* Footer / Location */}
                 <div className="mt-6 flex items-center justify-between">
                   <div className="flex-1 min-w-0 mr-4">
-                    {school.campuses && school.campuses.length > 0 ? (
+                    {school.campuses && Array.isArray(school.campuses) && school.campuses.length > 0 ? (
                       <div className="flex items-center gap-2 text-gray-600">
                         <MdLocationOn className="text-[#955aa4] w-4 h-4 flex-shrink-0" />
                         <span className="text-sm font-medium truncate">

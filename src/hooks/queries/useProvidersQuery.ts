@@ -149,8 +149,16 @@ export const useProvidersQuery = () => {
     // Single provider query helper
     useProvider,
     // Mutations
-    approveProvider: approveProviderMutation.mutate,
-    rejectProvider: rejectProviderMutation.mutate,
+    approveProvider: (email: string, options?: { onSettled?: () => void }) => {
+      approveProviderMutation.mutate(email, {
+        onSettled: options?.onSettled,
+      });
+    },
+    rejectProvider: (email: string, options?: { onSettled?: () => void }) => {
+      rejectProviderMutation.mutate(email, {
+        onSettled: options?.onSettled,
+      });
+    },
     isModerating: approveProviderMutation.isPending || rejectProviderMutation.isPending,
   };
 };
