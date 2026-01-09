@@ -35,8 +35,9 @@ const getSchool = async (schoolId: string): Promise<School> => {
 };
 
 const disableSchool = async (schoolId: string): Promise<School> => {
-  const result = await api(`/api/v1/schools/${schoolId}/disable`, {
-    method: "PUT",
+  const result = await api(`/api/v1/schools/disable`, {
+    method: "POST",
+    body: JSON.stringify({ id: schoolId }),
   });
   
   if (result?.success && result.data) {

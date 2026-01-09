@@ -146,6 +146,58 @@ const SignInContent = ({
             return;
           }
 
+          // Check if provider is approved - allow access
+          if (userData.applicationStatus === "APPROVED") {
+            if (userData?.userRole === "ROLE_CURATOR") {
+              if (token) {
+                localStorage.setItem("curatorToken", token);
+              }
+              setIsRedirecting(true);
+              router.push(ROUTES.curator.schools);
+              return;
+            }
+
+            const emailParams = encodeURIComponent(values.email);
+
+            if (!userData.profileURL) {
+              router.push(`/provider/signup?email=${emailParams}&step=photo`);
+              return;
+            }
+
+            if (!userData.officePhoneNumber) {
+              router.push(`/provider/signup?email=${emailParams}&step=bio`);
+              return;
+            }
+
+            if (!userData.specialty || !userData.specialty.trim()) {
+              router.push(`/provider/signup?email=${emailParams}&step=specialty`);
+              return;
+            }
+
+            setIsRedirecting(true);
+            router.push(ROUTES.provider.profile);
+            return;
+          }
+
+          // If status is REJECTED or unknown, show pending modal
+          if (userData.applicationStatus === "REJECTED") {
+            setUserInfo({
+              name: userData.providerName || "Provider",
+              title:
+                (userData as any).professionalTitle ||
+                userData.specialty ||
+                "Health Provider",
+              timeAgo: "Recently",
+              profileImage:
+                userData.profilePhotoURL ||
+                userData.profileURL ||
+                undefined,
+            } as any);
+            setShowPendingModal(true);
+            return;
+          }
+
+          // Fallback: Check for curator role
           if (userData?.userRole === "ROLE_CURATOR") {
             if (token) {
               localStorage.setItem("curatorToken", token);

@@ -13,6 +13,7 @@ import { MdSchool } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import SchoolEditModal from "@/components/modals/school-edit";
 import { useDisableSchool } from "@/hooks/queries/useSchoolsQuery";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import {
   OverviewTab,
   ProvidersTab,
@@ -57,6 +58,8 @@ export default function SchoolDetailsPage() {
   const [reachLoading, setReachLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDisableModal, setShowDisableModal] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const disableSchoolMutation = useDisableSchool();
 
@@ -168,12 +171,21 @@ export default function SchoolDetailsPage() {
   };
 
   const handleDisableSchool = () => {
-    if (school) {
-      disableSchoolMutation.mutate(String(school.id), {
-        onSuccess: () => {
-          router.push(ROUTES.curator.schools);
-        },
-      });
+    setShowDisableModal(true);
+  };
+
+  const handleDisableConfirm = async () => {
+    if (!school) return;
+    setIsActionLoading(true);
+    try {
+      await disableSchoolMutation.mutateAsync(String(school.id));
+      router.push(ROUTES.curator.schools);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to disable school");
+    } finally {
+      setIsActionLoading(false);
+      setShowDisableModal(false);
     }
   };
 
@@ -334,12 +346,24 @@ export default function SchoolDetailsPage() {
       </div>
 
       {school && (
-        <SchoolEditModal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          school={school}
-          onSchoolUpdated={handleSchoolUpdated}
-        />
+        <>
+          <SchoolEditModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            school={school}
+            onSchoolUpdated={handleSchoolUpdated}
+          />
+          <ConfirmationModal
+            isOpen={showDisableModal}
+            onClose={() => setShowDisableModal(false)}
+            onConfirm={handleDisableConfirm}
+            title="Disable School Confirmation"
+            message={`Are you sure you want to disable ${school.name}? This action cannot be undone.`}
+            confirmText="Yes, Disable"
+            variant="danger"
+            isLoading={isActionLoading}
+          />
+        </>
       )}
     </WidthConstraint>
   );

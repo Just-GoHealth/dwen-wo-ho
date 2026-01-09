@@ -262,9 +262,16 @@ export default function ProvidersPage() {
                     providersList.find(
                       (p) => p.email === selectedProviderEmail
                     )!.applicationDate,
+                  applicationStatus: providersList.find(
+                    (p) => p.email === selectedProviderEmail
+                  )!.applicationStatus,
                 }
               : undefined
           }
+          onShowApproveModal={handleShowApproveModal}
+          onShowRejectModal={handleShowRejectModal}
+          isModerating={currentAction !== null}
+          currentAction={currentAction}
         />
 
         {/* Approve Confirmation Modal */}

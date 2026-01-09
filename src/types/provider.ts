@@ -16,13 +16,15 @@ export interface ProviderDetails {
 export interface AssociatedSchool {
   id: string;
   name: string;
-  joinedDate: string;
+  joinedDate?: string;
   isAssociated: boolean;
+  logo?: string;
 }
 
 export interface AssociatedPartner {
   id: string;
   name: string;
-  joinedDate: string;
+  joinedDate?: string;
   isAssociated: boolean;
+  logo?: string;
 }
