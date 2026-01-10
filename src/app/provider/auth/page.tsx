@@ -12,12 +12,13 @@ type AuthStep = "check-email" | "sign-in" | "sign-up" | "reset-password";
 const ProviderAuthPageContent = () => {
   const searchParams = useSearchParams();
   const initialStep = (searchParams.get("step") as AuthStep) || "check-email";
-  const initialEmail = searchParams.get("email") || "asare4ster@gmail.com";
+  const initialEmail = searchParams.get("email");
 
   const [step, setStep] = useState<AuthStep>("check-email");
-  const [email, setEmail] = useState<string>(initialEmail);
+  const [email, setEmail] = useState<string>(initialEmail || "");
 
   useEffect(() => {
+    console.log("AUTH PAGE MOUNTED");
     if (initialStep) {
       setStep(initialStep);
     }

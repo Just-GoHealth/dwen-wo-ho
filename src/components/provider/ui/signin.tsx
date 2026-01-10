@@ -103,16 +103,13 @@ const SignInContent = ({
           }
 
           // Check for pending status
-          console.log("Checking pending status for:", userData);
           const isPending =
             userData.applicationStatus === "PENDING" ||
             userData.status === "PENDING" ||
             (response as any).message === "ACCOUNT PENDING";
 
-          console.log("Is Pending?", isPending);
 
           if (isPending) {
-            console.log("Entering Pending Block - Redirecting to Home");
             // Smart timestamp derivation
             let timeAgo = "Recently";
             const createdDate =
@@ -161,7 +158,6 @@ const SignInContent = ({
             localStorage.setItem("pendingUser", JSON.stringify(userData));
 
             // Redirect to home page where the pending modal is handled
-            console.log("Redirecting to:", ROUTES.provider.home);
             setIsRedirecting(true);
             router.push(ROUTES.provider.home);
             return;
