@@ -142,7 +142,9 @@ const SignInContent = ({
                 userData.profileURL ||
                 undefined,
             } as any);
-            setShowPendingModal(true);
+
+            // Redirect to home page where the pending modal is handled
+            router.push(ROUTES.provider.home);
             return;
           }
 
@@ -225,7 +227,7 @@ const SignInContent = ({
           }
 
           setIsRedirecting(true);
-          router.push(ROUTES.provider.profile);
+          router.push(ROUTES.provider.home);
         }
 
         // Check if user is verified (fallback logic if needed, but above checks should catch incomplete profiles first)
@@ -236,10 +238,11 @@ const SignInContent = ({
               response.data?.professionalTitle || "Clinical Psychologist",
             timeAgo: "2 hours ago",
           });
-          setShowPendingModal(true);
+          setIsRedirecting(true);
+          router.push(ROUTES.provider.home);
         } else {
           setIsRedirecting(true);
-          router.push(ROUTES.provider.profile);
+          router.push(ROUTES.provider.home);
         }
       } else {
         setErrorMessage(
@@ -272,7 +275,7 @@ const SignInContent = ({
           title: "Health Provider",
           timeAgo: "Recently",
         });
-        setShowPendingModal(true);
+        router.push(ROUTES.provider.home);
         return;
       }
 

@@ -197,30 +197,12 @@ const SignUpProfile = ({
             });
 
             if (loginResponse.success) {
-              const { token, userData } = loginResponse.data;
+              const { token } = loginResponse.data;
               if (token) {
                 localStorage.setItem("token", token);
               }
-
-              // Check logic similar to signin.tsx
-              const isPendingStatus = userData.applicationStatus === "PENDING" || (loginResponse as any).message === "ACCOUNT PENDING";
-              const isVerified = loginResponse.data.isVerified;
-
-              if (isPendingStatus || isVerified === false) {
-                // Update user info for modal
-                setUserInfo(prev => ({
-                  ...prev,
-                  name: userData.providerName || prev.name,
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  title: (userData as any).professionalTitle || userData.specialty || prev.title,
-                  specialty: userData.specialty || prev.specialty,
-                  profileImage: userData.profilePhotoURL || prev.profileImage,
-                }));
-                setShowPendingModal(true);
-              } else {
-                console.log("✅ Auto-login successful, redirecting to schools grid");
-                router.push(ROUTES.curator.schools);
-              }
+              console.log("✅ Auto-login successful, redirecting to provider home");
+              router.push(ROUTES.provider.home);
             } else {
               // Login failed logically? Fallback to auth page
               console.warn("Auto-login returned failure:", loginResponse);
