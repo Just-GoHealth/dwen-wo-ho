@@ -34,12 +34,7 @@ const ProviderHomePage = () => {
         const token = localStorage.getItem("token");
         const pendingUserStr = localStorage.getItem("pendingUser");
 
-        console.log("HOME PAGE MOUNTED - Checking Auth");
-        console.log("Token:", token ? "Present" : "Missing");
-        console.log("Pending User Str:", pendingUserStr);
-
         if (!token && !pendingUserStr) {
-            console.log("No token or pending user - Redirecting to Sign In");
             router.push(`${ROUTES.provider.auth}?step=sign-in`);
             return;
         }

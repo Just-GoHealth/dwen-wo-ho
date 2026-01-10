@@ -18,7 +18,6 @@ const ProviderAuthPageContent = () => {
   const [email, setEmail] = useState<string>(initialEmail || "");
 
   useEffect(() => {
-    console.log("AUTH PAGE MOUNTED");
     if (initialStep) {
       setStep(initialStep);
     }

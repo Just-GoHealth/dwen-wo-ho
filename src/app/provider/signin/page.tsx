@@ -85,8 +85,8 @@ const SignInContent = () => {
           });
           setShowPendingModal(true);
         } else {
-          console.log("✅ Sign in successful, redirecting to profile");
-          router.push("/provider/profile");
+          console.log("✅ Sign in successful, redirecting to home");
+          router.push(ROUTES.provider.home);
         }
       } else {
         console.error("❌ Sign in failed:", response?.message);
