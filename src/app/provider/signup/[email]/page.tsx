@@ -46,8 +46,11 @@ const Verify = () => {
       });
 
       if (response.success) {
-        // Redirect to password setup page
-        router.push(`${ROUTES.provider.signUp}/${email}/profile`);
+        if (response.data?.token) {
+          localStorage.setItem("token", response.data.token);
+        }
+        // Redirect to profile setup (photo step)
+        router.push(`${ROUTES.provider.signUp}?email=${encodeURIComponent(email as string)}&step=photo`);
       } else {
         setErrorMessage(response.message || "Verification failed");
       }

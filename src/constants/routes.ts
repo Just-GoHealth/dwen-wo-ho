@@ -9,6 +9,7 @@ export const ROUTES = {
     auth: "/provider/auth",
     profile: "/provider/profile",
     dashboard: "/provider/dashboard",
+    home: "/provider/home",
   },
   patient: {
     singIn: "/patient/signin",
