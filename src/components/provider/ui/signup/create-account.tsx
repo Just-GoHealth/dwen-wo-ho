@@ -20,7 +20,7 @@ interface CreateAccountProps {
   title?: string;
   agreedToTerms: boolean;
   onAgreedToTermsChange: (agreed: boolean) => void;
-  onNext: (data: { email: string; fullName: string; title: string }) => void;
+  onNext: (data: { email: string; fullName: string; title: string, password?: string }) => void;
   onValidityChange?: (isValid: boolean) => void;
 }
 
@@ -85,6 +85,7 @@ const CreateAccount = ({
           email: values.email,
           fullName: values.fullName,
           title: values.title,
+          password: values.password,
         });
       } else {
         console.error("❌ Signup failed - no success flag");

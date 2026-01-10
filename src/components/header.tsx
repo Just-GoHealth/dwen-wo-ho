@@ -28,9 +28,8 @@ const MobileMenu = ({ check }: { check: boolean }) => {
                 <li key={item.name}>
                   <Link
                     href={item.path}
-                    className={`font-[600] ${
-                      pathname === item.path ? "text-[#2BA36A] underline" : ""
-                    }`}
+                    className={`font-[600] ${pathname === item.path ? "text-[#2BA36A] underline" : ""
+                      }`}
                   >
                     {item.name}
                   </Link>
@@ -91,7 +90,7 @@ const Header = ({ className, logo }: { className?: string; logo?: string }) => {
 
   return (
     <header
-      className={`py-4 pr-6 flex flex-col items-center z-[50] overflow-clip fixed top-0 w-screen text-black ${className} bg-gray-100`}
+      className={`flex flex-col items-center z-[50] overflow-clip fixed top-0 w-screen text-black ${className} bg-gray-100`}
       ref={navRef}
     >
       <WidthConstraint className="flex w-full items-center justify-between gap-4">
@@ -111,9 +110,8 @@ const Header = ({ className, logo }: { className?: string; logo?: string }) => {
               <li key={item.name}>
                 <Link
                   href={item.path}
-                  className={`font-[600] underline-offset-4 ${
-                    pathname === item.path ? "text-[#2BA36A] underline" : ""
-                  }`}
+                  className={`font-[600] underline-offset-4 ${pathname === item.path ? "text-[#2BA36A] underline" : ""
+                    }`}
                 >
                   {item.name}
                 </Link>
@@ -141,7 +139,7 @@ const Header = ({ className, logo }: { className?: string; logo?: string }) => {
           </Button>
         </div>
       </WidthConstraint>
-      <MobileMenu check={check} />
+      {/* <MobileMenu check={check} /> */}
     </header>
   );
 };
