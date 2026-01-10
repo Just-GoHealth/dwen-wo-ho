@@ -78,12 +78,18 @@ const SignInContent = ({
 
   const onSubmit = async (values: ProviderLoginFormData) => {
     setErrorMessage("");
+    // Clear tokens before attempting new login to prevent stale state
+    localStorage.removeItem("token");
+    localStorage.removeItem("curatorToken");
+    localStorage.removeItem("pendingUser");
 
     try {
       const response = await loginMutation.mutateAsync({
         email: values.email,
         password: values.password,
       });
+
+      console.log("✅ Sign in response:", response);
 
       if (response.success) {
         if (response.data?.userData) {
@@ -97,10 +103,16 @@ const SignInContent = ({
           }
 
           // Check for pending status
-          if (
+          console.log("Checking pending status for:", userData);
+          const isPending =
             userData.applicationStatus === "PENDING" ||
-            (response as any).message === "ACCOUNT PENDING"
-          ) {
+            userData.status === "PENDING" ||
+            (response as any).message === "ACCOUNT PENDING";
+
+          console.log("Is Pending?", isPending);
+
+          if (isPending) {
+            console.log("Entering Pending Block - Redirecting to Home");
             // Smart timestamp derivation
             let timeAgo = "Recently";
             const createdDate =
@@ -143,7 +155,14 @@ const SignInContent = ({
                 undefined,
             } as any);
 
+
+
+            // Persist pending user data for the home page to usage (since token might be missing)
+            localStorage.setItem("pendingUser", JSON.stringify(userData));
+
             // Redirect to home page where the pending modal is handled
+            console.log("Redirecting to:", ROUTES.provider.home);
+            setIsRedirecting(true);
             router.push(ROUTES.provider.home);
             return;
           }
@@ -227,6 +246,7 @@ const SignInContent = ({
           }
 
           setIsRedirecting(true);
+          localStorage.removeItem("pendingUser");
           router.push(ROUTES.provider.home);
         }
 
@@ -238,9 +258,11 @@ const SignInContent = ({
               response.data?.professionalTitle || "Clinical Psychologist",
             timeAgo: "2 hours ago",
           });
+          localStorage.setItem("pendingUser", JSON.stringify(response.data));
           setIsRedirecting(true);
           router.push(ROUTES.provider.home);
         } else {
+          localStorage.removeItem("pendingUser");
           setIsRedirecting(true);
           router.push(ROUTES.provider.home);
         }

@@ -6,12 +6,19 @@ import useUserQuery from "@/hooks/queries/useUserQuery";
 import { calculateTimeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
+
 const ProviderHomePage = () => {
+    const router = useRouter();
     const [showPendingModal, setShowPendingModal] = useState(false);
+
+    const [hasToken, setHasToken] = useState(false);
 
     // Reuse the user query logic to get status
     const { getProfileQuery } = useUserQuery({
         refetchInterval: showPendingModal ? 5000 : undefined,
+        enabled: hasToken,
     });
 
     const [userInfo, setUserInfo] = useState({
@@ -22,12 +29,54 @@ const ProviderHomePage = () => {
         profileImage: undefined as string | undefined,
     });
 
+    // Protect route and handle pending state from LocalStorage (Fallback)
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const pendingUserStr = localStorage.getItem("pendingUser");
+
+        if (!token && !pendingUserStr) {
+            router.push(`${ROUTES.provider.auth}?step=sign-in`);
+            return;
+        }
+
+        if (token) {
+            setHasToken(true);
+        }
+
+        // If local storage has pending user data, use it to show modal immediately
+        if (pendingUserStr) {
+            try {
+                const pendingData = JSON.parse(pendingUserStr);
+
+                const isPending =
+                    pendingData.applicationStatus === "PENDING" ||
+                    pendingData.status === "PENDING" ||
+                    pendingData.isVerified === false;
+
+                if (isPending) {
+                    setUserInfo({
+                        name: `${pendingData.title ? `${pendingData.title} ` : ""}${pendingData.providerName || pendingData.fullName || "Provider"}`,
+                        title: pendingData.professionalTitle || pendingData.specialty || "Health Provider",
+                        specialty: pendingData.specialty || "",
+                        profileImage: pendingData.profilePhotoURL || pendingData.profileURL,
+                        timeAgo: pendingData.applicationTimestamp ? calculateTimeAgo(pendingData.applicationTimestamp) : "Recently",
+                    });
+                    setShowPendingModal(true);
+                }
+            } catch (e) {
+                console.error("Failed to parse pending user data", e);
+            }
+        }
+    }, [router]);
+
+    // Update with real data from API if available
     useEffect(() => {
         if (getProfileQuery.data) {
             const data = getProfileQuery.data;
 
             const isPending =
                 data.applicationStatus === "PENDING" ||
+                data.status === "PENDING" ||
                 (data as any).isVerified === false;
 
             if (isPending) {
@@ -43,9 +92,32 @@ const ProviderHomePage = () => {
                 setShowPendingModal(true);
             } else {
                 setShowPendingModal(false);
+                // If verified/approved, clear the pending fallback
+                localStorage.removeItem("pendingUser");
+
+                // Check for incomplete profile logic (mirrors signin.tsx)
+                const email = data.email || ""; // Ensure we have an email if possible
+                const emailParams = email ? `email=${encodeURIComponent(email)}&` : "";
+
+                if (!data.profilePhotoURL && !data.profileURL) {
+                    router.push(`/provider/signup?${emailParams}step=photo`);
+                    return;
+                }
+
+                if (!data.officePhoneNumber && !data.phoneNumber) {
+                    router.push(`/provider/signup?${emailParams}step=bio`);
+                    return;
+                }
+
+                if ((!data.specialty || !data.specialty.trim()) && (!data.professionalTitle || !data.professionalTitle.trim())) {
+                    // Note: Checking specific fields. Adjust based on exact API response keys.
+                    // Assuming 'specialty' is the key.
+                    router.push(`/provider/signup?${emailParams}step=specialty`);
+                    return;
+                }
             }
         }
-    }, [getProfileQuery.data]);
+    }, [getProfileQuery.data, router]);
 
 
     return (
@@ -71,7 +143,7 @@ const ProviderHomePage = () => {
 
             <PendingVerificationModal
                 isOpen={showPendingModal}
-                isLoading={getProfileQuery.isLoading}
+                isLoading={getProfileQuery.isLoading && !showPendingModal} // Only show loading if modal isn't already shown via fallback
                 onClose={() => {
                     // Prevent closing to enforce pending state view
                 }}
