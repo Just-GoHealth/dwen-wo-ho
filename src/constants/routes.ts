@@ -1,6 +1,6 @@
 export const ROUTES = {
   provider: {
-    singIn: "/provider/signin",
+    singIn: "/provider/auth?step=sign-in",
     signUp: "/provider/signup",
     checkEmail: "/provider/check-email",
     verifyEmail: "/provider/verifyEmail",
