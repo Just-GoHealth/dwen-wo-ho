@@ -39,14 +39,16 @@ const SignUpContent = ({
     email: propEmail || "",
     fullName: propFullName || "",
     title: propTitle || "",
+    password: "",
   });
 
   const handleCreateAccountNext = (data: {
     email: string;
     fullName: string;
     title: string;
+    password?: string;
   }) => {
-    setSignUpData(data);
+    setSignUpData((prev) => ({ ...prev, ...data }));
     setCurrentStep("verify");
   };
 
@@ -113,6 +115,7 @@ const SignUpContent = ({
             email={signUpData.email}
             fullName={signUpData.fullName}
             title={signUpData.title}
+            password={signUpData.password}
             specialty={specialty}
             profileImage={profileImage}
             isPending={isPending}
