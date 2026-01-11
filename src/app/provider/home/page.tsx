@@ -31,29 +31,41 @@ const ProviderHomePage = () => {
 
     // Protect route and handle pending state from LocalStorage (Fallback)
     useEffect(() => {
+        console.log("🏠 HOME PAGE: useEffect triggered");
         const token = localStorage.getItem("token");
         const pendingUserStr = localStorage.getItem("pendingUser");
 
+        console.log("🏠 HOME PAGE: Token exists?", !!token);
+        console.log("🏠 HOME PAGE: PendingUser exists?", !!pendingUserStr);
+        console.log("🏠 HOME PAGE: PendingUser data:", pendingUserStr);
+
         if (!token && !pendingUserStr) {
+            console.log("🏠 HOME PAGE: No token AND no pendingUser - REDIRECTING to auth");
             router.push(`${ROUTES.provider.auth}?step=sign-in`);
             return;
         }
 
         if (token) {
+            console.log("🏠 HOME PAGE: Token found, enabling user query");
             setHasToken(true);
         }
 
         // If local storage has pending user data, use it to show modal immediately
         if (pendingUserStr) {
+            console.log("🏠 HOME PAGE: Found pending user data, parsing...");
             try {
                 const pendingData = JSON.parse(pendingUserStr);
+                console.log("🏠 HOME PAGE: Parsed pending data:", pendingData);
 
                 const isPending =
                     pendingData.applicationStatus === "PENDING" ||
                     pendingData.status === "PENDING" ||
                     pendingData.isVerified === false;
 
+                console.log("🏠 HOME PAGE: isPending check result:", isPending);
+
                 if (isPending) {
+                    console.log("🏠 HOME PAGE: User is pending, showing modal");
                     setUserInfo({
                         name: `${pendingData.title ? `${pendingData.title} ` : ""}${pendingData.providerName || pendingData.fullName || "Provider"}`,
                         title: pendingData.professionalTitle || pendingData.specialty || "Health Provider",
@@ -62,9 +74,11 @@ const ProviderHomePage = () => {
                         timeAgo: pendingData.applicationTimestamp ? calculateTimeAgo(pendingData.applicationTimestamp) : "Recently",
                     });
                     setShowPendingModal(true);
+                } else {
+                    console.log("🏠 HOME PAGE: User data exists but not pending");
                 }
             } catch (e) {
-                console.error("Failed to parse pending user data", e);
+                console.error("🏠 HOME PAGE: Failed to parse pending user data", e);
             }
         }
     }, [router]);
