@@ -75,15 +75,19 @@ const SignInContent = () => {
           localStorage.setItem("token", response?.data?.token);
         }
 
-        // Check if user is verified
-        if (response?.data?.isVerified === false) {
-          console.log("⚠️ User not verified, showing pending modal");
-          setUserInfo({
-            name: response?.data?.fullName || "Dr. Amanda Gorman",
-            title: response?.data?.professionalTitle || "Clinical Psychologist",
-            timeAgo: "2 hours ago",
-          });
-          setShowPendingModal(true);
+        // Check for pending status (comprehensive check)
+        const userData = response?.data;
+        const isPending =
+          userData?.applicationStatus === "PENDING" ||
+          userData?.status === "PENDING" ||
+          userData?.isVerified === false ||
+          response?.message === "ACCOUNT PENDING";
+
+        if (isPending) {
+          console.log("⚠️ User pending verification, redirecting to home with pending data");
+          // Save pending user data for home page to display modal
+          localStorage.setItem("pendingUser", JSON.stringify(userData));
+          router.push(ROUTES.provider.home);
         } else {
           console.log("✅ Sign in successful, redirecting to home");
           router.push(ROUTES.provider.home);
