@@ -54,6 +54,7 @@ export function ProviderIdentityTrigger({
     <button
       type="button"
       onClick={onClick}
+      title={providerName}
       className="flex min-w-0 items-center gap-2 sm:gap-3"
     >
       <Avatar className="size-12 shrink-0 border-2 border-[var(--gold-deep)] shadow-[0_10px_26px_rgba(26,16,12,.3)] sm:size-14 md:size-16 lg:size-20">

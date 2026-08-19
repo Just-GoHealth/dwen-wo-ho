@@ -43,7 +43,7 @@ export function ProviderGlassBar({
             {left}
           </div>
         )}
-        <div className="flex min-w-0 items-center justify-center gap-4 sm:order-2 sm:max-w-[62vw] sm:justify-start">
+        <div className="flex min-w-0 items-center justify-center gap-4 overflow-hidden sm:order-2 sm:max-w-[62vw] sm:min-w-0 sm:flex-1 sm:justify-start">
           {center}
         </div>
         {right && (
