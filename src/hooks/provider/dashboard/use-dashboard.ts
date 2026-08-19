@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useAtom, useSetAtom } from "jotai";
 import {
@@ -102,30 +102,6 @@ export default function useProviderDashboard() {
     setActiveSchool("all");
     setActiveStatus("all");
   };
-
-  // As soon as a new result comes in for a school, jump the active campus
-  // tab to it so the provider sees it immediately rather than having to
-  // notice the story-ring badge and switch manually. Skips the initial
-  // population (prevIds starts empty) so it doesn't hijack the very first
-  // load, and only reacts to a genuinely new patient id appearing.
-  const prevPatientIdsRef = useRef<Set<string | number> | null>(null);
-  useEffect(() => {
-    const currentIds = new Set(apiPatients.map((p) => p.patientId));
-    const prevIds = prevPatientIdsRef.current;
-
-    if (prevIds) {
-      const newlyArrived = apiPatients.find(
-        (p) => p.schoolId != null && !prevIds.has(p.patientId),
-      );
-      if (newlyArrived) {
-        setActiveSchool(String(newlyArrived.schoolId));
-        setActiveStatus("all");
-      }
-    }
-
-    prevPatientIdsRef.current = currentIds;
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when the patient list itself changes
-  }, [apiPatients]);
 
   const filteredPatients = filterProviderDashboardPatients({
     patients: apiPatients,

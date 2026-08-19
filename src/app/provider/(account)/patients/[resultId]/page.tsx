@@ -212,7 +212,7 @@ export default function PatientResultPage() {
 
       <ProviderGlassBar
         className="absolute inset-x-0 bottom-0"
-        center={
+        left={
           <ProviderIdentityTrigger
             providerName={providerName}
             avatarUrl={provider?.profilePhotoURL ?? undefined}

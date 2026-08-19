@@ -4,13 +4,15 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface ProviderGlassBarProps {
-  /** Left region — e.g. section label + logout action. */
+  /** Left region — provider identity (avatar, name, verified badge). */
   left?: ReactNode;
-  /** Center region — provider identity (avatar, name, verified badge). Sits
-   * left-aligned next to the `left` region, matching the reference mockup's
-   * identity cluster hugging the bar's left edge. */
-  center: ReactNode;
-  /** Right region — e.g. triage filter chips, logo. */
+  /** Center region — e.g. triage filter chips. Sits genuinely centered on
+   * the bar (a 3-column grid, not a flex row), so its position never shifts
+   * with how wide `left`/`right` happen to be. Omitted entirely on screens
+   * with no middle content (e.g. patient detail, which only needs identity
+   * + logo). */
+  center?: ReactNode;
+  /** Right region — e.g. logo. */
   right?: ReactNode;
   className?: string;
 }
@@ -37,17 +39,29 @@ export function ProviderGlassBar({
         className,
       )}
     >
-      <div className="relative flex w-full flex-col items-center justify-center gap-2 px-4 py-3 sm:min-h-24 sm:flex-row sm:items-center sm:justify-start sm:gap-4 sm:px-8 md:min-h-28 md:px-14 lg:min-h-32 lg:px-20">
+      <div className="relative flex w-full flex-row items-center gap-2 px-4 py-3 sm:grid sm:min-h-24 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-4 sm:px-8 md:min-h-28 md:px-14 lg:min-h-32 lg:px-20">
         {left && (
-          <div className="flex shrink-0 items-center gap-3 sm:order-1">
+          <div className="flex min-w-0 shrink-0 items-center gap-3 overflow-hidden sm:order-1 sm:min-w-0 sm:justify-self-start">
             {left}
           </div>
         )}
-        <div className="flex min-w-0 items-center justify-center gap-4 overflow-hidden sm:order-2 sm:max-w-[62vw] sm:min-w-0 sm:flex-1 sm:justify-start">
-          {center}
-        </div>
+        {center && (
+          <div
+            className={cn(
+              "flex shrink-0 items-center justify-center gap-4 sm:order-2 sm:ml-0 sm:justify-self-center",
+              left && "ml-auto",
+            )}
+          >
+            {center}
+          </div>
+        )}
         {right && (
-          <div className="flex shrink-0 items-center gap-4 sm:order-3 sm:ml-auto">
+          <div
+            className={cn(
+              "flex shrink-0 items-center gap-4 sm:order-3 sm:ml-0 sm:justify-self-end",
+              !center && "ml-auto",
+            )}
+          >
             {right}
           </div>
         )}

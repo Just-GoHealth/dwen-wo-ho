@@ -2,7 +2,6 @@ import type { PatientCase } from "@/lib/types/api/patient-results";
 import type { FilterOption } from "@/lib/types/components/shared/search-dropdown";
 import { matchesFilterValue } from "@/lib/utils/shared/matches-filter";
 import { anyFieldIncludesQuery } from "@/lib/utils/shared/search-query";
-import { deriveTeamCount } from "@/lib/utils/shared/team-stack";
 
 const SCORE_SORT_FILTER_IDS = new Set(["high-score", "low-score"]);
 
@@ -74,29 +73,10 @@ function matchesProviderDashboardPatient(
   );
 }
 
-/**
- * Which badge a `PatientGridCard` actually shows in its top-left slot —
- * the team-avatar-stack (dummy placeholder data, `deriveTeamCount() > 0`)
- * takes priority over the NEW badge there, so a "new" patient can still
- * show team icons instead of a NEW tag. Sorting must match that same
- * priority, not the raw `status` field, or NEW-tagged cards won't visually
- * group together the way a status-only sort would suggest they should.
- */
-function displaySlotPriority(patient: PatientCase): number {
-  const hasTeam = deriveTeamCount(patient.patientId) > 0;
-  const isNew = patient.status?.toLowerCase() === "new";
-  if (hasTeam) return 2; // shows the team/provider tag — goes last
-  if (isNew) return 0; // shows the NEW tag — goes first
-  return 1; // shows neither — in the middle
-}
-
-/** New-tagged cards always float to the top of the roll, provider/team-
- * tagged cards always sink to the bottom — a stable sort (JS's
- * `sort`/`toSorted` guarantee stability), so within each group the
- * original order is kept. */
-function sortNewFirst(patients: PatientCase[]): PatientCase[] {
+/** Most recently active patients float to the top of the roll. */
+function sortByRecent(patients: PatientCase[]): PatientCase[] {
   return patients.toSorted(
-    (a, b) => displaySlotPriority(a) - displaySlotPriority(b),
+    (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
   );
 }
 
@@ -121,7 +101,7 @@ export function filterProviderDashboardPatients({
       localActiveFilters,
     }),
   );
-  return sortNewFirst(filtered);
+  return sortByRecent(filtered);
 }
 
 function matchesProviderChipPatient(

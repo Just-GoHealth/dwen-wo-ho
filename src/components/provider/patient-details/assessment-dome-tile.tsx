@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MetricCategory } from "@/hooks/provider/patient-details/use-patient-details";
@@ -56,9 +56,21 @@ export function AssessmentDomeTile({
   onToggle,
 }: AssessmentDomeTileProps) {
   const bandColor = category.items[0]?.color ?? "var(--muted-foreground)";
+  const slotRef = useRef<HTMLDivElement>(null);
+
+  // Opening a dome can reorder/hide siblings above it (the open one always
+  // moves to the middle grid slot), so the tapped tile can end up out of
+  // view with no layout cue that it moved — bring it back into the center
+  // of the viewport instead of leaving the provider to hunt for it.
+  useEffect(() => {
+    if (open) {
+      slotRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [open]);
 
   return (
     <div
+      ref={slotRef}
       data-dome-slot
       style={
         {
@@ -91,7 +103,7 @@ export function AssessmentDomeTile({
         <span className="text-muted-foreground text-xs font-extrabold tracking-wide">
           {timeCaption}
         </span>
-        <span className="text-foreground mt-1 text-xl font-bold tracking-tight">
+        <span className="text-foreground mt-1 max-w-[75%] text-base leading-tight font-bold tracking-tight sm:max-w-none sm:text-xl">
           {category.name}
         </span>
         <span className="text-muted-foreground/80 mt-1 flex items-center gap-1 text-[11px] font-extrabold tracking-wide uppercase">
