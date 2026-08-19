@@ -36,8 +36,9 @@ export const NotificationBell = ({
         <Icon size={iconSize} />
         {unreadCount > 0 && (
           <>
-            {/* Unread count badge - top left */}
-            <span className="bg-success absolute -top-2 -left-2 flex size-5 items-center justify-center rounded-full text-[8.5px] font-bold text-white">
+            {/* Unread count badge - top left. Bounces occasionally as a
+                quiet passive cue instead of forcing the sheet open. */}
+            <span className="bg-success animate-bell-badge-bounce absolute -top-2 -left-2 flex size-5 items-center justify-center rounded-full text-[8.5px] font-bold text-white">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
             {/* Green beacon pulse - top right */}

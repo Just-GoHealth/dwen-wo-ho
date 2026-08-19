@@ -28,13 +28,13 @@ export function PatientDetailTopBar({
     <button
       type="button"
       onClick={onGiveCare}
-      className="animate-care-beat inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-[#111] bg-white px-4 py-2 text-xs font-extrabold text-[#a07a2a] shadow-[0_12px_30px_rgba(0,0,0,.36)] transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-sm"
+      className="animate-care-beat inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-[var(--gold-deep)] bg-white px-4 py-2 text-xs font-extrabold text-[var(--gold-lo)] shadow-[0_12px_30px_rgba(0,0,0,.36)] transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-sm"
     >
       Give Care{" "}
       <Heart
         className="size-3.5 sm:size-4"
-        fill="#a07a2a"
-        stroke="#111"
+        fill="var(--gold-lo)"
+        stroke="var(--gold-deep)"
         strokeWidth={1.5}
       />
     </button>

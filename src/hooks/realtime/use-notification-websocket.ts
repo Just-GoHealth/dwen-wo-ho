@@ -6,9 +6,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
   curatorNotificationListAtom,
-  isCuratorNotificationSheetOpenAtom,
   providerNotificationListAtom,
-  isProviderNotificationSheetOpenAtom,
 } from "@/atoms/notification";
 import { unreadCountAtom } from "@/atoms/websocket";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,13 +39,8 @@ export function useNotificationWebSocket() {
   const [providerNotifications, setProviderNotifications] = useAtom(
     providerNotificationListAtom,
   );
-  const [, setCuratorSheetOpen] = useAtom(isCuratorNotificationSheetOpenAtom);
-  const [, setProviderSheetOpen] = useAtom(isProviderNotificationSheetOpenAtom);
-
   const notifications =
     userType === "curator" ? curatorNotifications : providerNotifications;
-  const setSheetOpen =
-    userType === "curator" ? setCuratorSheetOpen : setProviderSheetOpen;
   const [unreadCount, setUnreadCount] = useAtom(unreadCountAtom);
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -163,14 +156,11 @@ export function useNotificationWebSocket() {
         "[NotificationWebSocket] Triggering global refetch after notification...",
       );
       queryClient.refetchQueries({ type: "active" });
-
-      setTimeout(() => setSheetOpen(true), 500);
     },
     [
       setCuratorNotifications,
       setProviderNotifications,
       setUnreadCount,
-      setSheetOpen,
       router,
       queryClient,
       userType,

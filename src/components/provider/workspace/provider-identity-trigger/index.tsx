@@ -42,7 +42,7 @@ export function ProviderIdentityTrigger({
     return (
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <Skeleton className="size-12 shrink-0 rounded-full sm:size-14 md:size-16 lg:size-20" />
-        <div className="hidden min-w-0 flex-col gap-1.5 sm:flex sm:items-start">
+        <div className="hidden min-w-0 flex-1 flex-col gap-1.5 sm:flex">
           <Skeleton className="h-7 w-32 md:h-9 md:w-40" />
           {subtitle !== undefined && <Skeleton className="h-3.5 w-20" />}
         </div>
@@ -63,7 +63,7 @@ export function ProviderIdentityTrigger({
           {fallback}
         </AvatarFallback>
       </Avatar>
-      <div className="hidden min-w-0 flex-col gap-0.5 sm:flex sm:items-start">
+      <div className="hidden min-w-0 flex-1 flex-col gap-0.5 sm:flex">
         <div className="flex min-w-0 items-center gap-1.5">
           <span className="text-foreground min-w-0 truncate text-xl font-extrabold tracking-[-.5px] md:text-2xl lg:text-4xl">
             {providerName}
@@ -76,7 +76,7 @@ export function ProviderIdentityTrigger({
           )}
         </div>
         {subtitle && (
-          <p className="text-sm font-extrabold tracking-[-.2px] md:text-base">
+          <p className="truncate text-sm font-extrabold tracking-[-.2px] md:text-base">
             {subtitle}
           </p>
         )}

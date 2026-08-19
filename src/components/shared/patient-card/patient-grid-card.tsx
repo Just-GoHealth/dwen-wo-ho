@@ -172,7 +172,7 @@ export default function PatientGridCard<T extends PatientCardPatient>({
       style={{ animationDelay: `${Math.min((index % 20) * 0.03, 0.6)}s` }}
       className={cn(
         "group bg-card animate-in fade-in slide-in-from-bottom-2 relative flex w-full min-w-0 flex-col items-center gap-1",
-        "rounded-2xl border border-[rgba(255,255,255,.14)] px-[clamp(10px,1vw,16px)] pt-[clamp(11px,1.5vh,16px)] pb-[clamp(13px,1.8vh,19px)] text-center",
+        "rounded-xl border border-[rgba(255,255,255,.14)] px-[clamp(10px,1vw,16px)] pt-[clamp(11px,1.5vh,16px)] pb-[clamp(13px,1.8vh,19px)] text-center",
         "backdrop-blur-[12px] backdrop-saturate-[1.2]",
         "shadow-[0_14px_34px_rgba(0,0,0,.35)] transition-all duration-[240ms] ease-out",
         "hover:bg-foreground/5 hover:-translate-y-[7px] hover:border-[rgba(232,212,173,.6)]",
@@ -202,11 +202,11 @@ export default function PatientGridCard<T extends PatientCardPatient>({
           isPending && "cursor-wait opacity-70",
         )}
       >
-        {/* top row — team stack or NEW badge, school pill, triage flag. Grid
-          (not flex justify-between) so the school pill is genuinely
-          centered regardless of how the left slot and triage badge widths
-          compare. */}
-        <div className="grid min-h-[29px] w-full grid-cols-[1fr_auto_1fr] items-center gap-1.5">
+        {/* top row — team stack or NEW badge, school pill, triage flag, all
+          in one row on desktop (sm: and up) same as before. On mobile the
+          row only holds the two badges; the school pill drops to its own
+          line below so the three don't fight for space on a narrow card. */}
+        <div className="grid min-h-[29px] w-full grid-cols-[1fr_auto] items-center gap-1.5 sm:grid-cols-[1fr_auto_1fr]">
           <div className="justify-self-start">
             {teamCount > 0 ? (
               <TeamAvatarStack
@@ -224,7 +224,7 @@ export default function PatientGridCard<T extends PatientCardPatient>({
           </div>
 
           {(fields.schoolNickname || fields.schoolName) && (
-            <span className="text-primary hover:bg-primary hover:text-primary-foreground bg-primary/10 max-w-[11em] min-w-0 justify-self-center truncate rounded-full px-[0.66em] py-[0.42em] text-[9px] font-bold tracking-wide uppercase transition-colors">
+            <span className="text-primary hover:bg-primary hover:text-primary-foreground bg-primary/10 hidden max-w-[11em] min-w-0 truncate rounded-full px-[0.66em] py-[0.42em] text-[9px] font-bold tracking-wide uppercase transition-colors sm:inline-block sm:justify-self-center">
               {fields.schoolNickname || fields.schoolName}
             </span>
           )}
@@ -240,6 +240,12 @@ export default function PatientGridCard<T extends PatientCardPatient>({
             {TRIAGE_TIER_LABELS[tier]}
           </Badge>
         </div>
+
+        {(fields.schoolNickname || fields.schoolName) && (
+          <span className="text-primary hover:bg-primary hover:text-primary-foreground bg-primary/10 max-w-full min-w-0 truncate rounded-full px-[0.66em] py-[0.42em] text-[9px] font-bold tracking-wide uppercase transition-colors sm:hidden">
+            {fields.schoolNickname || fields.schoolName}
+          </span>
+        )}
 
         {/* the face */}
         <Avatar className="size-20 shadow-[0_0_0_1.5px_rgba(232,212,173,.55),0_10px_24px_rgba(0,0,0,.4)] transition-transform duration-[240ms] ease-out group-hover:scale-[1.07] group-hover:shadow-[0_0_0_2px_rgba(246,231,196,.95),0_14px_32px_rgba(0,0,0,.5)]">

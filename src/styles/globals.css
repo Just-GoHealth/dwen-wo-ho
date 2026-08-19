@@ -249,6 +249,38 @@
   }
 }
 
+/* Notification bell's unread badge — a quiet passive cue instead of
+   forcing the sheet open on every new notification. Mostly still, with a
+   quick double-bounce once per cycle so it catches the eye without
+   nagging. */
+@keyframes bell-badge-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  85% {
+    transform: translateY(-3px);
+  }
+  90% {
+    transform: translateY(0);
+  }
+  93% {
+    transform: translateY(-2px);
+  }
+  96% {
+    transform: translateY(0);
+  }
+}
+.animate-bell-badge-bounce {
+  animation: bell-badge-bounce 4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-bell-badge-bounce {
+    animation: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -51,7 +51,7 @@ export function PatientGrid({
 
   return (
     <main className="no-scrollbar h-full overflow-y-auto px-4 py-4 pb-[clamp(112px,20vh,188px)]">
-      <div className="grid grid-cols-2 gap-4 min-[900px]:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 max-[480px]:grid-cols-1 min-[900px]:grid-cols-4">
         {visiblePatients.map((patient, i) => (
           <PatientGridCard
             key={
