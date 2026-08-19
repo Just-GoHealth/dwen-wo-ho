@@ -19,7 +19,7 @@ export default function ProviderSchoolDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
+      <div className="bg-app-gradient flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2" />
           <p className="text-muted-foreground">Loading school details...</p>
@@ -30,7 +30,7 @@ export default function ProviderSchoolDetailsPage() {
 
   if (accessDenied) {
     return (
-      <div className="bg-background min-h-screen">
+      <div className="bg-app-gradient min-h-screen">
         <div className="mx-auto max-w-7xl p-8">
           <div className="mb-8">
             <Button
@@ -61,7 +61,7 @@ export default function ProviderSchoolDetailsPage() {
 
   if (!school) {
     return (
-      <div className="bg-background min-h-screen">
+      <div className="bg-app-gradient min-h-screen">
         <div className="mx-auto max-w-7xl p-8">
           <div className="mb-8">
             <Button
@@ -91,7 +91,7 @@ export default function ProviderSchoolDetailsPage() {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-app-gradient min-h-screen">
       <div className="mx-auto max-w-7xl p-8">
         {/* Back Button */}
         <div className="mb-6">
@@ -183,12 +183,12 @@ export default function ProviderSchoolDetailsPage() {
                             student.lockedInColor === "red"
                               ? "bg-destructive/10 text-destructive"
                               : student.lockedInColor === "yellow"
-                                ? "bg-yellow-100 text-yellow-800"
+                                ? "bg-warning/10 text-warning"
                                 : student.lockedInColor === "green"
-                                  ? "bg-green-100 text-green-800"
+                                  ? "bg-success/10 text-success"
                                   : student.lockedInColor === "purple"
-                                    ? "bg-teal-500/10 text-teal-700"
-                                    : "bg-gray-100 text-gray-800"
+                                    ? "bg-primary/10 text-primary"
+                                    : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {student.lockedInInterpretation}
@@ -216,7 +216,7 @@ export default function ProviderSchoolDetailsPage() {
                       </span>
                     )}
                     {!student.patientResultId && (
-                      <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                      <span className="bg-warning/10 text-warning rounded-full px-3 py-1 text-xs font-medium">
                         Not Opened
                       </span>
                     )}

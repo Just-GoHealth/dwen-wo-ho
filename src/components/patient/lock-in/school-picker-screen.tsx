@@ -39,7 +39,7 @@ export function PatientLockInSchoolPickerScreen() {
                 placeholder="Search schools by name, nickname, type, or location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white py-3 pr-4 pl-12 text-gray-900 placeholder-gray-400 transition-all focus:border-[#955aa4] focus:ring-2 focus:ring-[#955aa4]/20 focus:outline-none"
+                className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-white py-3 pr-4 pl-12 text-gray-900 placeholder-gray-400 transition-all focus:ring-2 focus:outline-none"
               />
             </div>
           </div>
@@ -47,7 +47,7 @@ export function PatientLockInSchoolPickerScreen() {
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-[#955aa4]"></div>
+                <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
                 <p className="text-gray-500">Loading schools...</p>
               </div>
             </div>
@@ -70,7 +70,7 @@ export function PatientLockInSchoolPickerScreen() {
                   type="button"
                   key={school.id}
                   onClick={() => handleSchoolSelect(school.id)}
-                  className="rounded-xl border border-gray-200 bg-white p-6 text-left shadow-sm transition-all hover:border-[#955aa4]/30 hover:shadow-md"
+                  className="hover:border-primary/30 rounded-xl border border-gray-200 bg-white p-6 text-left shadow-sm transition-all hover:shadow-md"
                 >
                   <div className="flex items-start gap-4">
                     {school.logo ? (

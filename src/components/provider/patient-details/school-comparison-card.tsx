@@ -20,7 +20,7 @@ export function SchoolComparisonCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5 }}
-      className="bg-card border-border overflow-hidden rounded-3xl border shadow-sm"
+      className="bg-card border-border overflow-hidden rounded-2xl border shadow-sm"
     >
       <div className="border-border bg-muted/20 flex items-center gap-4 border-b px-6 py-4">
         <div className="bg-accent border-border rounded-xl border p-2 shadow-sm">

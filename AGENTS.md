@@ -408,6 +408,55 @@ or constant, verify one does not already exist.
 
 ---
 
+## Frontend Best Practices
+
+### Core Principles
+
+- **Simplicity over cleverness.** Prefer the boring, obvious solution. Three similar lines beat a premature abstraction — don't build a helper, config object, or generic component for a single call site.
+- **Match the existing pattern.** Before writing new code, find how the codebase already solves this class of problem (a similar hook, a similar card component, a similar service function) and follow it. Consistency beats local optimization.
+- **Reuse before you build.** Check `src/components/ui/` and `src/components/shared/` before creating a new primitive. A new badge variant, table row, or card almost always belongs as an addition to an existing component (`*-variants.ts`, accessor file) rather than a parallel implementation.
+- **Delete, don't deprecate.** If a component/hook/util is confirmed unused, remove it outright — no `_unused` suffixes, no commented-out code, no re-export shims for "just in case."
+
+### Component Design
+
+- Presentational components take props and render; they don't know where their data comes from.
+- Prefer composition (children, slots) over a component that grows a new boolean prop for every variant. When a component's prop list is mostly booleans toggling entire sub-trees, it's usually two components.
+
+### State Management — pick the right tool
+
+| Need                                                                                             | Use                                                                                                    |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| UI-local state (open/closed, active tab, form draft)                                             | `useState`/`useReducer` in the component or a `hooks/components/<area>` hook                           |
+| Server data (patients, schools, profile)                                                         | TanStack Query via a `hooks/queries/*` or domain hook — never `fetch`/`api()` directly in a component  |
+| Cross-component client state that outlives a single tree (signup wizard progress, schools cache) | Jotai atom in `src/atoms/`                                                                             |
+| Derived values                                                                                   | Compute in render or `useMemo` — don't mirror props/query data into `useState` and sync with an effect |
+
+### Data Fetching (TanStack Query)
+
+- Query keys live in `lib/constants/infra/query-keys.ts` — reuse existing key builders, don't invent ad hoc key arrays.
+- Destructure only the fields a component actually uses from a query result; don't pass the whole query object down through props.
+- Loading/error states are handled where the query is consumed, using the existing `Spinner`/`LoadingOverlay`/skeleton components — don't invent a new loading pattern per screen.
+
+### Type Safety
+
+- No `any`. If a type is genuinely unknown at a boundary (API response), model it explicitly and narrow it — don't escape-hatch past the compiler.
+- Prefer a union of literal types over a loose `string` for anything with a fixed set of states (status, variant, role).
+
+### Testing
+
+- Test behavior a user or caller can observe (renders X, calls Y on click, redirects on Z) — not internal implementation details.
+- When touching auth/redirect/guard logic, run the existing suite (`provider-finish-signup.test.ts`, `provider-sign-in-session.test.ts`, `provider-post-login-redirect.test.ts`, etc.) — these are regression tripwires for exactly the kind of client-side navigation bugs this app is prone to (see **Auth & Navigation** above).
+
+### Before Calling UI Work Done
+
+1. `pnpm typecheck` and `pnpm lint` — zero tolerance, not "pre-existing issues."
+2. `pnpm test` for anything touching hooks/services/auth.
+3. Run `pnpm dev` and actually click through the change in a browser — type-checking and unit tests verify correctness, not that the feature works or looks right.
+4. For a new/changed screen, walk the **shape → craft → critique → polish** loop from the **UI Design Workflow** above, checked against `PRODUCT.md` and `DESIGN.md` — don't skip straight to code.
+5. Run the relevant `pnpm *:audit` script (components/hooks/constants/types/utils/services) before a large PR.
+
+---
+
 ## File Size & Modularity
 
 - Application source files should generally stay **under 250 lines**.

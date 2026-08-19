@@ -28,9 +28,11 @@ Reference direction: BetterHelp / Talkspace — clinical trust, clear provider m
 
 ## Anti-references
 
-- Generic startup slop: purple gradients for decoration, glassmorphism, "boost your productivity" energy, AI-default SaaS aesthetics
+- Generic startup slop: "boost your productivity" energy, AI-default SaaS aesthetics, purple-gradient decoration for its own sake
 - Cold institutional healthcare: sterile bureaucracy, intimidating forms, hospital-gray everything
 - Overly playful youth marketing that trivializes mental health (memes, loud hype, gamified suffering)
+
+Note: the provider surface adopted a deliberate deep maroon/gold "Bronze Fury" reskin with frosted glassmorphism (stakeholder-directed, see `guide/Bronze Fury A_33.html` and `DESIGN.md`) — glassmorphism itself is no longer an anti-pattern here, provided it stays purposeful chrome (identity bars, campus switchers) rather than decorative noise layered onto clinical task screens.
 
 ## Design Principles
 

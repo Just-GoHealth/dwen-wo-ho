@@ -6,8 +6,8 @@ export function ProviderSchoolsHeader({
 }: ProviderSchoolsHeaderProps) {
   return (
     <div className="mb-8">
-      <h1 className="mb-2 text-3xl font-bold text-gray-900">{title}</h1>
-      <p className="text-gray-600">{description}</p>
+      <h1 className="text-foreground mb-2 text-3xl font-bold">{title}</h1>
+      <p className="text-muted-foreground">{description}</p>
     </div>
   );
 }

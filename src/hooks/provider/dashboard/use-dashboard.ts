@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useAtom, useSetAtom } from "jotai";
 import {
@@ -103,6 +103,30 @@ export default function useProviderDashboard() {
     setActiveStatus("all");
   };
 
+  // As soon as a new result comes in for a school, jump the active campus
+  // tab to it so the provider sees it immediately rather than having to
+  // notice the story-ring badge and switch manually. Skips the initial
+  // population (prevIds starts empty) so it doesn't hijack the very first
+  // load, and only reacts to a genuinely new patient id appearing.
+  const prevPatientIdsRef = useRef<Set<string | number> | null>(null);
+  useEffect(() => {
+    const currentIds = new Set(apiPatients.map((p) => p.patientId));
+    const prevIds = prevPatientIdsRef.current;
+
+    if (prevIds) {
+      const newlyArrived = apiPatients.find(
+        (p) => p.schoolId != null && !prevIds.has(p.patientId),
+      );
+      if (newlyArrived) {
+        setActiveSchool(String(newlyArrived.schoolId));
+        setActiveStatus("all");
+      }
+    }
+
+    prevPatientIdsRef.current = currentIds;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when the patient list itself changes
+  }, [apiPatients]);
+
   const filteredPatients = filterProviderDashboardPatients({
     patients: apiPatients,
     activeSchool,
@@ -124,6 +148,18 @@ export default function useProviderDashboard() {
       appliedSearchQuery,
       chipId,
     });
+
+  // Real per-campus "new" patient count — drives the campus story-ring
+  // segments/badge on the home screen (not a fabricated/backend value).
+  const newCountBySchool: Record<string, number> = {};
+  for (const s of apiSchools) {
+    newCountBySchool[String(s.schoolId)] = countProviderPatientsForChip({
+      patients: apiPatients,
+      activeSchool: String(s.schoolId),
+      appliedSearchQuery: "",
+      chipId: "new",
+    });
+  }
 
   const searchConfig = useProviderSearchConfig({
     searchQuery,
@@ -191,6 +227,7 @@ export default function useProviderDashboard() {
     totalPatientCount: apiPatients.length,
     theme,
     countForChip,
+    newCountBySchool,
     schoolLabel,
     quickFilters: PROVIDER_SEARCH_QUICK_FILTERS,
     isInitLoading,

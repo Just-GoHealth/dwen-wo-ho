@@ -1,7 +1,7 @@
 "use client";
 
 import { Trash, Users } from "lucide-react";
-import PatientCard from "@/components/shared/patient-card";
+import PatientGridCard from "@/components/shared/patient-card/patient-grid-card";
 import { PatientsTabProps } from "@/lib/types/components/curator/school-details/school-details";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
@@ -106,19 +106,19 @@ export function PatientsTab({
           </div>
         </LoadingButton>
       </div>
-      {filteredPatients.map((patient, index) => {
-        return (
-          <PatientCard
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {filteredPatients.map((patient, index) => (
+          <PatientGridCard
             key={patient.id}
             index={index}
             patient={patient}
             onActionClick={onViewPatient}
-            showCheckbox={true}
-            selectedPatients={selectedPatients}
-            handleSelectPatient={handleSelectPatient}
+            showCheckbox
+            selected={selectedPatients.has(patient.id)}
+            onToggleSelect={handleSelectPatient}
           />
-        );
-      })}
+        ))}
+      </div>
 
       <ConfirmationModal
         isOpen={showBulkDeleteModal}

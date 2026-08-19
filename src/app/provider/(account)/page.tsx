@@ -7,7 +7,7 @@ import useProviderDashboard from "@/hooks/provider/dashboard/use-dashboard";
 import { performLogout } from "@/lib/auth/session";
 import { ROUTES } from "@/lib/constants/infra/routes";
 import useProviderDashboardAuth from "@/hooks/provider/dashboard-auth/use-dashboard-auth";
-import ProviderDashboardShell from "@/components/provider/dashboard/dashboard-shell";
+import { ProviderHomeShell } from "@/components/provider/dashboard/provider-home-shell";
 import ProviderDashboardModals from "@/components/provider/dashboard/dashboard-overlay-host";
 import { toast } from "sonner";
 
@@ -48,20 +48,15 @@ export default function ProviderHomePage() {
 
   if (!mounted) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
+      <div className="bg-app-gradient flex min-h-screen items-center justify-center">
         <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-dvh w-full flex-col overflow-x-hidden px-0.5 min-[1065px]:h-screen min-[1065px]:overflow-hidden min-[1065px]:px-0">
-      <ProviderDashboardShell
-        dashboard={dashboard}
-        onUrgentPatientClick={(patient) => {
-          router.push(`${ROUTES.provider.patients}/${patient.patientResultId}`);
-        }}
-      />
+    <div className="flex h-dvh w-full flex-col overflow-hidden">
+      <ProviderHomeShell dashboard={dashboard} />
       <ProviderDashboardModals
         dashboard={dashboard}
         isApproved={isApproved}

@@ -1,6 +1,7 @@
 "use client";
 
 import { m } from "motion/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Skeleton loader for notification items in the notification sheet.
@@ -22,25 +23,25 @@ export function NotificationSkeleton({ count = 5 }: { count?: number }) {
           className="border-border bg-card relative flex items-start gap-3 rounded-xl border p-4"
         >
           {/* Avatar skeleton */}
-          <div className="bg-muted h-9 w-9 shrink-0 animate-pulse rounded-full" />
+          <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
 
           {/* Content skeleton */}
           <div className="min-w-0 flex-1 space-y-2">
             {/* Title row */}
             <div className="flex items-center justify-between">
-              <div className="bg-muted h-4 w-24 animate-pulse rounded" />
-              <div className="bg-muted h-2 w-2 animate-pulse rounded-full" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-2 w-2 rounded-full" />
             </div>
             {/* Message row */}
-            <div className="bg-muted h-3.5 w-full animate-pulse rounded" />
+            <Skeleton className="h-3.5 w-full" />
             {/* Meta row */}
-            <div className="bg-muted h-3 w-16 animate-pulse rounded" />
+            <Skeleton className="h-3 w-16" />
           </div>
 
           {/* Actions skeleton */}
           <div className="flex shrink-0 flex-col gap-1">
-            <div className="bg-muted h-7 w-7 animate-pulse rounded-md" />
-            <div className="bg-muted h-7 w-7 animate-pulse rounded-md" />
+            <Skeleton className="h-7 w-7 rounded-md" />
+            <Skeleton className="h-7 w-7 rounded-md" />
           </div>
         </m.div>
       ))}

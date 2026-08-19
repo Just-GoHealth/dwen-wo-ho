@@ -49,7 +49,7 @@ export const SchoolsTab = ({
                       />
                     </div>
                   ) : (
-                    <div className="border-border flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 bg-linear-to-br from-[#955aa4] to-[#7a4987] text-xl font-bold text-white shadow-lg shadow-[#955aa4]/20"></div>
+                    <div className="border-border from-primary to-primary/70 text-primary-foreground shadow-primary/20 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 bg-linear-to-br text-xl font-bold shadow-lg"></div>
                   )}
                   <div>
                     <p className="font-semibold">{school.name}</p>
