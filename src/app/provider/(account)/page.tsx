@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import useProviderDashboard from "@/hooks/provider/dashboard/use-dashboard";
@@ -25,21 +25,33 @@ export default function ProviderHomePage() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
 
-    const unreadNotifs = notifications.filter((n) => n.unread === true);
+  // Only pop the sheet open for a genuinely NEW unread notification, not
+  // just because some already-seen one is still sitting there unread —
+  // otherwise every notifications refetch re-triggers the popup forever
+  // as long as anything is unread. Skips the initial population (prevIds
+  // starts empty) so it doesn't fire on first load for old unread items.
+  const prevNotificationIdsRef = useRef<Set<string | number> | null>(null);
+  useEffect(() => {
+    const currentIds = new Set(notifications.map((n) => n.notificationId));
+    const prevIds = prevNotificationIdsRef.current;
 
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    if (unreadNotifs.length > 0) {
-      timeoutId = setTimeout(() => {
-        toast.info("You have unread notifications");
-        setNotifOpen(true);
-      }, 5000);
+    if (prevIds) {
+      const newlyArrivedUnread = notifications.find(
+        (n) => n.unread === true && !prevIds.has(n.notificationId),
+      );
+      if (newlyArrivedUnread) {
+        const timeoutId = setTimeout(() => {
+          toast.info("You have unread notifications");
+          setNotifOpen(true);
+        }, 5000);
+        prevNotificationIdsRef.current = currentIds;
+        return () => clearTimeout(timeoutId);
+      }
     }
 
-    return () => {
-      clearTimeout(timeoutId);
-    };
+    prevNotificationIdsRef.current = currentIds;
   }, [notifications, setNotifOpen]);
 
   const handleLogout = () => {

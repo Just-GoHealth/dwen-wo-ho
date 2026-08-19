@@ -132,7 +132,7 @@
   --footer-bg: #202126;
   --footer-foreground: #fafafa;
   --school-details-sidebar: #faf5f9;
-  --info: #2b3990;
+  --info: var(--gold-lo);
   --warning: #f59e0b;
   --loading: #94a3b8;
   --secondary-accent: #0d9488;
@@ -189,7 +189,7 @@
   --footer-bg: #292524;
   --footer-foreground: #fafafa;
   --school-details-sidebar: #292524;
-  --info: #2b3990;
+  --info: var(--gold-lo);
   --warning: #f59e0b;
   --loading: #64748b;
   --secondary-accent: #14b8a6;

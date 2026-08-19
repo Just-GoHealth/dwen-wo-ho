@@ -42,8 +42,8 @@ export function ProviderIdentityTrigger({
     return (
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <Skeleton className="size-12 shrink-0 rounded-full sm:size-14 md:size-16 lg:size-20" />
-        <div className="flex min-w-0 flex-col items-start gap-1.5">
-          <Skeleton className="h-6 w-28 sm:h-7 sm:w-32 md:h-9 md:w-40" />
+        <div className="hidden min-w-0 flex-col gap-1.5 sm:flex sm:items-start">
+          <Skeleton className="h-7 w-32 md:h-9 md:w-40" />
           {subtitle !== undefined && <Skeleton className="h-3.5 w-20" />}
         </div>
       </div>
@@ -54,6 +54,7 @@ export function ProviderIdentityTrigger({
     <button
       type="button"
       onClick={onClick}
+      title={providerName}
       className="flex min-w-0 items-center gap-2 sm:gap-3"
     >
       <Avatar className="size-12 shrink-0 border-2 border-[var(--gold-deep)] shadow-[0_10px_26px_rgba(26,16,12,.3)] sm:size-14 md:size-16 lg:size-20">
@@ -62,20 +63,20 @@ export function ProviderIdentityTrigger({
           {fallback}
         </AvatarFallback>
       </Avatar>
-      <div className="flex min-w-0 flex-col items-start gap-0.5">
+      <div className="hidden min-w-0 flex-col gap-0.5 sm:flex sm:items-start">
         <div className="flex min-w-0 items-center gap-1.5">
-          <span className="text-foreground min-w-0 truncate text-lg font-extrabold tracking-[-.5px] sm:text-xl md:text-2xl lg:text-4xl">
+          <span className="text-foreground min-w-0 truncate text-xl font-extrabold tracking-[-.5px] md:text-2xl lg:text-4xl">
             {providerName}
           </span>
           {isVerified && (
             <BadgeCheck
-              className="size-4 shrink-0 text-[var(--gold-deep)] sm:size-5"
+              className="size-5 shrink-0 text-[var(--gold-deep)]"
               strokeWidth={2.3}
             />
           )}
         </div>
         {subtitle && (
-          <p className="text-xs font-extrabold tracking-[-.2px] sm:text-sm md:text-base">
+          <p className="text-sm font-extrabold tracking-[-.2px] md:text-base">
             {subtitle}
           </p>
         )}

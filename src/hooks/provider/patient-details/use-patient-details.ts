@@ -13,6 +13,21 @@ import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
 
 const EMPTY_HISTORY_ACTIONS: PatientActionResponseDTO[] = [];
 
+/** Shown in place of real categories when a patient has no lock-in
+ * assessment yet (`lockinId: null` from the backend) — the dome tiles
+ * should still render so the screen isn't blank, just with a "no data"
+ * placeholder instead of a real score/description. */
+const NO_DATA_METRICS: MetricCategory[] = [
+  {
+    name: "General Mental Health",
+    description: "No data yet",
+    score: "—",
+    items: [],
+  },
+  { name: "Exam Anxiety", description: "No data yet", score: "—", items: [] },
+  { name: "Exam Prep", description: "No data yet", score: "—", items: [] },
+];
+
 export type ActionTab = "pending" | "history";
 
 export interface MetricItem {
@@ -92,7 +107,7 @@ export function useProviderPatientDetails() {
 
   // Compute metrics categories (same as curator)
   const metrics = useMemo<MetricCategory[]>(() => {
-    if (!lockInAssessment) return [];
+    if (!lockInAssessment) return NO_DATA_METRICS;
     return [
       {
         name: "General Mental Health",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useAtom } from "jotai";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -85,6 +85,12 @@ export function useNotificationWebSocket() {
     setUnreadCount,
   });
 
+  // Guards against the socket redelivering the same notification (reconnect
+  // replay, duplicate emission, multiple tabs) — without this, every
+  // redelivery re-pops the toast and sheet for something the provider/
+  // curator has already seen, which reads as popping up "randomly".
+  const seenNotificationIdsRef = useRef<Set<string>>(new Set());
+
   const handleNotification = useCallback(
     (event: Event) => {
       console.log(`[NotificationWebSocket] 📥 Received ws:notification`, event);
@@ -94,6 +100,25 @@ export function useNotificationWebSocket() {
       if (!parsed) return;
 
       const { notification, unreadCount: newUnreadCount, link } = parsed;
+
+      const notificationId =
+        userType === "curator"
+          ? (notification as CuratorNotification).id
+          : (notification as ProviderNotification).notificationId;
+
+      if (
+        notificationId &&
+        seenNotificationIdsRef.current.has(notificationId)
+      ) {
+        console.log(
+          "[NotificationWebSocket] Ignoring duplicate redelivery of",
+          notificationId,
+        );
+        return;
+      }
+      if (notificationId) {
+        seenNotificationIdsRef.current.add(notificationId);
+      }
 
       if (userType === "curator") {
         setCuratorNotifications((prev) => [
