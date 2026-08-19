@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronRight, User } from "lucide-react";
+import { useTransition } from "react";
+import { ChevronRight, Loader2, User } from "lucide-react";
 import { compactTimeAgo } from "@/lib/utils/shared/time-ago";
 import {
   deriveTriageTier,
@@ -135,6 +136,7 @@ export default function PatientGridCard<T extends PatientCardPatient>({
   currentProviderInitial,
 }: PatientCardProps<T> & PatientGridCardOwnProps) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   const fields = resolvePatientCardFields(patient, {
     getId,
@@ -157,7 +159,11 @@ export default function PatientGridCard<T extends PatientCardPatient>({
     if (onActionClick) {
       onActionClick(fields.id);
     } else if (detailRoute) {
-      router.push(detailRoute(fields.id) as Parameters<typeof router.push>[0]);
+      startTransition(() => {
+        router.push(
+          detailRoute(fields.id) as Parameters<typeof router.push>[0],
+        );
+      });
     }
   };
 
@@ -189,7 +195,12 @@ export default function PatientGridCard<T extends PatientCardPatient>({
       <button
         type="button"
         onClick={handleOpen}
-        className="flex w-full min-w-0 flex-col items-center gap-1"
+        disabled={isPending}
+        aria-busy={isPending}
+        className={cn(
+          "flex w-full min-w-0 flex-col items-center gap-1",
+          isPending && "cursor-wait opacity-70",
+        )}
       >
         {/* top row — team stack or NEW badge, school pill, triage flag. Grid
           (not flex justify-between) so the school pill is genuinely
@@ -248,8 +259,17 @@ export default function PatientGridCard<T extends PatientCardPatient>({
         </span>
 
         <span className="border-foreground/20 bg-foreground/10 text-foreground group-hover:bg-primary mt-[.35em] inline-flex items-center gap-[.4em] rounded-full border px-[1.15em] py-[.55em] text-[12.8px] font-extrabold shadow-[0_8px_20px_rgba(0,0,0,.2)] transition-all group-hover:scale-[1.04] group-hover:border-[var(--gold-hi)] group-hover:text-[#161207]">
-          Open
-          <ChevronRight className="size-3" strokeWidth={2.8} />
+          {isPending ? (
+            <>
+              Opening
+              <Loader2 className="size-3 animate-spin" strokeWidth={2.8} />
+            </>
+          ) : (
+            <>
+              Open
+              <ChevronRight className="size-3" strokeWidth={2.8} />
+            </>
+          )}
         </span>
       </button>
     </div>

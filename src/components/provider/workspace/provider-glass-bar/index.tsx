@@ -37,7 +37,7 @@ export function ProviderGlassBar({
         className,
       )}
     >
-      <div className="relative flex w-full flex-col items-center justify-center gap-2 px-4 py-3 sm:min-h-24 sm:flex-row sm:items-center sm:justify-start sm:gap-4 sm:px-6 md:min-h-28 md:px-10 lg:min-h-32">
+      <div className="relative flex w-full flex-col items-center justify-center gap-2 px-4 py-3 sm:min-h-24 sm:flex-row sm:items-center sm:justify-start sm:gap-4 sm:px-8 md:min-h-28 md:px-14 lg:min-h-32 lg:px-20">
         {left && (
           <div className="flex shrink-0 items-center gap-3 sm:order-1">
             {left}
