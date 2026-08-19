@@ -5,74 +5,86 @@ import { ProviderProfileCardProps } from "@/lib/types/components/provider/profil
 
 export function ProviderProfileCard({ provider }: ProviderProfileCardProps) {
   return (
-    <div className="mb-8 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-      <div className="flex items-start gap-6">
+    <div className="bg-card border-border mb-5 rounded-2xl border p-5 shadow-sm">
+      <div className="flex items-start gap-4">
         {provider.profilePhotoURL ? (
-          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-gray-200">
+          <div className="border-primary relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2">
             <Image
               src={provider.profilePhotoURL}
               alt={formatProviderName(
                 provider.providerName || "",
                 provider.providerTitle,
               )}
-              width={96}
-              height={96}
+              width={64}
+              height={64}
               className="h-full w-full object-cover"
             />
           </div>
         ) : (
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-teal-500 to-cyan-500">
-            <FiUser className="h-12 w-12 text-white" />
+          <div className="border-primary bg-primary/10 text-primary flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2">
+            <FiUser className="h-8 w-8" />
           </div>
         )}
         <div className="flex-1">
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">
-            {formatProviderName(
-              provider.providerName || "",
-              provider.providerTitle,
+          <div className="mb-1.5 flex items-center gap-2">
+            <h2 className="text-foreground text-xl font-bold">
+              {formatProviderName(
+                provider.providerName || "",
+                provider.providerTitle,
+              )}
+            </h2>
+            {provider.applicationStatus === "APPROVED" && (
+              <span
+                className="bg-primary text-primary-foreground flex size-4 shrink-0 items-center justify-center rounded-full text-[10px]"
+                title="Verified Provider"
+              >
+                ✓
+              </span>
             )}
-          </h2>
+          </div>
 
           {provider.specialty && (
-            <p className="mb-4 text-lg text-gray-600">{provider.specialty}</p>
+            <p className="text-muted-foreground mb-2.5 text-base">
+              {provider.specialty}
+            </p>
           )}
           {provider.status && (
-            <p className="mb-4 text-gray-700 italic">
+            <p className="text-foreground/80 mb-2.5 text-sm italic">
               &quot;{provider.status}&quot;
             </p>
           )}
 
-          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="flex items-center gap-3">
-              <FiMail className="h-5 w-5 shrink-0 text-gray-400" />
-              <span className="text-gray-700">{provider.email}</span>
+          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="flex items-center gap-2">
+              <FiMail className="text-muted-foreground h-4 w-4 shrink-0" />
+              <span className="text-foreground text-sm">{provider.email}</span>
             </div>
             {provider.officePhoneNumber && (
-              <div className="flex items-center gap-3">
-                <FiPhone className="h-5 w-5 shrink-0 text-gray-400" />
-                <span className="text-gray-700">
+              <div className="flex items-center gap-2">
+                <FiPhone className="text-muted-foreground h-4 w-4 shrink-0" />
+                <span className="text-foreground text-sm">
                   {provider.officePhoneNumber}
                 </span>
               </div>
             )}
             {provider.applicationDate && (
-              <div className="flex items-center gap-3">
-                <FiCalendar className="h-5 w-5 shrink-0 text-gray-400" />
-                <span className="text-gray-700">
+              <div className="flex items-center gap-2">
+                <FiCalendar className="text-muted-foreground h-4 w-4 shrink-0" />
+                <span className="text-foreground text-sm">
                   Joined{" "}
                   {new Date(provider.applicationDate).toLocaleDateString()}
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-3">
-              <FiAward className="h-5 w-5 shrink-0 text-gray-400" />
+            <div className="flex items-center gap-2">
+              <FiAward className="text-muted-foreground h-4 w-4 shrink-0" />
               <span
-                className={`rounded-full px-3 py-1 text-sm font-medium ${
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                   provider.applicationStatus === "APPROVED"
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-success/10 text-success"
                     : provider.applicationStatus === "PENDING"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-red-100 text-red-800"
+                      ? "bg-warning/10 text-warning"
+                      : "bg-destructive/10 text-destructive"
                 }`}
               >
                 {provider.applicationStatus}

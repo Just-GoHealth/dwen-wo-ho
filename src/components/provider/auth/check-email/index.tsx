@@ -1,9 +1,7 @@
 import { Logo } from "@/components/shared/logo";
 import { useHydrated } from "@/hooks/shared/use-hydrated";
 import { LoadingButton } from "@/components/ui/loading-button";
-import { ROUTES } from "@/lib/constants/infra/routes";
 import { ProviderEmailFormData } from "@/lib/schemas/provider-auth-schema";
-import Link from "next/link";
 import { useProviderCheckEmail } from "@/hooks/provider/check-email/use-check-email";
 import { CheckEmailProps } from "@/lib/types/components/provider/auth";
 import { CHECK_EMAIL_TEXTS } from "@/lib/constants/components/provider/auth/auth-copy";
@@ -32,12 +30,13 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
             className="h-auto w-32 sm:w-auto"
           />
         </div>
-        <Link
-          href={ROUTES.patient.join}
-          className="text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-full py-2 text-sm font-medium transition-colors sm:px-4"
+        <span
+          aria-disabled="true"
+          title="Not available right now"
+          className="text-muted-foreground/40 cursor-not-allowed rounded-full py-2 text-sm font-medium sm:px-4"
         >
           {CHECK_EMAIL_TEXTS.header.switchToPatients}
-        </Link>
+        </span>
       </div>
 
       <div className="mx-auto flex w-full max-w-md flex-1 items-center justify-center px-4 sm:px-8 md:px-12">

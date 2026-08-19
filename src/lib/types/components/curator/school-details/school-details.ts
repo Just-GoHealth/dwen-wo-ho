@@ -40,19 +40,6 @@ export interface PatientsTabProps {
   onViewPatient: (patientId: number | string) => void;
 }
 
-export interface SchoolHeaderCardProps {
-  school: {
-    name: string;
-    logo?: string;
-    nickname?: string;
-    motto?: string;
-  };
-  campusLabel: string | null;
-  onEditClick: () => void;
-  onDisableClick: () => void;
-  searchComponent?: React.ReactNode;
-}
-
 export type SchoolTab = "patients" | "icons" | "providers";
 
 export interface SchoolDetailsErrorViewProps {

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { m } from "motion/react";
 import { CheckCircle2, Pencil } from "lucide-react";
 import type { ProviderProfileData } from "@/lib/types/api/provider-dashboard";
+import { useProviderProfile } from "@/hooks/provider/profile/use-profile";
 
 export function ProfileHero({
   profileData,
@@ -13,6 +14,8 @@ export function ProfileHero({
   profileData: Partial<ProviderProfileData>;
   onEdit: (key: string, label: string, current: string) => void;
 }) {
+  const { provider } = useProviderProfile();
+  const isVerified = provider?.applicationStatus === "APPROVED";
   const fullName = `${profileData.title} ${profileData.name}`;
   const fallback = profileData.name
     ? profileData.name.charAt(0).toUpperCase()
@@ -36,9 +39,11 @@ export function ProfileHero({
           </div>
         </m.div>
 
-        <Badge className="bg-success inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10.5px] font-bold tracking-wide uppercase">
-          <CheckCircle2 size={10} /> Verified
-        </Badge>
+        {isVerified && (
+          <Badge className="bg-success inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10.5px] font-bold tracking-wide uppercase">
+            <CheckCircle2 size={10} /> Verified
+          </Badge>
+        )}
       </div>
 
       {/* Name + status */}
@@ -47,7 +52,7 @@ export function ProfileHero({
           {fullName}
         </h2>
         <p className="text-muted-foreground mb-3 text-[12.5px] md:text-[13.5px]">
-          {profileData.specialty} · Ranked #1
+          {profileData.specialty}
         </p>
         <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] md:text-[12.5px]">
           &nbsp;&quot;{profileData.status}&quot;

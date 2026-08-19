@@ -62,7 +62,7 @@ function ProvidersPageContent() {
         <div className="flex flex-col gap-6 p-6">
           <div className="flex h-64 items-center justify-center">
             <div className="text-center">
-              <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-[#955aa4]"></div>
+              <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
               <p className="text-gray-600">Loading providers...</p>
             </div>
           </div>

@@ -1,80 +1,45 @@
 "use client";
 
 import { m } from "motion/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
- * Skeleton loader for provider dashboard main content.
- * Mimics the status filter tabs and patient card layout.
+ * Skeleton loader for the provider home screen's patient grid — mirrors
+ * `PatientGridCard`'s real current layout exactly: same grid breakpoints
+ * (2 cols under 900px, 4 above), same glass card material (`rounded-2xl`,
+ * translucent border, backdrop blur), a 3-slot top row (NEW / school pill /
+ * triage badge), a `size-20` face, and an Open-pill-shaped placeholder —
+ * so the grid doesn't reflow or change material when real cards load.
  */
 export function ProviderDashboardSkeleton() {
   return (
-    <main className="no-scrollbar h-full overflow-y-auto px-2 py-6 pb-40 md:pb-10 lg:ml-4">
-      {/* ── Status filter tabs skeleton ── */}
-      <div className="mx-auto mb-6 flex justify-center min-[640px]:w-fit">
-        <div className="flex items-center gap-1 rounded-2xl border border-slate-200/60 bg-slate-100/80 p-1 dark:border-slate-700/40 dark:bg-slate-800/50">
-          {/* Tab 1 */}
-          <div className="flex items-center gap-2 rounded-xl px-4 py-2.5">
-            <div className="h-4 w-4 animate-pulse rounded-md bg-slate-200 dark:bg-slate-700" />
-            <div className="h-4 w-16 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-            <div className="h-5 w-6 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
+    <div className="grid grid-cols-2 gap-4 min-[900px]:grid-cols-4">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <m.div
+          key={`patient-grid-skeleton-${i}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.2,
+            delay: Math.min(i * 0.03, 0.15),
+            ease: "easeOut",
+          }}
+          className="bg-card flex w-full flex-col items-center gap-1 rounded-2xl border border-[rgba(255,255,255,.14)] px-[clamp(10px,1vw,16px)] pt-[clamp(11px,1.5vh,16px)] pb-[clamp(13px,1.8vh,19px)] text-center shadow-[0_14px_34px_rgba(0,0,0,.35)] backdrop-blur-[12px] backdrop-saturate-[1.2]"
+        >
+          <div className="grid min-h-[22px] w-full grid-cols-[1fr_auto_1fr] items-center gap-1.5">
+            <Skeleton className="size-[22px] justify-self-start rounded-full" />
+            <Skeleton className="h-4 w-14 justify-self-center rounded-full" />
+            <Skeleton className="h-4 w-10 justify-self-end rounded-full" />
           </div>
-          {/* Tab 2 */}
-          <div className="flex items-center gap-2 rounded-xl px-4 py-2.5">
-            <div className="h-4 w-4 animate-pulse rounded-md bg-slate-200 dark:bg-slate-700" />
-            <div className="h-4 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-            <div className="h-5 w-5 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
-          </div>
-          {/* Tab 3 */}
-          <div className="flex items-center gap-2 rounded-xl px-4 py-2.5">
-            <div className="h-4 w-4 animate-pulse rounded-md bg-slate-200 dark:bg-slate-700" />
-            <div className="h-4 w-14 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-            <div className="h-5 w-6 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
-          </div>
-        </div>
-      </div>
 
-      {/* ── Patient cards skeleton ── */}
-      <div className="flex flex-col gap-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <m.div
-            key={`skeleton-${i}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.2,
-              delay: Math.min(i * 0.05, 0.3),
-              ease: "easeOut",
-            }}
-            className="relative flex items-center gap-3 rounded-xl border border-slate-200/60 bg-white p-3 backdrop-blur-sm dark:border-slate-700/50 dark:bg-slate-900/50"
-          >
-            {/* Score ring skeleton */}
-            <div className="relative shrink-0">
-              <div className="h-12 w-12 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
-            </div>
+          <Skeleton className="size-20 rounded-full" />
 
-            {/* Content skeleton */}
-            <div className="min-w-0 flex-1">
-              <div className="mb-1.5 flex items-center gap-2">
-                <div className="h-5 w-32 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                <div className="h-4 w-16 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3.5 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                <div className="h-2 w-2 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
-                <div className="h-3.5 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-              </div>
-            </div>
+          <Skeleton className="mt-1 h-4 w-20" />
+          <Skeleton className="h-3 w-16" />
 
-            {/* Time skeleton */}
-            <div className="hidden sm:block">
-              <div className="h-3 w-14 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-            </div>
-
-            {/* Action button skeleton */}
-            <div className="h-8 w-8 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-          </m.div>
-        ))}
-      </div>
-    </main>
+          <Skeleton className="mt-[.35em] h-7 w-16 rounded-full" />
+        </m.div>
+      ))}
+    </div>
   );
 }

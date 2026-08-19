@@ -16,7 +16,7 @@ export function ProviderAuthShell({ children }: { children: ReactNode }) {
           className="h-full w-full object-cover"
         />
       </section>
-      <section className="bg-background h-full w-full overflow-y-auto lg:w-1/2">
+      <section className="bg-app-gradient h-full w-full overflow-y-auto lg:w-1/2">
         {children}
       </section>
     </main>

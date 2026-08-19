@@ -35,6 +35,7 @@ export default function ProviderProfileDialog({
     <Dialog open={profileOpen} onOpenChange={setProfileOpen} modal>
       <DialogContent
         aria-describedby={undefined}
+        style={{ background: "var(--bg)" }}
         className="flex max-h-[88vh] w-[95vw] max-w-3xl flex-col gap-0 overflow-hidden rounded-4xl border p-0 sm:max-w-3xl lg:max-w-4xl"
       >
         <VisuallyHidden.Root>

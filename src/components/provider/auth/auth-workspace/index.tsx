@@ -59,7 +59,7 @@ function ProviderAuthPageContent() {
   }
 
   return (
-    <div className="bg-background relative min-h-screen w-full transition-colors duration-300">
+    <div className="bg-app-gradient relative min-h-screen w-full transition-colors duration-300">
       {isCheckingAuth && (
         <div className="bg-background/80 animate-in fade-in absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm duration-300">
           <div className="space-y-4 text-center">
@@ -86,7 +86,7 @@ export function ProviderAuthWorkspace() {
   return (
     <Suspense
       fallback={
-        <div className="bg-background flex h-screen w-full items-center justify-center">
+        <div className="bg-app-gradient flex h-screen w-full items-center justify-center">
           <div className="border-primary h-12 w-12 animate-spin rounded-full border-b-2" />
         </div>
       }

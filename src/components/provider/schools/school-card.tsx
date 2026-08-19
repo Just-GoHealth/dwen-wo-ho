@@ -23,7 +23,7 @@ export function SchoolCard({ school, onClick }: SchoolCardProps) {
   return (
     <Button
       onClick={() => onClick(school.id)}
-      className="group relative h-80 overflow-hidden rounded-xl shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-xl hover:brightness-110"
+      className="group relative h-56 overflow-hidden rounded-xl shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-xl hover:brightness-110"
     >
       {/* Background Image */}
       {school.logo ? (
@@ -47,15 +47,15 @@ export function SchoolCard({ school, onClick }: SchoolCardProps) {
 
       {/* Loading Indicator */}
       {school.isLoading && (
-        <div className="absolute top-4 left-4 z-10">
-          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-white"></div>
+        <div className="absolute top-3 left-3 z-10">
+          <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-white"></div>
         </div>
       )}
 
       {/* Top Left - New Patient Alert */}
       {school.newPatientName && !school.isLoading && (
-        <div className="absolute top-4 left-4 z-10 w-60 border-none bg-white/95 px-3 py-2 shadow-md backdrop-blur-sm">
-          <span className="block truncate text-base font-semibold">
+        <div className="absolute top-3 left-3 z-10 w-52 border-none bg-white/95 px-2.5 py-1.5 shadow-md backdrop-blur-sm">
+          <span className="block truncate text-sm font-semibold">
             <span className="text-destructive">New Patient.</span>{" "}
             <span className="text-foreground">{school.newPatientName}</span>
           </span>
@@ -64,25 +64,25 @@ export function SchoolCard({ school, onClick }: SchoolCardProps) {
 
       {/* Top Right - Student Count Badge */}
       {!school.isLoading && (
-        <div className="bg-destructive absolute top-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full shadow-lg backdrop-blur-sm">
-          <span className="text-destructive-foreground text-sm font-bold">
+        <div className="bg-destructive absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full shadow-lg backdrop-blur-sm">
+          <span className="text-destructive-foreground text-xs font-bold">
             {school.totalPatients ?? school.studentCount ?? 0}
           </span>
         </div>
       )}
 
       {/* Bottom Content */}
-      <div className="absolute right-0 bottom-0 left-0 z-10 p-6 text-center">
-        <h3 className="mb-1 text-4xl leading-tight font-bold text-white">
+      <div className="absolute right-0 bottom-0 left-0 z-10 p-4 text-center">
+        <h3 className="mb-0.5 text-2xl leading-tight font-bold text-white">
           {school.name}
         </h3>
         {displayNickname && (
-          <p className="mb-1 text-2xl font-medium text-white/95">
+          <p className="mb-0.5 text-base font-medium text-white/95">
             {displayNickname}
           </p>
         )}
         {school.motto && (
-          <p className="text-sm font-medium text-white/90 italic">
+          <p className="text-xs font-medium text-white/90 italic">
             {school.motto}
           </p>
         )}

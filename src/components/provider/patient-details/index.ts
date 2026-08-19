@@ -1,4 +1,5 @@
 export * from "./patient-details-header";
+export * from "./patient-detail-top-bar";
 export * from "./assessment-metrics-panel";
 export * from "./actions-panel";
 export * from "./assessment-metadata-card";

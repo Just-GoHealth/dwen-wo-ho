@@ -11,9 +11,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-poppins);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-space-mono);
+  --font-heading: var(--font-space-grotesk);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -72,25 +72,46 @@
 }
 
 :root {
-  --background: #ffff;
-  --foreground: #1c1917;
+  /* Bronze Fury brand gold — fixed across themes (see guide/Bronze Fury A_33.html) */
+  --gold: #e8d4ad;
+  --gold-hi: #f6e7c4;
+  --gold-lo: #b8935a;
+  --gold-deep: #b8862e;
+  --gold-tint: rgba(232, 212, 173, 0.18);
+
+  /* Light-mode gradient family — a lighter tint of the brand maroon (no mockup reference; derived) */
+  --sw-red-0: #f7e9df;
+  --sw-red-1: #f0dcc9;
+  --sw-red-2: #e4c9ae;
+  --sw-red-3: #f8efe7;
+  --sw-red-deep: #ecdcc8;
+  --bg: radial-gradient(
+    118% 92% at 30% 8%,
+    var(--sw-red-0) 0%,
+    var(--sw-red-1) 40%,
+    var(--sw-red-2) 72%,
+    var(--sw-red-3) 100%
+  );
+
+  --background: #f8efe7;
+  --foreground: #2b1210;
   --radius: 0.625rem;
-  --card: #ffffff;
-  --card-foreground: #1c1917;
-  --popover: #ffffff;
-  --popover-foreground: #1c1917;
-  --primary: #955aa4;
-  --primary-foreground: #fafafa;
-  --secondary: #f5f5f4;
-  --secondary-foreground: #292524;
-  --muted: #f5f5f4;
-  --muted-foreground: #78716c;
-  --accent: #f5f5f4;
-  --accent-foreground: #292524;
-  --destructive: #dc2626;
-  --border: #f3e8ff;
-  --input: #f5f5f4;
-  --ring: #a8a29e;
+  --card: #fffaf5;
+  --card-foreground: #2b1210;
+  --popover: #fffaf5;
+  --popover-foreground: #2b1210;
+  --primary: var(--gold-deep);
+  --primary-foreground: #fefaf5;
+  --secondary: #f1e4d8;
+  --secondary-foreground: #2b1210;
+  --muted: #efe0d3;
+  --muted-foreground: rgba(43, 18, 16, 0.55);
+  --accent: #f1e4d8;
+  --accent-foreground: #2b1210;
+  --destructive: #ed4b58;
+  --border: rgba(43, 18, 16, 0.12);
+  --input: #f1e4d8;
+  --ring: var(--gold-deep);
   --chart-1: #0ea5e9;
   --chart-2: #a855f7;
   --chart-3: #6366f1;
@@ -107,7 +128,7 @@
   --success: #2bb673;
   --slider-track: #e5e7eb;
   --slider-thumb: #adad7e;
-  --slider-thumb-alt: #955aa4;
+  --slider-thumb-alt: var(--primary);
   --footer-bg: #202126;
   --footer-foreground: #fafafa;
   --school-details-sidebar: #faf5f9;
@@ -123,24 +144,31 @@
 }
 
 .dark {
-  --background: #1a171c;
-  --foreground: #fafafa;
-  --card: oklch(32.752% 0.0118 314.53 / 0.456);
-  --card-foreground: #fafafa;
-  --popover: #262429;
-  --popover-foreground: #fafafa;
-  --primary: #955aa4;
-  --primary-foreground: #fafafa;
-  --secondary: #3f3c44;
-  --secondary-foreground: #fafafa;
-  --muted: #443c3d;
-  --muted-foreground: #a8a29e;
-  --accent: #443c3c;
-  --accent-foreground: #fafafa;
-  --destructive: #dc2626;
-  --border: #443c42;
-  --input: rgba(255, 255, 255, 0.15);
-  --ring: #756c78;
+  /* Dark-mode gradient family — Bronze Fury / SilverWing G, verbatim from the mockup */
+  --sw-red-0: #733730;
+  --sw-red-1: #572621;
+  --sw-red-2: #3b1a17;
+  --sw-red-3: #2b1210;
+  --sw-red-deep: #1a100c;
+
+  --background: #2b1210;
+  --foreground: #f4f2ef;
+  --card: rgba(255, 255, 255, 0.055);
+  --card-foreground: #f4f2ef;
+  --popover: #3b1a17;
+  --popover-foreground: #f4f2ef;
+  --primary: var(--gold);
+  --primary-foreground: #161207;
+  --secondary: #3b1a17;
+  --secondary-foreground: #f4f2ef;
+  --muted: #3b1a17;
+  --muted-foreground: rgba(244, 242, 239, 0.55);
+  --accent: #572621;
+  --accent-foreground: #f4f2ef;
+  --destructive: #ed4b58;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: var(--gold);
   --chart-1: #8b5cf6;
   --chart-2: #06b6d4;
   --chart-3: #eab308;
@@ -157,7 +185,7 @@
   --success: #2bb673;
   --slider-track: #44403c;
   --slider-thumb: #adad7e;
-  --slider-thumb-alt: #955aa4;
+  --slider-thumb-alt: var(--primary);
   --footer-bg: #292524;
   --footer-foreground: #fafafa;
   --school-details-sidebar: #292524;
@@ -166,6 +194,59 @@
   --loading: #64748b;
   --secondary-accent: #14b8a6;
   --warm-sand: #e8d5b7;
+}
+
+/* Opt-in decorative background for shells that want the Bronze Fury gradient
+   (e.g. provider auth/home shells) — not forced onto <body> globally. */
+.bg-app-gradient {
+  background: var(--bg);
+}
+
+/* "Give Care" pill's own heartbeat — matches `.pd-care`/@keyframes rbCareBeat
+   in guide/Bronze Fury A_33.html: a soft double-beat, paused on hover. */
+@keyframes care-beat {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  4% {
+    opacity: 0.34;
+  }
+  8% {
+    opacity: 1;
+    transform: translate(-3px, 0) rotate(-1.8deg);
+  }
+  12% {
+    transform: translate(3px, 0) rotate(1.8deg);
+  }
+  16% {
+    transform: translate(-2px, 0) rotate(-1.1deg);
+  }
+  20% {
+    transform: translate(2px, 0) rotate(1.1deg);
+  }
+  24% {
+    opacity: 0.4;
+  }
+  28% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+}
+.animate-care-beat {
+  animation: care-beat 2s ease-in-out infinite;
+}
+.animate-care-beat:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-care-beat {
+    animation: none;
+  }
 }
 
 @layer base {

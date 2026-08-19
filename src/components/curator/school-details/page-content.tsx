@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import type { Route } from "next";
 import type { UrgentPatient } from "@/lib/types/entities/patient";
 import { ROUTES, DYNAMIC_ROUTES } from "@/lib/constants/infra/routes";
 import type { CuratorSchoolDetailsState } from "@/hooks/curator/school-details/use-school-details";
 import {
-  SchoolHeaderCard,
+  SchoolProfileBar,
+  SchoolRollRow,
+  SchoolProvidersSheet,
   UrgentPanel,
 } from "@/components/curator/school-details";
 import { Button } from "@/components/ui/button";
@@ -13,6 +16,7 @@ import { FilterTabBar } from "@/components/shared/filter-tab-bar/index";
 import type { SchoolTab } from "@/lib/types/components/curator/school-details/school-details";
 import type { SchoolDetailsPageContentProps } from "@/lib/types/components/curator/school-details/school-details";
 import { Users } from "lucide-react";
+import { deriveTriageTier, type TriageTier } from "@/lib/utils/shared/triage";
 import SchoolDetailsModals from "@/components/curator/school-details/overlay-host";
 import { SchoolDetailsBackNav } from "./back-nav";
 import { SchoolDetailsSearchSection } from "./search-section";
@@ -38,7 +42,6 @@ export function SchoolDetailsPageContent({
     appliedSearchQuery,
     setAppliedSearchQuery,
     setShowEditModal,
-    handleDisableSchool,
     setShowAddIconWizard,
     setEditingIcon,
     handleProviderClick,
@@ -53,7 +56,19 @@ export function SchoolDetailsPageContent({
     clearFilters,
   } = details;
 
+  const [triageFilter, setTriageFilter] = useState<TriageTier | "all">("all");
+  const [showProvidersSheet, setShowProvidersSheet] = useState(false);
+
   if (!school) return null;
+
+  const visiblePatients =
+    triageFilter === "all"
+      ? patients
+      : patients.filter(
+          (p) =>
+            deriveTriageTier(p.lockinScore, p.visibilityStatus) ===
+            triageFilter,
+        );
 
   return (
     <div className="bg-primary/10 animate-in fade-in flex min-h-screen flex-col duration-500">
@@ -63,11 +78,17 @@ export function SchoolDetailsPageContent({
             onBack={() => router.push(ROUTES.curator.schools)}
           />
 
-          <SchoolHeaderCard
+          <SchoolProfileBar
             school={school}
-            campusLabel={campusLabel}
+            providerCount={providers.length}
             onEditClick={() => setShowEditModal(true)}
-            onDisableClick={handleDisableSchool}
+            onOpenProviders={() => setShowProvidersSheet(true)}
+          />
+
+          <SchoolRollRow
+            rollCount={patients.length}
+            triageFilter={triageFilter}
+            onTriageFilterChange={setTriageFilter}
           />
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -116,7 +137,7 @@ export function SchoolDetailsPageContent({
 
           <SchoolDetailsTabContent
             activeTab={activeTab}
-            patients={patients}
+            patients={visiblePatients}
             patientsLoading={patientsLoading}
             schoolId={schoolId}
             schoolName={school.nickname ?? ""}
@@ -160,6 +181,13 @@ export function SchoolDetailsPageContent({
           }
         />
       </div>
+
+      <SchoolProvidersSheet
+        open={showProvidersSheet}
+        onOpenChange={setShowProvidersSheet}
+        providers={providers}
+        campusLabel={campusLabel}
+      />
 
       <SchoolDetailsModals details={details} />
     </div>

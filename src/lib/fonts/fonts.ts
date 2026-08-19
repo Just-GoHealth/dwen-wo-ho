@@ -4,6 +4,8 @@ import {
   Inter,
   Plus_Jakarta_Sans,
   Poppins,
+  Space_Grotesk,
+  Space_Mono,
 } from "next/font/google";
 
 export const geistSans = Geist({
@@ -14,6 +16,19 @@ export const geistSans = Geist({
 export const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+/** Platform brand typeface (Bronze Fury design refactor). */
+export const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+export const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const poppins = Poppins({

@@ -20,7 +20,7 @@ export const TabContentState = ({
   if (isLoading) {
     return (
       <div className="py-12 text-center">
-        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-[#955aa4]" />
+        <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2" />
         <p className="text-gray-500">{loadingMessage}</p>
       </div>
     );

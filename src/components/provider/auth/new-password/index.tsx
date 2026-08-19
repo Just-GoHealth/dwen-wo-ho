@@ -32,7 +32,7 @@ const NewPasswordContent = () => {
   const mounted = useHydrated();
 
   return (
-    <div className="bg-background text-foreground flex min-h-screen flex-col transition-colors duration-300">
+    <div className="bg-app-gradient text-foreground flex min-h-screen flex-col transition-colors duration-300">
       <div className="bg-background/80 border-border/50 sticky top-0 z-50 w-full border-b backdrop-blur-md transition-all duration-300">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
           <Logo variant={mounted && theme === "light" ? "black" : "white"} />
@@ -98,7 +98,7 @@ const NewPassword = () => {
   return (
     <Suspense
       fallback={
-        <div className="bg-background flex h-screen w-full items-center justify-center">
+        <div className="bg-app-gradient flex h-screen w-full items-center justify-center">
           <Loader2 className="text-primary h-8 w-8 animate-spin" />
         </div>
       }

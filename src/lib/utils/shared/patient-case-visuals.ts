@@ -9,38 +9,38 @@ export function getStatusConfig(status: string) {
   > = {
     urgent: {
       label: "Urgent",
-      cls: "bg-destructive/10 text-[#ef4444] border-[rgba(239,68,68,.25)]",
-      bar: "#ef4444",
+      cls: "bg-destructive/10 text-destructive border-destructive/25",
+      bar: "var(--destructive)",
       actionLabel: "View Case",
     },
     new: {
       label: "New",
-      cls: "bg-success/10 text-[#10b981] border-[rgba(16,185,129,.25)]",
-      bar: "#10b981",
+      cls: "bg-success/10 text-success border-success/25",
+      bar: "var(--success)",
       actionLabel: "Open Case",
     },
     action: {
       label: "In Treatment",
-      cls: "bg-primary/10 text-primary border-[rgba(139,92,246,.25)]",
-      bar: "#8B5CF6",
+      cls: "bg-primary/10 text-primary border-primary/25",
+      bar: "var(--primary)",
       actionLabel: "Resume",
     },
     followUp: {
       label: "Follow-up",
-      cls: "bg-amber-50 text-[#f59e0b] border-[rgba(245,158,11,.25)]",
-      bar: "#f59e0b",
+      cls: "bg-warning/10 text-warning border-warning/25",
+      bar: "var(--warning)",
       actionLabel: "Review",
     },
     referred: {
       label: "Referred Out",
-      cls: "bg-info/10 text-info border-[rgba(56,189,248,.25)]",
-      bar: "#38bdf8",
+      cls: "bg-secondary text-secondary-foreground border-border",
+      bar: "var(--secondary-foreground)",
       actionLabel: "View",
     },
     ignored: {
       label: "Ignored",
       cls: "bg-muted-foreground/10 text-muted-foreground border-muted-foreground/25",
-      bar: "#555e72",
+      bar: "var(--muted-foreground)",
       actionLabel: "Action",
     },
   };
@@ -53,14 +53,15 @@ export function getStatusConfig(status: string) {
  * 2.1 - 4.0: Red (High Concern)
  * 4.1 - 6.0: Light Green (Mild Concern)
  * 6.1 - 8.0: Green (Healthy/Stable)
- * 8.1 - 10.0: Purple (Neutral/No Concern)
+ * 8.1 - 10.0: Brand primary (Neutral/No Concern)
  */
 export function getScoreColor(score: number | null) {
-  if (score === null) return "#555e72"; // Default/Ignored
+  if (score === null) return "var(--muted-foreground)"; // Default/Ignored
 
-  if (score <= 2.0) return "#000000"; // Black: Critical
-  if (score <= 4.0) return "#ef4444"; // Red: High Concern
-  if (score <= 6.0) return "#90EE90"; // Light Green: Mild Concern
-  if (score <= 8.0) return "#10b981"; // Green: Healthy
-  return "var(--primary)"; // Purple: Neutral
+  if (score <= 2.0) return "var(--destructive)"; // Critical
+  if (score <= 4.0)
+    return "color-mix(in srgb, var(--destructive) 65%, transparent)"; // High Concern
+  if (score <= 6.0) return "color-mix(in srgb, var(--success) 55%, white)"; // Mild Concern
+  if (score <= 8.0) return "var(--success)"; // Healthy
+  return "var(--primary)"; // Brand primary: Neutral
 }

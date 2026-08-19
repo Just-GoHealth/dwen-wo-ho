@@ -83,7 +83,7 @@ const SignUpContent = (props: ProviderSignUpProps) => {
   }
 
   return (
-    <div className="bg-background text-foreground relative flex min-h-screen flex-col">
+    <div className="bg-app-gradient text-foreground relative flex min-h-screen flex-col">
       {isCheckingGuard && (
         <div className="bg-background/80 animate-in fade-in absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm duration-300">
           <div className="space-y-4 text-center">
@@ -146,7 +146,7 @@ const ProviderSignUp = (props: ProviderSignUpProps) => {
   return (
     <Suspense
       fallback={
-        <div className="bg-background flex h-screen w-full items-center justify-center">
+        <div className="bg-app-gradient flex h-screen w-full items-center justify-center">
           <Loader2 className="text-primary size-8 animate-spin" />
         </div>
       }

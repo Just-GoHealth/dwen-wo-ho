@@ -10,7 +10,7 @@ export function ProviderNewPasswordScreen() {
     <ProviderAuthShell>
       <Suspense
         fallback={
-          <div className="bg-background flex h-screen w-full items-center justify-center">
+          <div className="bg-app-gradient flex h-screen w-full items-center justify-center">
             <Loader2 className="text-primary h-8 w-8 animate-spin" />
           </div>
         }

@@ -16,6 +16,7 @@ const defaultSchoolPatientRecordAccessors = {
   getPatientName: (p: SchoolPatientRecord) => p.patientName,
   getSchoolNickname: (p: SchoolPatientRecord) => p.schoolNickname,
   getSchoolName: (p: SchoolPatientRecord) => p.schoolName,
+  getAvatarUrl: () => undefined,
 };
 
 const defaultPatientCaseAccessors = {
@@ -27,6 +28,7 @@ const defaultPatientCaseAccessors = {
   getPatientName: (p: PatientCase) => p.patientName,
   getSchoolNickname: (p: PatientCase) => p.schoolNickname,
   getSchoolName: (p: PatientCase) => p.schoolName,
+  getAvatarUrl: (p: PatientCase) => p.avatarUrl,
 };
 
 function isPatientCase(patient: PatientCardPatient): patient is PatientCase {
@@ -45,6 +47,7 @@ function resolveAccessors<T extends PatientCardPatient>(
     | "getPatientName"
     | "getSchoolNickname"
     | "getSchoolName"
+    | "getAvatarUrl"
   >,
 ): PatientCardAccessorFns<T> {
   const defaults = isPatientCase(patient)
@@ -66,6 +69,9 @@ function resolveAccessors<T extends PatientCardPatient>(
       (defaults.getSchoolNickname as (p: T) => string | undefined),
     getSchoolName:
       overrides.getSchoolName ?? (defaults.getSchoolName as (p: T) => string),
+    getAvatarUrl:
+      overrides.getAvatarUrl ??
+      (defaults.getAvatarUrl as (p: T) => string | null | undefined),
   };
 }
 
@@ -81,6 +87,7 @@ export function resolvePatientCardFields<T extends PatientCardPatient>(
     | "getPatientName"
     | "getSchoolNickname"
     | "getSchoolName"
+    | "getAvatarUrl"
   >,
 ): PatientCardResolvedFields {
   const accessors = resolveAccessors(patient, accessorOverrides);
@@ -94,5 +101,6 @@ export function resolvePatientCardFields<T extends PatientCardPatient>(
     patientName: accessors.getPatientName(patient),
     schoolNickname: accessors.getSchoolNickname(patient),
     schoolName: accessors.getSchoolName(patient),
+    avatarUrl: accessors.getAvatarUrl(patient),
   };
 }
