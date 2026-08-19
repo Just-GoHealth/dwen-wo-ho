@@ -7,8 +7,8 @@ interface ProviderGlassBarProps {
   /** Left region — e.g. section label + logout action. */
   left?: ReactNode;
   /** Center region — provider identity (avatar, name, verified badge). Sits
-   * absolutely centered over the bar regardless of left/right width, matching
-   * `.pr-who{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}`. */
+   * left-aligned next to the `left` region, matching the reference mockup's
+   * identity cluster hugging the bar's left edge. */
   center: ReactNode;
   /** Right region — e.g. triage filter chips, logo. */
   right?: ReactNode;
@@ -37,13 +37,13 @@ export function ProviderGlassBar({
         className,
       )}
     >
-      <div className="relative flex w-full flex-col items-center justify-center gap-2 px-4 py-3 sm:min-h-24 sm:flex-row sm:justify-between sm:gap-4 sm:px-6 md:min-h-28 md:px-10 lg:min-h-32">
+      <div className="relative flex w-full flex-col items-center justify-center gap-2 px-4 py-3 sm:min-h-24 sm:flex-row sm:items-center sm:justify-start sm:gap-4 sm:px-8 md:min-h-28 md:px-14 lg:min-h-32 lg:px-20">
         {left && (
           <div className="flex shrink-0 items-center gap-3 sm:order-1">
             {left}
           </div>
         )}
-        <div className="flex min-w-0 items-center justify-center gap-4 sm:absolute sm:top-1/2 sm:left-1/2 sm:order-2 sm:max-w-[62vw] sm:-translate-x-1/2 sm:-translate-y-1/2">
+        <div className="flex min-w-0 items-center justify-center gap-4 sm:order-2 sm:max-w-[62vw] sm:justify-start">
           {center}
         </div>
         {right && (
