@@ -42,7 +42,9 @@ export function timeAgo(timestamp: string | Date | undefined): string {
   return `${years}y ago`;
 }
 
-/** Compact relative time without "ago" suffix (e.g. `2h`, `3d`). */
+/** Compact relative time without "ago" suffix (e.g. `2h`, `3d`, `1w`, `1y`) —
+ * escalates through hours/days/weeks/years so a week never reads as "7d"
+ * and a year's worth of days never reads as a triple-digit day count. */
 export function compactTimeAgo(dateString: string): string {
   if (!dateString) return "";
 
@@ -57,7 +59,11 @@ export function compactTimeAgo(dateString: string): string {
   if (hours < 24) return `${hours}h`;
 
   const days = Math.floor(hours / 24);
-  return `${days}d`;
+  if (days < 7) return `${days}d`;
+
+  if (days < 365) return `${Math.floor(days / 7)}w`;
+
+  return `${Math.floor(days / 365)}y`;
 }
 
 /** Short relative time capped at days — used by pending-approval flows. */
