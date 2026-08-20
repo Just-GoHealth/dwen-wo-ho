@@ -86,20 +86,20 @@ function soonestFixture(fixtures: Fixture[]): Fixture | null {
 /**
  * Compact "next contest" pill + editor — matches the mock's `.m-class`
  * pill and `#nqBack`/`.nq` "Next Contest" popover in
- * guide/Bronze Fury A_33.html exactly: a light card with a big date, a
- * relative label, three tap-to-pick fields (month/day/time), and a
- * power toggle. There's no "off" flag on the real Fixture, so the toggle
- * maps onto whether a fixture exists at all (off = delete it, on = create
- * one a week out as a starting point).
+ * guide/Bronze Fury A_33.html: a dark glass card with a big gold date, a
+ * relative label, three tap-to-pick fields (month/day/time), and a power
+ * toggle. Pickers are always shown (not just when a fixture already
+ * exists) so there's an actual way to choose the first date — the toggle
+ * only comes into play once a fixture exists, to turn it back off.
  */
 export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
   const [open, setOpen] = useState(false);
   const next = soonestFixture(fixtures);
 
   const [draftDate, setDraftDate] = useState<Date>(() => new Date());
-  const [openPicker, setOpenPicker] = useState<"month" | "day" | "time" | null>(
-    null,
-  );
+  const [openPicker, setOpenPicker] = useState<
+    "month" | "day" | "time" | null
+  >(null);
 
   const {
     addFixture,
@@ -119,7 +119,8 @@ export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
   }, [open, next]);
 
   const originalTime = next ? new Date(next.scheduledAt).getTime() : null;
-  const isDirty = originalTime !== null && draftDate.getTime() !== originalTime;
+  // No existing fixture means anything picked is unsaved by definition.
+  const isDirty = originalTime === null || draftDate.getTime() !== originalTime;
 
   const setMonth = (monthIndex: number) => {
     const d = new Date(draftDate);
@@ -189,134 +190,124 @@ export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           showCloseButton={false}
-          className="max-w-xs border-none bg-[#fffaf5] p-0 text-[#2b1210] sm:max-w-sm"
+          className="max-w-xs border border-white/10 bg-[#2b1210] p-0 text-[#f4f2ef] sm:max-w-sm"
         >
-          <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
             <div>
               <p className="text-lg font-extrabold">
-                Next <span className="font-normal text-black/50">Contest</span>
+                Next <span className="font-normal text-white/50">Contest</span>
               </p>
-              <p className="text-xs font-bold text-black/40 uppercase">
+              <p className="text-xs font-bold text-white/40 uppercase">
                 {next?.roundName || "NSMQ"}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="flex size-8 items-center justify-center rounded-full bg-black/5 text-black/60 hover:bg-black/10"
+              className="flex size-8 items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10"
             >
               <X className="size-4" />
             </button>
           </div>
 
-          {next ? (
-            <div className="flex flex-col items-center gap-1 px-5 pt-5">
-              <p className="text-2xl font-extrabold text-[var(--gold-lo)]">
-                {MONTHS[draftDate.getMonth()]} {draftDate.getDate()},{" "}
-                {formatTime(draftDate)}
-              </p>
-              <p className="text-sm font-bold text-black/40">
-                {isDirty ? "Not saved yet" : relativeLabel(draftDate)}
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-1 px-5 pt-5">
-              <p className="text-lg font-extrabold text-black/40">
-                Out of the season
-              </p>
-              <p className="text-xs font-bold text-black/30 uppercase">
-                Switch it back on to set a date
-              </p>
-            </div>
-          )}
+          <div className="flex flex-col items-center gap-1 px-5 pt-5">
+            <p className="text-2xl font-extrabold text-[var(--gold-hi)]">
+              {MONTHS[draftDate.getMonth()]} {draftDate.getDate()},{" "}
+              {formatTime(draftDate)}
+            </p>
+            <p className="text-sm font-bold text-white/40">
+              {isDirty ? "Not saved yet" : relativeLabel(draftDate)}
+            </p>
+          </div>
 
-          {next && (
-            <div className="grid grid-cols-3 gap-2 px-5 pt-4">
-              {[
-                {
-                  key: "month" as const,
-                  label: "Month",
-                  value: MONTHS[draftDate.getMonth()],
-                },
-                {
-                  key: "day" as const,
-                  label: "Day",
-                  value: String(draftDate.getDate()),
-                },
-                {
-                  key: "time" as const,
-                  label: "Time",
-                  value: formatTime(draftDate),
-                },
-              ].map((field) => (
-                <div key={field.key} className="relative">
-                  <p className="mb-1 text-center text-[10px] font-bold tracking-[.1em] text-black/40 uppercase">
-                    {field.label}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenPicker((p) => (p === field.key ? null : field.key))
-                    }
-                    className="w-full rounded-full border border-black/10 bg-black/[.04] py-2 text-center text-sm font-extrabold"
-                  >
-                    {field.value}
-                  </button>
-                  {openPicker === field.key && (
-                    <div className="absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-black/10 bg-white shadow-lg">
-                      {field.key === "month" &&
-                        MONTHS.map((m, i) => (
-                          <div
-                            key={m}
-                            onClick={() => setMonth(i)}
-                            className={cn(
-                              "cursor-pointer px-3 py-1.5 text-sm hover:bg-black/5",
-                              i === draftDate.getMonth() && "font-extrabold",
-                            )}
-                          >
-                            {m}
-                          </div>
-                        ))}
-                      {field.key === "day" &&
-                        days.map((d) => (
-                          <div
-                            key={d}
-                            onClick={() => setDay(d)}
-                            className={cn(
-                              "cursor-pointer px-3 py-1.5 text-sm hover:bg-black/5",
-                              d === draftDate.getDate() && "font-extrabold",
-                            )}
-                          >
-                            {d}
-                          </div>
-                        ))}
-                      {field.key === "time" &&
-                        TIMES.map((t) => (
-                          <div
-                            key={t}
-                            onClick={() => setTime(t)}
-                            className={cn(
-                              "cursor-pointer px-3 py-1.5 text-sm hover:bg-black/5",
-                              t === formatTime(draftDate) && "font-extrabold",
-                            )}
-                          >
-                            {t}
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-3 gap-2 px-5 pt-4">
+            {[
+              {
+                key: "month" as const,
+                label: "Month",
+                value: MONTHS[draftDate.getMonth()],
+              },
+              {
+                key: "day" as const,
+                label: "Day",
+                value: String(draftDate.getDate()),
+              },
+              {
+                key: "time" as const,
+                label: "Time",
+                value: formatTime(draftDate),
+              },
+            ].map((field) => (
+              <div key={field.key} className="relative">
+                <p className="mb-1 text-center text-[10px] font-bold tracking-[.1em] text-white/40 uppercase">
+                  {field.label}
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenPicker((p) => (p === field.key ? null : field.key))
+                  }
+                  className="w-full rounded-full border border-white/10 bg-white/[.06] py-2 text-center text-sm font-extrabold text-[var(--gold-hi)]"
+                >
+                  {field.value}
+                </button>
+                {openPicker === field.key && (
+                  <div className="absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-white/10 bg-[#3b1a17] shadow-lg">
+                    {field.key === "month" &&
+                      MONTHS.map((m, i) => (
+                        <div
+                          key={m}
+                          onClick={() => setMonth(i)}
+                          className={cn(
+                            "cursor-pointer px-3 py-1.5 text-sm text-white/80 hover:bg-white/10",
+                            i === draftDate.getMonth() &&
+                              "text-[var(--gold-hi)] font-extrabold",
+                          )}
+                        >
+                          {m}
+                        </div>
+                      ))}
+                    {field.key === "day" &&
+                      days.map((d) => (
+                        <div
+                          key={d}
+                          onClick={() => setDay(d)}
+                          className={cn(
+                            "cursor-pointer px-3 py-1.5 text-sm text-white/80 hover:bg-white/10",
+                            d === draftDate.getDate() &&
+                              "text-[var(--gold-hi)] font-extrabold",
+                          )}
+                        >
+                          {d}
+                        </div>
+                      ))}
+                    {field.key === "time" &&
+                      TIMES.map((t) => (
+                        <div
+                          key={t}
+                          onClick={() => setTime(t)}
+                          className={cn(
+                            "cursor-pointer px-3 py-1.5 text-sm text-white/80 hover:bg-white/10",
+                            t === formatTime(draftDate) &&
+                              "text-[var(--gold-hi)] font-extrabold",
+                          )}
+                        >
+                          {t}
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
           <div className="flex items-center justify-between px-5 py-4">
-            <p className="text-[10px] font-bold tracking-[.08em] text-black/40 uppercase">
-              {next
-                ? isDirty
+            <p className="text-[10px] font-bold tracking-[.08em] text-white/40 uppercase">
+              {isDirty
+                ? next
                   ? "Save to move the contest"
-                  : "Tap a field to move the contest"
-                : "Switch it back on to set a date"}
+                  : "Save to set the contest"
+                : "Tap a field to move the contest"}
             </p>
             {isDirty ? (
               <LoadingButton
@@ -330,15 +321,10 @@ export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
             ) : (
               <button
                 type="button"
-                onClick={handleToggle}
+                onClick={handleTurnOff}
                 disabled={isBusy}
-                className={cn(
-                  "flex size-9 items-center justify-center rounded-full border-2 transition-colors disabled:opacity-50",
-                  next
-                    ? "border-[var(--gold-lo)] text-[var(--gold-lo)]"
-                    : "border-black/20 text-black/30",
-                )}
-                title={next ? "Turn off" : "Turn on"}
+                className="flex size-9 items-center justify-center rounded-full border-2 border-dashed border-[var(--gold-hi)] text-[var(--gold-hi)] transition-colors disabled:opacity-50"
+                title="Turn off"
               >
                 <Power className="size-4" />
               </button>
