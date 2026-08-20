@@ -46,7 +46,6 @@ export const useCuratorSidebar = () => {
     const mainPages: string[] = [
       ROUTES.curator.dashboard,
       ROUTES.curator.create,
-      ROUTES.curator.providers,
       ROUTES.curator.partners,
       ROUTES.curator.pages,
       ROUTES.curator.competitions,

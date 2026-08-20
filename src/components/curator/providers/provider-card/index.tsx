@@ -77,7 +77,7 @@ const ProviderCard = (props: ProviderCardProps) => {
                 loading={isRejecting}
                 loadingText="Rejecting..."
                 disabled={isActionDisabled && !isRejecting}
-                className="bg-muted/80 hover:bg-muted-foreground/20 text-destructive border-border z-20 flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-destructive/40 bg-destructive/20 text-destructive hover:bg-destructive/30 z-20 flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FiX className="h-4 w-4" />
                 Reject
@@ -90,7 +90,7 @@ const ProviderCard = (props: ProviderCardProps) => {
                 loading={isApproving}
                 loadingText="Approving..."
                 disabled={isActionDisabled && !isApproving}
-                className="bg-muted/80 hover:bg-muted-foreground/20 text-muted-foreground z-20 flex flex-1 items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-success/40 bg-success/20 text-success hover:bg-success/30 z-20 flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FiCheck className="h-4 w-4" />
                 Approve
@@ -107,7 +107,7 @@ const ProviderCard = (props: ProviderCardProps) => {
                 loading={isApproving}
                 loadingText="Approving..."
                 disabled={isActionDisabled && !isApproving}
-                className="bg-muted/80 hover:bg-muted-foreground/20 text-muted-foreground z-20 flex flex-1 items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-success/40 bg-success/20 text-success hover:bg-success/30 z-20 flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FiCheck className="h-4 w-4" />
                 Approve
@@ -118,7 +118,7 @@ const ProviderCard = (props: ProviderCardProps) => {
                 loading={isRejecting}
                 loadingText="Rejecting..."
                 disabled={isActionDisabled && !isRejecting}
-                className="bg-muted/80 hover:bg-muted-foreground/20 text-destructive border-border z-20 flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-destructive/40 bg-destructive/20 text-destructive hover:bg-destructive/30 z-20 flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FiX className="h-4 w-4" />
                 Reject
