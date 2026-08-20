@@ -8,9 +8,11 @@ import {
   SchoolProfileBar,
   SchoolGlassBar,
   NextFixturePill,
+  JoinCompetitionPill,
   SchoolAccessCodesSheet,
   SchoolProvidersSheet,
 } from "@/components/curator/school-details";
+import type { Team } from "@/lib/types/api/competitions";
 import { useCurrentSchoolTeam } from "@/hooks/curator/competitions/use-current-school-team";
 import { Button } from "@/components/ui/button";
 import { FilterTabBar } from "@/components/shared/filter-tab-bar/index";
@@ -60,6 +62,13 @@ export function SchoolDetailsPageContent({
   const [showProvidersSheet, setShowProvidersSheet] = useState(false);
   const [showAccessCodesSheet, setShowAccessCodesSheet] = useState(false);
   const { team } = useCurrentSchoolTeam(schoolId);
+  // Set the moment "Join a competition" registers this school — lets the
+  // rest of this page light up (Next Contest, Access Codes) without
+  // waiting on the team-lookup query to refetch first.
+  const [justRegisteredTeam, setJustRegisteredTeam] = useState<Team | null>(
+    null,
+  );
+  const effectiveTeam = team ?? justRegisteredTeam;
 
   if (!school) return null;
 
@@ -169,7 +178,17 @@ export function SchoolDetailsPageContent({
         onEditClick={() => setShowEditModal(true)}
         onOpenAccessCodes={() => setShowAccessCodesSheet(true)}
         fixturePill={
-          team && <NextFixturePill teamId={team.id} fixtures={team.fixtures} />
+          effectiveTeam ? (
+            <NextFixturePill
+              teamId={effectiveTeam.id}
+              fixtures={effectiveTeam.fixtures}
+            />
+          ) : (
+            <JoinCompetitionPill
+              schoolId={schoolId}
+              onRegistered={setJustRegisteredTeam}
+            />
+          )
         }
       />
 
@@ -183,7 +202,7 @@ export function SchoolDetailsPageContent({
       <SchoolAccessCodesSheet
         open={showAccessCodesSheet}
         onOpenChange={setShowAccessCodesSheet}
-        teamId={team?.id ?? null}
+        teamId={effectiveTeam?.id ?? null}
         teamName={school.nickname ?? school.name}
       />
 
