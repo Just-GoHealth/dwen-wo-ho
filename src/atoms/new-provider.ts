@@ -11,6 +11,13 @@ export const appliedSearchQueryAtom = atom("");
 // the active triage filter. An atom survives that round trip.
 export const triageFilterAtom = atom<TriageTier | "all">("all");
 
+// Same reasoning as triageFilterAtom, for the patient grid's own scroll
+// position/render-batch — otherwise opening a patient and pressing back
+// re-mounts the grid fresh, dropping you back at the top with only the
+// first batch rendered instead of wherever you'd scrolled to.
+export const patientGridVisibleCountAtom = atom(20);
+export const patientGridScrollTopAtom = atom(0);
+
 export const profileOpenAtom = atom(false);
 export const editOpenAtom = atom(false);
 

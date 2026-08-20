@@ -2,11 +2,9 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import useUserQuery from "@/hooks/queries/use-user-profile";
 import usePatientResultQuery from "@/hooks/queries/use-patient-result";
-import { patientsService } from "@/services/shared/patients";
 import { getColorHex } from "@/lib/utils/shared/color-hex";
 import { PatientActionResponseDTO } from "@/lib/types/api/patient-results";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
@@ -70,25 +68,31 @@ export function useProviderPatientDetails() {
   const [activeTab, setActiveTab] = useState<ActionTab>("pending");
   const [isAddActionOpen, setIsAddActionOpen] = useState(false);
 
-  // Fetch full patient details
-  const { data: patientData, isLoading: isPatientLoading } = useQuery({
-    queryKey: [QUERY_KEYS.providerPatientDetails, resultId],
-    queryFn: () => patientsService.getFullPatientDetails(resultId),
-    enabled: !!resultId && !!getProfileQuery.data,
-    staleTime: 3 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+  // Shared hooks (also used by the generic patient-result query layer) so
+  // this screen and any other caller of the same resultId hit the same
+  // React Query cache entry instead of two disjoint ones under different
+  // keys, and so the actions fetch runs in parallel with patient details
+  // rather than artificially waiting on it — it doesn't use patientData's
+  // value, only resultId, so there's no real dependency between them.
+  const {
+    usePatientFullDetails,
+    usePatientActions,
+    addPatientAction: addPatientActionMutate,
+    isAddingAction,
+    updateActionStatus,
+    isUpdating,
+  } = usePatientResultQuery();
+
+  const { data: patientData, isLoading: isPatientLoading } =
+    usePatientFullDetails(resultId, {
+      enabled: !!resultId && !!getProfileQuery.data,
+    });
 
   const patientResult = patientData?.patientResult ?? null;
   const lockInAssessment = patientData?.lockInAssessment ?? null;
 
-  // Fetch actions
-  const { data: allActions = [], isLoading: isActionsLoading } = useQuery({
-    queryKey: [QUERY_KEYS.providerPatientActions, resultId],
-    queryFn: () => patientsService.getPatientActions(resultId),
-    enabled: !!resultId && !!patientData,
-    staleTime: 2 * 60 * 1000,
-  });
+  const { data: allActions = [], isLoading: isActionsLoading } =
+    usePatientActions(resultId, { enabled: !!resultId });
 
   // Filter actions for provider's own actions only
   const actions = useMemo(() => {
@@ -103,21 +107,14 @@ export function useProviderPatientDetails() {
   const pendingActions = actions;
   const historyActions = EMPTY_HISTORY_ACTIONS;
 
-  // Add action mutation
-  const addActionMutation = useMutation({
-    mutationFn: (data: { title: string; type: string; notes?: string }) =>
-      patientsService.addPatientAction(resultId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.providerPatientActions, resultId],
-      });
-      toast.success("Action added successfully");
+  const addPatientAction = useCallback(
+    async (data: { title: string; type: string; notes?: string }) => {
+      const result = await addPatientActionMutate({ resultId, data });
       setIsAddActionOpen(false);
+      return result;
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to add action");
-    },
-  });
+    [addPatientActionMutate, resultId],
+  );
 
   // Compute metrics categories (same as curator)
   const metrics = useMemo<MetricCategory[]>(() => {
@@ -226,9 +223,6 @@ export function useProviderPatientDetails() {
     return otherProvider?.fullName || null;
   }, [patientResult, providerId]);
 
-  // Treatment status mutation
-  const { updateActionStatus, isUpdating } = usePatientResultQuery();
-
   const handleUpdateActionStatus = useCallback(
     async (actionStatus: "TREATING" | "NOT_TREATING") => {
       if (!patientResult || !providerId) return;
@@ -243,10 +237,10 @@ export function useProviderPatientDetails() {
   // Refresh data helper
   const refreshData = useCallback(() => {
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEYS.providerPatientDetails, resultId],
+      queryKey: [QUERY_KEYS.patientResult, "full-details", resultId],
     });
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEYS.providerPatientActions, resultId],
+      queryKey: [QUERY_KEYS.patientResult, "actions", String(resultId)],
     });
   }, [queryClient, resultId]);
 
@@ -270,8 +264,8 @@ export function useProviderPatientDetails() {
     pendingActions,
     historyActions,
     isActionsLoading,
-    addPatientAction: addActionMutation.mutateAsync,
-    isAddingAction: addActionMutation.isPending,
+    addPatientAction,
+    isAddingAction,
     isAddActionOpen,
     setIsAddActionOpen,
 

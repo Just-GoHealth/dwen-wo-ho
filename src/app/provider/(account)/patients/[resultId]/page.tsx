@@ -35,6 +35,7 @@ import {
   AssessmentMetadataCard,
   UrgentCareStatusCard,
   SchoolComparisonCard,
+  PatientDetailSkeleton,
 } from "@/components/provider/patient-details";
 
 export default function PatientResultPage() {
@@ -69,16 +70,7 @@ export default function PatientResultPage() {
   const [showHistory, setShowHistory] = useState(false);
 
   if (isLoading) {
-    return (
-      <div className="bg-app-gradient flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="border-primary mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-b-2" />
-          <p className="text-muted-foreground text-sm">
-            Loading patient details...
-          </p>
-        </div>
-      </div>
-    );
+    return <PatientDetailSkeleton />;
   }
 
   if (!patientResult) {

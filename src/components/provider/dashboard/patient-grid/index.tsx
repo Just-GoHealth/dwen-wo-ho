@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import { useAtom } from "jotai";
 import { m } from "motion/react";
 import { UserRoundX } from "lucide-react";
 import PatientGridCard from "@/components/shared/patient-card/patient-grid-card";
@@ -8,12 +10,22 @@ import type { TriageTier } from "@/lib/utils/shared/triage";
 import type { ProviderDashboardState } from "@/hooks/provider/dashboard/use-dashboard";
 import { ProviderDashboardSkeleton } from "@/components/provider/workspace/dashboard-skeleton";
 import { useProviderProfile } from "@/hooks/provider/profile/use-profile";
+import {
+  patientGridVisibleCountAtom,
+  patientGridScrollTopAtom,
+} from "@/atoms/new-provider";
 
 interface PatientGridProps {
   filteredPatients: ProviderDashboardState["filteredPatients"];
   triageFilter: TriageTier | "all";
   isLoading?: boolean;
 }
+
+/** How many cards render up front, and how many more each scroll-triggered
+ * batch adds — the full roster is already fetched in one request (school
+ * badge counts need it all), this only limits how much DOM renders at
+ * once. */
+const BATCH_SIZE = 20;
 
 /**
  * Full-bleed patient roster grid for the provider home screen — replaces
@@ -32,13 +44,14 @@ export function PatientGrid({
   const currentProviderInitial =
     provider?.providerName?.charAt(0).toUpperCase() || "P";
 
-  if (isLoading) {
-    return (
-      <main className="no-scrollbar h-full overflow-y-auto px-4 py-4 pb-[clamp(112px,20vh,188px)]">
-        <ProviderDashboardSkeleton />
-      </main>
-    );
-  }
+  // Persisted in atoms, not local state — a plain useState resets on
+  // unmount, so opening a patient and pressing back re-mounted this grid
+  // fresh, dropping the provider back at the top with only the first
+  // batch rendered instead of wherever they'd scrolled to.
+  const [visibleCount, setVisibleCount] = useAtom(patientGridVisibleCountAtom);
+  const [savedScrollTop, setSavedScrollTop] = useAtom(patientGridScrollTopAtom);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const visiblePatients =
     triageFilter === "all"
@@ -49,10 +62,49 @@ export function PatientGrid({
             triageFilter,
         );
 
+  // Restore whatever scroll position was saved before navigating away —
+  // once, on mount, after the (already-restored) batch count has had a
+  // chance to render enough cards to actually scroll to that offset.
+  useEffect(() => {
+    if (mainRef.current) mainRef.current.scrollTop = savedScrollTop;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restore once on mount only
+  }, []);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) =>
+            Math.min(prev + BATCH_SIZE, visiblePatients.length),
+          );
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [visiblePatients.length, setVisibleCount]);
+
+  if (isLoading) {
+    return (
+      <main className="no-scrollbar h-full overflow-y-auto px-4 py-4 pb-[clamp(112px,20vh,188px)]">
+        <ProviderDashboardSkeleton />
+      </main>
+    );
+  }
+
+  const shownPatients = visiblePatients.slice(0, visibleCount);
+
   return (
-    <main className="no-scrollbar h-full overflow-y-auto px-4 py-4 pb-[clamp(112px,20vh,188px)]">
+    <main
+      ref={mainRef}
+      onScroll={(e) => setSavedScrollTop(e.currentTarget.scrollTop)}
+      className="no-scrollbar h-full overflow-y-auto px-4 py-4 pb-[clamp(112px,20vh,188px)]"
+    >
       <div className="grid grid-cols-2 gap-4 max-[480px]:grid-cols-1 min-[900px]:grid-cols-4">
-        {visiblePatients.map((patient, i) => (
+        {shownPatients.map((patient, i) => (
           <PatientGridCard
             key={
               patient.patientId != null && patient.patientId !== 0
@@ -69,6 +121,10 @@ export function PatientGrid({
           />
         ))}
       </div>
+
+      {visibleCount < visiblePatients.length && (
+        <div ref={sentinelRef} className="h-px w-full" />
+      )}
 
       {visiblePatients.length === 0 && (
         <m.div
