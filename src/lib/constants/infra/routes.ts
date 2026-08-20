@@ -35,6 +35,7 @@ export const ROUTES = {
     partners: "/curator/partners",
     providerDetails: "/curator/provider",
     pages: "/curator/pages",
+    competitions: "/curator/competitions",
   },
 } as const;
 
@@ -46,6 +47,10 @@ export const DYNAMIC_ROUTES = {
       `/curator/schools/${schoolId}`,
     patientDetails: (schoolId: string | number, patientId: string | number) =>
       `/curator/schools/${schoolId}/patients/${patientId}`,
+    competitionDetails: (versionCode: string) =>
+      `/curator/competitions/${versionCode}`,
+    teamDetails: (versionCode: string, teamId: string | number) =>
+      `/curator/competitions/${versionCode}/teams/${teamId}`,
   },
   provider: {
     schoolDetails: (schoolId: string | number) =>

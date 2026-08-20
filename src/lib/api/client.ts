@@ -72,6 +72,13 @@ const parseSuccessResponse = async (response: Response) => {
       data: data.data || data,
     };
   }
+  // CSV export etc. — the body is the payload itself, not a JSON envelope.
+  if (
+    contentType?.includes("text/csv") ||
+    contentType?.includes("text/plain")
+  ) {
+    return { success: true, message: "Success", data: await response.text() };
+  }
   return { success: true, message: "Success", data: null };
 };
 

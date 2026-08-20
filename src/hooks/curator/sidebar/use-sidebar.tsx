@@ -7,7 +7,12 @@ import { useHydrated } from "@/hooks/shared/use-hydrated";
 import { FiFileText, FiPlus } from "react-icons/fi";
 import type { Route } from "next";
 import { ROUTES } from "@/lib/constants/infra/routes";
-import { MdSchool, MdHealthAndSafety, MdHandshake } from "react-icons/md";
+import {
+  MdSchool,
+  MdHealthAndSafety,
+  MdHandshake,
+  MdEmojiEvents,
+} from "react-icons/md";
 import { useCuratorNotification } from "@/hooks/curator/notification/use-notification";
 import { NavItem } from "@/lib/types/components/curator/curator-sidebar/sidebar";
 import { useCuratorSummary } from "@/hooks/queries/use-curator";
@@ -32,6 +37,7 @@ export const useCuratorSidebar = () => {
       ROUTES.curator.providers,
       ROUTES.curator.partners,
       ROUTES.curator.pages,
+      ROUTES.curator.competitions,
     ];
 
     const isMainPage = mainPages.includes(pathname);
@@ -71,6 +77,11 @@ export const useCuratorSidebar = () => {
       href: ROUTES.curator.pages,
       label: "Pages",
       icon: <FiFileText className="shrink-0 text-lg" />,
+    },
+    {
+      href: ROUTES.curator.competitions as Route,
+      label: "Competitions",
+      icon: <MdEmojiEvents className="shrink-0 text-lg" />,
     },
     {
       href: ROUTES.curator.create as Route,

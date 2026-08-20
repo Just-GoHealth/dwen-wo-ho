@@ -8,6 +8,9 @@ const BASE_URLS = {
   PROVIDER_DASHBOARD: `/api/provider`,
   CURATOR: `${API_V1}/curator`,
   CURATOR_PROVIDERS: `${API_V1}/curator/providers`,
+  CURATOR_VERSIONS: `${API_V1}/curator/versions`,
+  CURATOR_TEAMS: `${API_V1}/curator/teams`,
+  CURATOR_FIXTURES: `${API_V1}/curator/fixtures`,
   SCHOOLS: `${API_V1}/schools`,
   CAMPUSES: `${API_V1}/campuses`,
   PROGRAMMES: `${API_V1}/programmes`,
@@ -83,6 +86,43 @@ export const STATIC_ENDPOINTS = {
 };
 
 export const DYNAMIC_ENDPOINTS = {
+  VERSIONS: {
+    SET_PERIOD: (code: string) =>
+      `${BASE_URLS.CURATOR_VERSIONS}/${code}/period`,
+    TEAMS: (code: string) => `${BASE_URLS.CURATOR_VERSIONS}/${code}/teams`,
+    REGISTER_TEAM: (code: string) =>
+      `${BASE_URLS.CURATOR_VERSIONS}/${code}/teams`,
+    TAG_TEAMS: (code: string) =>
+      `${BASE_URLS.CURATOR_VERSIONS}/${code}/teams/tag`,
+    UNTAG_TEAM: (code: string, campusId: string | number) =>
+      `${BASE_URLS.CURATOR_VERSIONS}/${code}/teams/campus/${campusId}`,
+    IMPORT_FIXTURES: (code: string) =>
+      `${BASE_URLS.CURATOR_VERSIONS}/${code}/fixtures/import`,
+  },
+  TEAMS: {
+    GET: (teamId: string | number) => `${BASE_URLS.CURATOR_TEAMS}/${teamId}`,
+    UPDATE: (teamId: string | number) => `${BASE_URLS.CURATOR_TEAMS}/${teamId}`,
+    FIXTURES: (teamId: string | number) =>
+      `${BASE_URLS.CURATOR_TEAMS}/${teamId}/fixtures`,
+    ADD_FIXTURE: (teamId: string | number) =>
+      `${BASE_URLS.CURATOR_TEAMS}/${teamId}/fixtures`,
+    ACCESS_CODES: (teamId: string | number, status?: string) =>
+      `${BASE_URLS.CURATOR_TEAMS}/${teamId}/access-codes${status ? `?status=${status}` : ""}`,
+    MINT_ACCESS_CODES: (teamId: string | number) =>
+      `${BASE_URLS.CURATOR_TEAMS}/${teamId}/access-codes`,
+    REVOKE_ACCESS_CODE: (teamId: string | number, codeId: string) =>
+      `${BASE_URLS.CURATOR_TEAMS}/${teamId}/access-codes/${codeId}/revoke`,
+    EXPORT_ACCESS_CODES: (teamId: string | number, batchId?: string) =>
+      `${BASE_URLS.CURATOR_TEAMS}/${teamId}/access-codes/export${batchId ? `?batchId=${batchId}` : ""}`,
+  },
+  FIXTURES: {
+    UPDATE: (fixtureId: string | number) =>
+      `${BASE_URLS.CURATOR_FIXTURES}/${fixtureId}`,
+    DELETE: (fixtureId: string | number) =>
+      `${BASE_URLS.CURATOR_FIXTURES}/${fixtureId}`,
+    RECORD_OUTCOME: (fixtureId: string | number) =>
+      `${BASE_URLS.CURATOR_FIXTURES}/${fixtureId}/outcome`,
+  },
   CURATOR_PROVIDERS: {
     GET: (providerId: string | number) =>
       `${BASE_URLS.CURATOR_PROVIDERS}/${providerId}`,
