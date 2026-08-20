@@ -20,7 +20,6 @@ export const QUERY_KEYS = {
   providerDashboard: "provider-dashboard",
   curatorProviderDetails: "curator-provider-details",
   curatorPatientModal: "curator-patient-modal",
-  curatorPatientDetails: "curator-patient-details",
   schoolDetail: "school-detail",
   competitionVersion: "competition-version",
   competitionTeam: "competition-team",

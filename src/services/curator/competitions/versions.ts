@@ -6,6 +6,8 @@ import {
   Team,
   RegisterTeamRequest,
   Version,
+  ImportFixturesRequest,
+  ImportFixturesResponse,
 } from "@/lib/types/api/competitions";
 import {
   extractArrayData,
@@ -60,10 +62,17 @@ export const versionsService = {
     });
   },
 
-  importFixtures: async (code: string, payload: unknown): Promise<void> => {
-    await api(DYNAMIC_ENDPOINTS.VERSIONS.IMPORT_FIXTURES(code), {
+  importFixtures: async (
+    code: string,
+    data: ImportFixturesRequest,
+  ): Promise<ImportFixturesResponse> => {
+    const result = await api(DYNAMIC_ENDPOINTS.VERSIONS.IMPORT_FIXTURES(code), {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(data),
     });
+    return requireSuccessData<ImportFixturesResponse>(
+      result,
+      "Failed to import fixtures",
+    );
   },
 };

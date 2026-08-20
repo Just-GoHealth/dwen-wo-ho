@@ -53,7 +53,6 @@ export default function useFixturesQuery() {
   const updateFixtureMutation = useMutation({
     mutationFn: ({
       fixtureId,
-      teamId,
       data,
     }: {
       fixtureId: string | number;

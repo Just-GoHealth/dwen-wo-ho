@@ -34,10 +34,14 @@ export function SchoolProfileBar({
   onOpenProviders,
 }: SchoolProfileBarProps) {
   return (
-    <div className="mb-6 flex items-center gap-4 py-4">
-      <Logo variant="white" withLink={false} className="h-6 w-auto shrink-0" />
+    <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-4">
+      <Logo
+        variant="white"
+        withLink={false}
+        className="h-6 w-auto shrink-0 justify-self-start"
+      />
 
-      <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
+      <div className="flex min-w-0 flex-col items-center gap-2">
         <p className="text-foreground text-xl font-extrabold tracking-tight">
           {rollCount} <span className="text-foreground/90">Patients</span>
         </p>

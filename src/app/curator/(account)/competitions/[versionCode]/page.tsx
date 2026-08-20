@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { Route } from "next";
 import { Star, Users, KeyRound, CalendarClock } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -15,12 +17,28 @@ import { currentCompetitionCodeAtom } from "@/atoms/competitions";
 import useVersionsQuery from "@/hooks/curator/competitions/use-versions";
 import useSchoolsQuery from "@/hooks/queries/use-schools";
 import { DYNAMIC_ROUTES } from "@/lib/constants/infra/routes";
+import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
+import type { ImportFixtureRow, Team } from "@/lib/types/api/competitions";
 
 export default function CompetitionVersionPage() {
   const params = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const versionCode = params.versionCode as string;
   const setCurrentCode = useSetAtom(currentCompetitionCodeAtom);
+
+  // The team list here already has each team's full object (fixtures
+  // included) — seed the team-detail page's own cache entry with it before
+  // navigating, instead of refetching data we already have in hand.
+  const openTeam = (team: Team) => {
+    queryClient.setQueryData(
+      [QUERY_KEYS.competitionTeam, "single", String(team.id)],
+      team,
+    );
+    router.push(
+      DYNAMIC_ROUTES.curator.teamDetails(versionCode, team.id) as Route,
+    );
+  };
 
   const {
     useVersionTeams,
@@ -51,6 +69,7 @@ export default function CompetitionVersionPage() {
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [fixturesJson, setFixturesJson] = useState("");
+  const [replaceExisting, setReplaceExisting] = useState(false);
   const [showImport, setShowImport] = useState(false);
 
   const toggleSchool = (id: string) => {
@@ -83,15 +102,19 @@ export default function CompetitionVersionPage() {
   };
 
   const handleImportFixtures = async () => {
+    let fixtures: ImportFixtureRow[];
     try {
-      const payload = JSON.parse(fixturesJson);
-      await importFixtures({ code: versionCode, payload });
-      setFixturesJson("");
-      setShowImport(false);
+      fixtures = JSON.parse(fixturesJson);
     } catch {
-      // JSON.parse failure — surfaced via the disabled/idle state, no need
-      // to duplicate an error toast on top of the mutation's own.
+      toast.error("That isn't valid JSON");
+      return;
     }
+    await importFixtures({
+      code: versionCode,
+      data: { replaceExisting, fixtures },
+    });
+    setFixturesJson("");
+    setShowImport(false);
   };
 
   return (
@@ -173,16 +196,27 @@ export default function CompetitionVersionPage() {
           {showImport && (
             <div className="border-border mb-4 rounded-xl border p-4">
               <Label htmlFor="fixtures-json">
-                Paste a JSON array of fixtures
+                Paste a JSON array of fixtures, one per campus
               </Label>
               <textarea
                 id="fixtures-json"
                 value={fixturesJson}
                 onChange={(e) => setFixturesJson(e.target.value)}
                 rows={6}
-                placeholder='[{"roundName":"Quarter-final","scheduledAt":"2026-09-01T12:00:00Z","timezone":"Africa/Accra","venue":"...","ordinal":1}]'
+                placeholder='[{"campusId":52,"roundName":"Quarter-final","scheduledAt":"2026-09-01T12:00:00Z","venue":"..."}]'
                 className="border-border bg-card mt-1 w-full rounded-lg border p-2 font-mono text-xs"
               />
+              <label className="mt-2 flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={replaceExisting}
+                  onCheckedChange={(c) => setReplaceExisting(c === true)}
+                />
+                Replace existing fixtures for these campuses
+              </label>
+              <p className="text-muted-foreground mt-1 text-xs">
+                A campus with no team here is skipped and reported, not
+                dropped silently.
+              </p>
               <LoadingButton
                 onClick={handleImportFixtures}
                 loading={isImportingFixtures}
@@ -214,14 +248,7 @@ export default function CompetitionVersionPage() {
               <button
                 key={team.id}
                 type="button"
-                onClick={() =>
-                  router.push(
-                    DYNAMIC_ROUTES.curator.teamDetails(
-                      versionCode,
-                      team.id,
-                    ) as Route,
-                  )
-                }
+                onClick={() => openTeam(team)}
                 className="border-border bg-card/40 hover:border-primary/50 flex flex-col gap-1 rounded-xl border p-4 text-left transition-colors"
               >
                 <p className="text-foreground font-extrabold">

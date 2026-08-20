@@ -5,7 +5,8 @@ import type { Route } from "next";
 import { DYNAMIC_ROUTES } from "@/lib/constants/infra/routes";
 import { Button } from "@/components/ui/button";
 
-import { Loader2, School } from "lucide-react";
+import { School } from "lucide-react";
+import { SchoolCardSkeletonGrid } from "@/components/curator/schools/school-card/skeleton";
 
 import WidthConstraint from "@/components/ui/width-constraint";
 
@@ -57,23 +58,26 @@ export default function SchoolsPage() {
 
   if (isError) {
     return (
-      <WidthConstraint>
-        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-8 p-8">
-          <div className="text-destructive text-center font-medium">
-            Failed to load schools
-          </div>
+      <div className="bg-app-gradient min-h-screen">
+        <WidthConstraint>
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-8 p-8">
+            <div className="text-destructive text-center font-medium">
+              Failed to load schools
+            </div>
 
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
-      </WidthConstraint>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </div>
+        </WidthConstraint>
+      </div>
     );
   }
 
   return (
-    <WidthConstraint>
-      <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8 p-4 duration-700 md:p-8">
+    <div className="bg-app-gradient min-h-screen">
+      <WidthConstraint>
+        <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8 p-4 duration-700 md:p-8">
         <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
           {/* Header */}
           <div className="flex flex-col gap-2">
@@ -154,13 +158,7 @@ export default function SchoolsPage() {
 
         {/* Content */}
         {isLoading && !hasCachedData ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-20">
-            <Loader2 className="text-primary h-10 w-10 animate-spin" />
-
-            <p className="text-muted-foreground font-medium">
-              Loading schools...
-            </p>
-          </div>
+          <SchoolCardSkeletonGrid />
         ) : schoolsList.length === 0 ? (
           <div className="animate-in fade-in zoom-in-95 flex flex-col items-center justify-center gap-4 py-20 text-center duration-500">
             <div className="bg-muted flex h-20 w-20 items-center justify-center rounded-full">
@@ -180,7 +178,7 @@ export default function SchoolsPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 pb-20 lg:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 pb-20 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {schoolsList.map((school, i) => (
               <div
                 key={school.id}
@@ -193,6 +191,7 @@ export default function SchoolsPage() {
           </div>
         )}
       </div>
-    </WidthConstraint>
+      </WidthConstraint>
+    </div>
   );
 }
