@@ -74,7 +74,7 @@ export const CuratorSidebar = (props: SidebarProps) => {
           width: isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH,
         }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className="bg-card border-border/60 relative hidden h-screen shrink-0 flex-col overflow-hidden border-r md:flex"
+        className="bg-app-gradient bg-card border-border/60 relative hidden h-screen shrink-0 flex-col overflow-hidden border-r md:flex"
       >
         <SidebarContent {...sidebarContentProps} collapsed={isCollapsed} />
       </m.aside>
@@ -87,7 +87,7 @@ export const CuratorSidebar = (props: SidebarProps) => {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="bg-card border-border/60 fixed top-14 bottom-0 left-0 z-40 w-72 overflow-hidden border-r shadow-2xl md:hidden"
+            className="bg-app-gradient bg-card border-border/60 fixed top-14 bottom-0 left-0 z-40 w-72 overflow-hidden border-r shadow-2xl md:hidden"
           >
             <SidebarContent {...sidebarContentProps} collapsed={false} />
           </m.aside>

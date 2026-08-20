@@ -176,10 +176,10 @@ export default function PatientGridCard<T extends PatientCardPatient>({
   };
 
   const handleOpen = () => {
+    prefetchPatientDetails();
     if (onActionClick) {
       onActionClick(fields.id);
     } else if (detailRoute) {
-      prefetchPatientDetails();
       router.push(detailRoute(fields.id) as Parameters<typeof router.push>[0]);
     }
   };
@@ -205,7 +205,7 @@ export default function PatientGridCard<T extends PatientCardPatient>({
             onToggleSelect?.(fields.id, checked === true)
           }
           onClick={(e) => e.stopPropagation()}
-          className="bg-background border-primary absolute top-2 left-2 z-10"
+          className="bg-background border-primary absolute top-2 left-2 z-30"
         />
       )}
 
@@ -221,7 +221,7 @@ export default function PatientGridCard<T extends PatientCardPatient>({
           compare. Cards are one-per-row on mobile now, so there's room for
           all three back in a single row at every breakpoint. */}
         <div className="grid min-h-[29px] w-full grid-cols-[1fr_auto_1fr] items-center gap-1.5">
-          <div className="justify-self-start">
+          <div className={cn("justify-self-start", showCheckbox && "ml-6")}>
             {teamCount > 0 ? (
               <TeamAvatarStack
                 otherCount={teamCount}

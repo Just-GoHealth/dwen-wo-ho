@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { patientsService } from "@/services/shared/patients";
 import usePatientResultQuery from "@/hooks/queries/use-patient-result";
-import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
 import { useDeleteSinglePatientRecord } from "@/hooks/curator/delete-patient-records/use-delete-patient-records";
 import { buildPatientLockinMetrics } from "@/lib/utils/curator/patient-dashboard/lockin-metrics";
 
@@ -23,21 +20,22 @@ export function useCuratorPatientDetails() {
   const { deleteSinglePatient, singleDeletePending } =
     useDeleteSinglePatientRecord(schoolId);
 
-  const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEYS.curatorPatientDetails, patientId],
-    queryFn: () => patientsService.getFullPatientDetails(patientId),
+  // Shared with the generic patient-result layer (also used by the
+  // provider-side detail page) so this screen hits the same cache entry
+  // instead of a disjoint one under its own key. The actions fetch only
+  // needs patientId, not the full-details result, so it runs in parallel
+  // rather than waiting on it.
+  const { usePatientFullDetails, usePatientActions, addPatientAction, isAddingAction } =
+    usePatientResultQuery();
+  const { data, isLoading } = usePatientFullDetails(patientId, {
     enabled: !!patientId,
-    staleTime: 3 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
   });
 
   const patientResult = data?.patientResult ?? null;
   const lockInAssessment = data?.lockInAssessment ?? null;
 
-  const { usePatientActions, addPatientAction, isAddingAction } =
-    usePatientResultQuery();
   const actionsQuery = usePatientActions(patientId, {
-    enabled: !!patientId && !!data,
+    enabled: !!patientId,
   });
   const actions = actionsQuery.data ?? [];
 

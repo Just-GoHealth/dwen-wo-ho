@@ -6,6 +6,8 @@ import { MdHealthAndSafety } from "react-icons/md";
 import WidthConstraint from "@/components/ui/width-constraint";
 import ProviderDetailsPanel from "@/components/curator/providers/provider-details-panel";
 import ProviderCard from "@/components/curator/providers/provider-card/index";
+import { ProviderCardSkeletonGrid } from "@/components/curator/providers/provider-card/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import { useCuratorProviders } from "@/hooks/curator/providers/use-providers";
 
@@ -59,13 +61,12 @@ function ProvidersPageContent() {
   if (isLoading) {
     return (
       <WidthConstraint>
-        <div className="flex flex-col gap-6 p-6">
-          <div className="flex h-64 items-center justify-center">
-            <div className="text-center">
-              <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-              <p className="text-gray-600">Loading providers...</p>
-            </div>
+        <div className="flex flex-col gap-6 md:p-6">
+          <div className="bg-card border-border rounded-xl border p-6 shadow-sm">
+            <Skeleton className="mb-2 h-8 w-40" />
+            <Skeleton className="h-4 w-56" />
           </div>
+          <ProviderCardSkeletonGrid />
         </div>
       </WidthConstraint>
     );

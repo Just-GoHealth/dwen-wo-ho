@@ -147,7 +147,10 @@ export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
     const data = {
       roundName: next?.roundName || "NSMQ",
       scheduledAt: draftDate.toISOString(),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      // Display-only (renders whenLabel, e.g. "Today · 3pm") — not the
+      // curator's own browser timezone, which could be anywhere. Every
+      // school here is in Ghana.
+      timezone: next?.timezone || "Africa/Accra",
       venue: next?.venue ?? "",
       ordinal: next?.ordinal ?? fixtures.length,
     };

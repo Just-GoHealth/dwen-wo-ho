@@ -52,6 +52,29 @@ export interface AddFixtureRequest {
   ordinal: number;
 }
 
+/** One row of a bulk fixture import — keyed by campusId, not teamId, since
+ * a version's fixtures are set for many schools at once. */
+export interface ImportFixtureRow {
+  campusId: number | string;
+  roundName: string;
+  scheduledAt: string;
+  timezone?: string;
+  venue?: string;
+  ordinal?: number;
+}
+
+export interface ImportFixturesRequest {
+  replaceExisting: boolean;
+  fixtures: ImportFixtureRow[];
+}
+
+export interface ImportFixturesResponse {
+  imported: number;
+  /** Rows naming a campus with no team in this version — never silently
+   * dropped, always reported back. */
+  skipped: { campusId: number | string; reason?: string }[];
+}
+
 export interface RecordFixtureOutcomeRequest {
   outcome: FixtureOutcome;
 }

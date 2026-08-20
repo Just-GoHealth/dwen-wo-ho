@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSetAtom } from "jotai";
+import { toast } from "sonner";
 import { Trophy } from "lucide-react";
 import {
   Dialog,
@@ -14,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { currentCompetitionCodeAtom } from "@/atoms/competitions";
 import useVersionsQuery from "@/hooks/curator/competitions/use-versions";
+import { versionsService } from "@/services/curator/competitions/versions";
+import { parseApiError } from "@/lib/utils/shared/api-error";
 import type { Team } from "@/lib/types/api/competitions";
 
 interface JoinCompetitionPillProps {
@@ -40,13 +43,42 @@ export function JoinCompetitionPill({
   const handleJoin = async () => {
     const trimmed = code.trim();
     if (!trimmed) return;
-    const team = await registerTeam({
-      code: trimmed,
-      data: { campusId: schoolId },
-    });
-    setCurrentCode(trimmed);
-    onRegistered(team);
-    setOpen(false);
+
+    try {
+      const team = await registerTeam({
+        code: trimmed,
+        data: { campusId: schoolId },
+      });
+      setCurrentCode(trimmed);
+      onRegistered(team);
+      setOpen(false);
+    } catch (error) {
+      // A 409 here means this school already has a team in this
+      // competition (a real, expected case — e.g. a fresh browser session
+      // that never learned the code) — recover by looking the existing
+      // team up instead of leaving the curator stuck.
+      const { code: errorCode } = parseApiError(error);
+      if (errorCode !== "TEAM_ALREADY_EXISTS") {
+        // Any other failure already got its toast from the mutation's own
+        // onError — nothing more to do here.
+        return;
+      }
+
+      const teams = await versionsService.getTeams(trimmed).catch(() => []);
+      const existing = teams.find(
+        (t) => String(t.campusId) === String(schoolId),
+      );
+      if (!existing) {
+        toast.error(
+          "This school already has a team here, but it couldn't be found — try again.",
+        );
+        return;
+      }
+
+      setCurrentCode(trimmed);
+      onRegistered(existing);
+      setOpen(false);
+    }
   };
 
   return (

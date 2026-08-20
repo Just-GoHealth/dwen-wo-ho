@@ -3,6 +3,7 @@
 import WidthConstraint from "@/components/ui/width-constraint";
 import { Building2, Search } from "lucide-react";
 import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
 import PartnerDetailsPanel from "@/components/curator/partners/partner-details-panel";
 import { useCuratorPartners } from "@/hooks/curator/partners/use-partners";
 
@@ -46,11 +47,19 @@ export default function PartnersPage() {
 
         {/* Partners Grid - show loading only when no cache and we're fetching */}
         {atomLoading && cachedPartners.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-              <p className="text-muted-foreground">Loading partners...</p>
-            </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl border p-6">
+                <div className="flex items-start gap-4">
+                  <Skeleton className="size-16 shrink-0 rounded-lg" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredPartners.length === 0 ? (
           <div className="py-20 text-center">

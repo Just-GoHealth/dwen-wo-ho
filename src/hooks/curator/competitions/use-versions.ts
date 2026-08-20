@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { versionsService } from "@/services/curator/competitions/versions";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
+import { parseApiError } from "@/lib/utils/shared/api-error";
 import type {
   RegisterTeamRequest,
   SetVersionPeriodRequest,
   TagSchoolsIntoVersionRequest,
+  ImportFixturesRequest,
 } from "@/lib/types/api/competitions";
 
 const useVersionTeams = (code: string, options?: { enabled?: boolean }) =>
@@ -32,7 +34,7 @@ export default function useVersionsQuery() {
       toast.success("Competition season updated");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to set the competition season");
+      toast.error(parseApiError(error).message);
     },
   });
 
@@ -46,7 +48,12 @@ export default function useVersionsQuery() {
       toast.success("Team registered");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to register team");
+      const { code } = parseApiError(error);
+      // Recovery for this specific case lives in JoinCompetitionPill, which
+      // looks the existing team up instead of leaving the curator stuck —
+      // skip the toast there so it doesn't read as a real failure.
+      if (code === "TEAM_ALREADY_EXISTS") return;
+      toast.error(parseApiError(error).message);
     },
   });
 
@@ -65,7 +72,7 @@ export default function useVersionsQuery() {
       toast.success("Schools tagged into the competition");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to tag schools");
+      toast.error(parseApiError(error).message);
     },
   });
 
@@ -84,21 +91,32 @@ export default function useVersionsQuery() {
       toast.success("School removed from the competition");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to remove school");
+      toast.error(parseApiError(error).message);
     },
   });
 
   const importFixturesMutation = useMutation({
-    mutationFn: ({ code, payload }: { code: string; payload: unknown }) =>
-      versionsService.importFixtures(code, payload),
-    onSuccess: (_, { code }) => {
+    mutationFn: ({
+      code,
+      data,
+    }: {
+      code: string;
+      data: ImportFixturesRequest;
+    }) => versionsService.importFixtures(code, data),
+    onSuccess: (result, { code }) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.competitionTeam, code],
       });
-      toast.success("Fixtures imported");
+      if (result.skipped.length > 0) {
+        toast.warning(
+          `Imported ${result.imported}, skipped ${result.skipped.length} (no team for that campus)`,
+        );
+      } else {
+        toast.success(`Imported ${result.imported} fixture${result.imported === 1 ? "" : "s"}`);
+      }
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to import fixtures");
+      toast.error(parseApiError(error).message);
     },
   });
 

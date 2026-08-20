@@ -1,17 +1,32 @@
 import { ChevronLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { PatientDetailsErrorViewProps } from "@/lib/types/components/curator/patient-dashboard";
 
+/** Mirrors `PatientDetailsPageContent`'s real layout (header, 2-col
+ * metrics/actions grid) so there's no layout jump when real data lands. */
 export function PatientDetailsLoadingView() {
   return (
-    <div className="bg-muted/5 flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="border-primary mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-b-2" />
-        <p className="text-muted-foreground text-sm">
-          Loading patient details...
-        </p>
-      </div>
+    <div className="bg-muted/5 flex min-h-screen flex-col">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center gap-4">
+          <Skeleton className="size-16 shrink-0 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+          </div>
+          <Skeleton className="h-96 w-full rounded-xl" />
+        </div>
+      </main>
     </div>
   );
 }

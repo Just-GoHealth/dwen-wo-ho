@@ -14,10 +14,13 @@ import useFixturesQuery from "@/hooks/curator/competitions/use-fixtures";
 import { SchoolAccessCodesSheet } from "@/components/curator/school-details";
 import type { AddFixtureRequest, Fixture } from "@/lib/types/api/competitions";
 
+// Display-only (renders whenLabel, e.g. "Today · 3pm") — not the curator's
+// own browser timezone, which could be anywhere. Every school here is in
+// Ghana.
 const EMPTY_FIXTURE_FORM = {
   roundName: "",
   scheduledAt: "",
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timezone: "Africa/Accra",
   venue: "",
   ordinal: 0,
 };

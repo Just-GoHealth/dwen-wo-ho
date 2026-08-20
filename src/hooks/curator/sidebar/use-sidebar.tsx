@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useHydrated } from "@/hooks/shared/use-hydrated";
@@ -18,7 +18,7 @@ import { NavItem } from "@/lib/types/components/curator/curator-sidebar/sidebar"
 import { useCuratorSummary } from "@/hooks/queries/use-curator";
 
 export const useCuratorSidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsedState] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const pathname = usePathname();
@@ -28,12 +28,24 @@ export const useCuratorSidebar = () => {
   const { notifications, unreadCount, setIsOpen } = useCuratorNotification();
   const { data: summary } = useCuratorSummary();
 
-  // Auto-collapse sidebar on non-main pages
+  // Tracks whether the *current* collapsed state was forced by the
+  // auto-collapse-on-detail-page effect below, as opposed to the user's own
+  // toggle — so returning to a main page only restores what the effect
+  // itself changed, never overriding a collapse the user chose deliberately.
+  const autoCollapsedRef = useRef(false);
+
+  const setIsCollapsed = (value: boolean) => {
+    autoCollapsedRef.current = false;
+    setIsCollapsedState(value);
+  };
+
+  // Auto-collapse sidebar on non-main pages (e.g. school details) to give
+  // them more room — but never force it back open on main pages if the user
+  // had already collapsed it themselves.
   useEffect(() => {
     const mainPages: string[] = [
       ROUTES.curator.dashboard,
       ROUTES.curator.create,
-      ROUTES.curator.schools,
       ROUTES.curator.providers,
       ROUTES.curator.partners,
       ROUTES.curator.pages,
@@ -43,9 +55,13 @@ export const useCuratorSidebar = () => {
     const isMainPage = mainPages.includes(pathname);
 
     if (!isMainPage) {
-      setIsCollapsed(true);
-    } else {
-      setIsCollapsed(false);
+      setIsCollapsedState((prev) => {
+        if (!prev) autoCollapsedRef.current = true;
+        return true;
+      });
+    } else if (autoCollapsedRef.current) {
+      autoCollapsedRef.current = false;
+      setIsCollapsedState(false);
     }
   }, [pathname]);
 
