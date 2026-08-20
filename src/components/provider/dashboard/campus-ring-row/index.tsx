@@ -17,7 +17,7 @@ interface CampusRingRowProps {
   isLoading?: boolean;
 }
 
-const RING_SIZE = 64;
+const RING_SIZE = 48;
 
 /** Dimmed + desaturated siblings while one campus is active — matches
  * `.pr-schools.filtered .pr-sch:not(.on){opacity:.32;filter:grayscale(.55)}`. */
@@ -96,7 +96,7 @@ export function CampusRingRow({
 
   if (isLoading) {
     return (
-      <div className="no-scrollbar flex items-center justify-center gap-4 overflow-x-auto px-6 py-5">
+      <div className="no-scrollbar flex items-center justify-center gap-3 overflow-x-auto px-6 py-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={`campus-ring-skeleton-${i}`}
@@ -134,7 +134,7 @@ export function CampusRingRow({
       <div
         ref={scrollRef}
         className={cn(
-          "no-scrollbar flex items-center gap-4 overflow-x-auto px-12 py-5",
+          "no-scrollbar flex items-center gap-3 overflow-x-auto px-12 py-4",
           canScrollLeft || canScrollRight ? "justify-start" : "justify-center",
         )}
       >
