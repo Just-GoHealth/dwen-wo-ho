@@ -172,7 +172,7 @@ export default function PatientGridCard<T extends PatientCardPatient>({
       style={{ animationDelay: `${Math.min((index % 20) * 0.03, 0.6)}s` }}
       className={cn(
         "group bg-card animate-in fade-in slide-in-from-bottom-2 relative flex w-full min-w-0 flex-col items-center gap-1",
-        "rounded-2xl border border-[rgba(255,255,255,.14)] px-[clamp(10px,1vw,16px)] pt-[clamp(11px,1.5vh,16px)] pb-[clamp(13px,1.8vh,19px)] text-center",
+        "rounded-xl border border-[rgba(255,255,255,.14)] px-[clamp(10px,1vw,16px)] pt-[clamp(11px,1.5vh,16px)] pb-[clamp(13px,1.8vh,19px)] text-center",
         "backdrop-blur-[12px] backdrop-saturate-[1.2]",
         "shadow-[0_14px_34px_rgba(0,0,0,.35)] transition-all duration-[240ms] ease-out",
         "hover:bg-foreground/5 hover:-translate-y-[7px] hover:border-[rgba(232,212,173,.6)]",
@@ -205,7 +205,8 @@ export default function PatientGridCard<T extends PatientCardPatient>({
         {/* top row — team stack or NEW badge, school pill, triage flag. Grid
           (not flex justify-between) so the school pill is genuinely
           centered regardless of how the left slot and triage badge widths
-          compare. */}
+          compare. Cards are one-per-row on mobile now, so there's room for
+          all three back in a single row at every breakpoint. */}
         <div className="grid min-h-[29px] w-full grid-cols-[1fr_auto_1fr] items-center gap-1.5">
           <div className="justify-self-start">
             {teamCount > 0 ? (

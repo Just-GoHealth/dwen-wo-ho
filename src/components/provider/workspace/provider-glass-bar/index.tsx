@@ -39,16 +39,16 @@ export function ProviderGlassBar({
         className,
       )}
     >
-      <div className="relative flex w-full flex-row items-center gap-2 px-4 py-3 sm:grid sm:min-h-24 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-4 sm:px-8 md:min-h-28 md:px-14 lg:min-h-32 lg:px-20">
+      <div className="relative flex w-full flex-row items-center gap-2 px-4 py-3 sm:grid sm:min-h-24 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-6 sm:px-8 md:min-h-28 md:gap-8 md:px-14 lg:min-h-32 lg:px-20">
         {left && (
-          <div className="flex min-w-0 shrink-0 items-center gap-3 overflow-hidden sm:order-1 sm:min-w-0 sm:justify-self-start">
+          <div className="flex min-w-0 shrink-0 items-center gap-3 overflow-hidden sm:order-1 sm:col-start-1 sm:min-w-0 sm:justify-start">
             {left}
           </div>
         )}
         {center && (
           <div
             className={cn(
-              "flex shrink-0 items-center justify-center gap-4 sm:order-2 sm:ml-0 sm:justify-self-center",
+              "flex shrink-0 items-center justify-center gap-4 sm:order-2 sm:col-start-2 sm:ml-0",
               left && "ml-auto",
             )}
           >
@@ -58,7 +58,7 @@ export function ProviderGlassBar({
         {right && (
           <div
             className={cn(
-              "flex shrink-0 items-center gap-4 sm:order-3 sm:ml-0 sm:justify-self-end",
+              "flex shrink-0 items-center gap-4 sm:order-3 sm:col-start-3 sm:ml-0 sm:justify-end",
               !center && "ml-auto",
             )}
           >

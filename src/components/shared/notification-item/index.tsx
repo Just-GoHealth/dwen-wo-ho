@@ -53,7 +53,7 @@ export default function NotifItem<N>({
         onClick={handleActivate}
         onKeyDown={activateOnKeyboard(handleActivate)}
         className={cn(
-          "relative flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-all duration-300 ease-in-out",
+          "relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-all duration-300 ease-in-out",
           isUnread
             ? "bg-success/15 border-success/20 border-l-success/50 border-l-3 shadow-sm"
             : "bg-muted border-muted",

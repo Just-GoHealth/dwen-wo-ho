@@ -22,10 +22,23 @@ const NO_DATA_METRICS: MetricCategory[] = [
     name: "General Mental Health",
     description: "No data yet",
     score: "—",
+    color: "var(--sw-red-deep)",
     items: [],
   },
-  { name: "Exam Anxiety", description: "No data yet", score: "—", items: [] },
-  { name: "Exam Prep", description: "No data yet", score: "—", items: [] },
+  {
+    name: "Exam Anxiety",
+    description: "No data yet",
+    score: "—",
+    color: "var(--sw-red-deep)",
+    items: [],
+  },
+  {
+    name: "Exam Prep",
+    description: "No data yet",
+    score: "—",
+    color: "var(--sw-red-deep)",
+    items: [],
+  },
 ];
 
 export type ActionTab = "pending" | "history";
@@ -41,6 +54,7 @@ export interface MetricCategory {
   name: string;
   description: string;
   score: string;
+  color: string;
   items: MetricItem[];
 }
 
@@ -113,6 +127,7 @@ export function useProviderPatientDetails() {
         name: "General Mental Health",
         description: lockInAssessment.generalMentalHealth,
         score: lockInAssessment.generalMentalHealthScore,
+        color: getColorHex(lockInAssessment.generalMentalHealthColor),
         items: [
           {
             name: "Depression",
@@ -138,6 +153,7 @@ export function useProviderPatientDetails() {
         name: "Exam Anxiety",
         description: lockInAssessment.examAnxiety,
         score: lockInAssessment.examAnxietyScore,
+        color: getColorHex(lockInAssessment.examAnxietyColor),
         items: [
           {
             name: "Physical Distress",
@@ -157,6 +173,7 @@ export function useProviderPatientDetails() {
         name: "Exam Prep",
         description: lockInAssessment.examPrep,
         score: lockInAssessment.examPrepScore,
+        color: getColorHex(lockInAssessment.examPrepColor),
         items: [
           {
             name: "Motivation",

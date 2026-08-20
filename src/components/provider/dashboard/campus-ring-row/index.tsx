@@ -1,7 +1,8 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import CampusStoryRing from "@/components/shared/campus-story-ring";
 import type { ProviderDashboardState } from "@/hooks/provider/dashboard/use-dashboard";
@@ -60,6 +61,38 @@ export function CampusRingRow({
   isLoading,
 }: CampusRingRowProps) {
   const isFiltered = activeSchool !== "all";
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // Only show a caret on the side there's actually more to scroll toward —
+  // no point offering a left/right nudge when the whole row already fits.
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    const resizeObserver = new ResizeObserver(updateScrollState);
+    resizeObserver.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      resizeObserver.disconnect();
+    };
+  }, [updateScrollState, schools.length]);
+
+  const scrollByAmount = (direction: 1 | -1) => {
+    scrollRef.current?.scrollBy({
+      left: direction * (RING_SIZE + 96),
+      behavior: "smooth",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -81,8 +114,30 @@ export function CampusRingRow({
   }
 
   return (
-    <ScrollArea className="w-full">
-      <div className="no-scrollbar flex items-center justify-center gap-4 overflow-x-auto px-6 py-5">
+    <div className="relative w-full">
+      {canScrollLeft && (
+        <button
+          type="button"
+          onClick={() => scrollByAmount(-1)}
+          aria-label="Scroll campuses left"
+          className="border-border text-muted-foreground hover:border-primary hover:text-primary bg-background/80 absolute top-1/2 left-1 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm backdrop-blur-sm transition-colors"
+        >
+          <ChevronLeft className="size-4" />
+        </button>
+      )}
+
+      {/* Centered when everything fits (nicer default look), left-aligned
+        the moment it overflows — centering an overflowing scroll container
+        leaves whatever spills past the left edge permanently unreachable
+        (scrollLeft can't go negative), which cut off the first campus
+        entirely when there were enough schools to need scrolling. */}
+      <div
+        ref={scrollRef}
+        className={cn(
+          "no-scrollbar flex items-center gap-4 overflow-x-auto px-12 py-5",
+          canScrollLeft || canScrollRight ? "justify-start" : "justify-center",
+        )}
+      >
         {schools
           .filter((s) => s.schoolId != null)
           .map((school) => {
@@ -130,6 +185,17 @@ export function CampusRingRow({
             );
           })}
       </div>
-    </ScrollArea>
+
+      {canScrollRight && (
+        <button
+          type="button"
+          onClick={() => scrollByAmount(1)}
+          aria-label="Scroll campuses right"
+          className="border-border text-muted-foreground hover:border-primary hover:text-primary bg-background/80 absolute top-1/2 right-1 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm backdrop-blur-sm transition-colors sm:right-14"
+        >
+          <ChevronRight className="size-4" />
+        </button>
+      )}
+    </div>
   );
 }

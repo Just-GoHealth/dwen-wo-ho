@@ -58,7 +58,7 @@ export function ProviderHomeShell({ dashboard }: ProviderHomeShellProps) {
       <NotificationBell
         unreadCount={unreadCount}
         onOpenNotifs={() => setNotifOpen(true)}
-        containerClassName="absolute top-4 right-4 z-50"
+        containerClassName="absolute right-4 bottom-20 z-50 sm:top-4 sm:right-4 sm:bottom-auto"
       />
 
       <CampusRingRow

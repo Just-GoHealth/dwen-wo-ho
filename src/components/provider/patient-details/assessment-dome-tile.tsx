@@ -39,10 +39,12 @@ const STAGGER_Y: Record<number, string> = {
  * (`.ss` rows) below the arch; the parent panel hides sibling domes while
  * one is open.
  *
- * Reuses the existing `MetricCategory` shape unchanged. There's no
- * per-category severity color in the data, only per-item colors — the band
- * pill borrows the first item's color as a reasonable real-data stand-in
- * rather than fabricating a category-level color.
+ * Reuses the existing `MetricCategory` shape unchanged. The band pill uses
+ * the category's own severity color (`generalMentalHealthColor` etc. from
+ * the backend) — it used to borrow the first item's color instead, which
+ * could show a band color that had nothing to do with the category's own
+ * description (e.g. a "Poor" band rendering green because the first item
+ * happened to be green).
  */
 export function AssessmentDomeTile({
   category,
@@ -55,7 +57,7 @@ export function AssessmentDomeTile({
   staggerIndex,
   onToggle,
 }: AssessmentDomeTileProps) {
-  const bandColor = category.items[0]?.color ?? "var(--muted-foreground)";
+  const bandColor = category.color || "var(--muted-foreground)";
   const slotRef = useRef<HTMLDivElement>(null);
 
   // Opening a dome can reorder/hide siblings above it (the open one always
