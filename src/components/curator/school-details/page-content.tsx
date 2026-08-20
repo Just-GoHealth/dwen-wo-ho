@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import type { Route } from "next";
-import type { UrgentPatient } from "@/lib/types/entities/patient";
 import { ROUTES, DYNAMIC_ROUTES } from "@/lib/constants/infra/routes";
 import type { CuratorSchoolDetailsState } from "@/hooks/curator/school-details/use-school-details";
 import {
   SchoolProfileBar,
-  SchoolRollRow,
+  SchoolGlassBar,
+  NextFixturePill,
+  JoinCompetitionPill,
+  SchoolAccessCodesSheet,
   SchoolProvidersSheet,
-  UrgentPanel,
 } from "@/components/curator/school-details";
+import type { Team } from "@/lib/types/api/competitions";
+import { useCurrentSchoolTeam } from "@/hooks/curator/competitions/use-current-school-team";
 import { Button } from "@/components/ui/button";
 import { FilterTabBar } from "@/components/shared/filter-tab-bar/index";
 import type { SchoolTab } from "@/lib/types/components/curator/school-details/school-details";
@@ -32,7 +35,6 @@ export function SchoolDetailsPageContent({
     patients,
     providers,
     icons: schoolIcons,
-    urgentCare,
     campusLabel,
     patientsLoading,
     providersLoading,
@@ -58,6 +60,15 @@ export function SchoolDetailsPageContent({
 
   const [triageFilter, setTriageFilter] = useState<TriageTier | "all">("all");
   const [showProvidersSheet, setShowProvidersSheet] = useState(false);
+  const [showAccessCodesSheet, setShowAccessCodesSheet] = useState(false);
+  const { team } = useCurrentSchoolTeam(schoolId);
+  // Set the moment "Join a competition" registers this school — lets the
+  // rest of this page light up (Next Contest, Access Codes) without
+  // waiting on the team-lookup query to refetch first.
+  const [justRegisteredTeam, setJustRegisteredTeam] = useState<Team | null>(
+    null,
+  );
+  const effectiveTeam = team ?? justRegisteredTeam;
 
   if (!school) return null;
 
@@ -71,24 +82,19 @@ export function SchoolDetailsPageContent({
         );
 
   return (
-    <div className="bg-primary/10 animate-in fade-in flex min-h-screen flex-col duration-500">
-      <div className="relative flex w-full flex-1 flex-col items-start lg:flex-row">
-        <div className="relative z-10 flex w-full min-w-0 flex-1 flex-col px-4 py-6 sm:px-6">
+    <div className="bg-app-gradient animate-in fade-in relative flex min-h-screen flex-col duration-500">
+      <div className="relative flex w-full flex-1 flex-col items-start">
+        <div className="relative z-10 flex w-full min-w-0 flex-1 flex-col px-4 py-6 pb-32 sm:px-6">
           <SchoolDetailsBackNav
             onBack={() => router.push(ROUTES.curator.schools)}
           />
 
           <SchoolProfileBar
-            school={school}
             providerCount={providers.length}
-            onEditClick={() => setShowEditModal(true)}
-            onOpenProviders={() => setShowProvidersSheet(true)}
-          />
-
-          <SchoolRollRow
             rollCount={patients.length}
             triageFilter={triageFilter}
             onTriageFilterChange={setTriageFilter}
+            onOpenProviders={() => setShowProvidersSheet(true)}
           />
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -165,28 +171,39 @@ export function SchoolDetailsPageContent({
             onProviderClick={handleProviderClick}
           />
         </div>
-
-        <UrgentPanel
-          className="border-border/50 bg-destructive/5 h-dvh w-full shrink-0 border-l lg:sticky lg:top-0 lg:h-screen lg:w-95"
-          patients={urgentCare.patients}
-          title="Urgent Care"
-          emptyStateText="No urgent care patients"
-          onPatientClick={(patient: UrgentPatient) =>
-            router.push(
-              DYNAMIC_ROUTES.curator.patientDetails(
-                schoolId,
-                patient.patientResultId,
-              ) as Route,
-            )
-          }
-        />
       </div>
+
+      <SchoolGlassBar
+        school={school}
+        onEditClick={() => setShowEditModal(true)}
+        onOpenAccessCodes={() => setShowAccessCodesSheet(true)}
+        fixturePill={
+          effectiveTeam ? (
+            <NextFixturePill
+              teamId={effectiveTeam.id}
+              fixtures={effectiveTeam.fixtures}
+            />
+          ) : (
+            <JoinCompetitionPill
+              schoolId={schoolId}
+              onRegistered={setJustRegisteredTeam}
+            />
+          )
+        }
+      />
 
       <SchoolProvidersSheet
         open={showProvidersSheet}
         onOpenChange={setShowProvidersSheet}
         providers={providers}
         campusLabel={campusLabel}
+      />
+
+      <SchoolAccessCodesSheet
+        open={showAccessCodesSheet}
+        onOpenChange={setShowAccessCodesSheet}
+        teamId={effectiveTeam?.id ?? null}
+        teamName={school.nickname ?? school.name}
       />
 
       <SchoolDetailsModals details={details} />
