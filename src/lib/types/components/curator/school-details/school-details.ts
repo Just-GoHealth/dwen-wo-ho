@@ -30,11 +30,14 @@ export interface SchoolPatientRecord {
   comment?: string | null;
   patientLevel: string;
   /**
-   * Patient's profile photo, if one exists. Field name is a best-evidence
-   * guess, not confirmed against a real API spec — see the identical
-   * comment on `PatientResult.photoUrl` (`src/lib/types/entities/patient.ts`)
-   * for the reasoning. Verify against the real backend response for the
-   * curator school-patients endpoint and rename if it differs.
+   * CONFIRMED ABSENT from the real backend response. This type is fed by
+   * `GET /v1/schools/{schoolId}/patients-overview`
+   * (`use-school-data.ts:46`), whose `patients` array is typed in the
+   * OpenAPI spec (api-docs.json, sibling `silverwingg` repo) as
+   * `PatientResultResponse[]` — the exact same schema checked for
+   * `PatientResult.photoUrl` (`src/lib/types/entities/patient.ts`), which
+   * has no photo/avatar field at all. Same conclusion applies here: this
+   * is a backend gap, not a frontend naming mismatch.
    */
   photoUrl?: string;
 }

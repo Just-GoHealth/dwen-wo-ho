@@ -35,14 +35,19 @@ export interface PatientResult {
   comment?: string | null;
   lockinScore: number;
   /**
-   * Patient's profile photo, if one exists. Field name is NOT confirmed
-   * against a real API spec for `GET /v1/patient-results/{resultId}` — no
-   * OpenAPI/swagger doc was found in this repo. Chosen by convention: the
-   * codebase's photo-upload responses use `profilePhotoUrl`/`profilePhotoURL`
-   * (e.g. `AddPhotoResponse`, `SchoolProvider.profilePhotoURL`) while list
-   * entities use `avatarUrl` (e.g. `PatientCase`, `ProviderProfileData`);
-   * `photoUrl` was picked as the best-evidence guess. Verify against the
-   * real backend response and rename if it differs.
+   * CONFIRMED ABSENT from the real backend response — checked against the
+   * `PatientResultResponse` schema in the OpenAPI spec for this backend
+   * (api-docs.json, in the sibling `silverwingg` repo, title "Dwen Wo Ho
+   * API"). `GET /v1/patient-results/{resultId}` returns: id, lockinId,
+   * schoolId, schoolName, schoolNickname, patientName, patientAge,
+   * patientSex, patientLevel, visibilityStatus, starProvider,
+   * referredProvider, createdAt, firstOpenedAt, openedByCurrentUser,
+   * treatingProviders, lockinScore, comment — no photo/avatar field at all.
+   * This is a backend gap, not a frontend naming mismatch: no rename here
+   * can make a photo appear until the backend adds a field to this
+   * response. Left as an optional field (rather than removed) so the
+   * Avatar wiring in patient-header.tsx/patient-detail-top-bar.tsx is
+   * ready to work the moment the backend does add one.
    */
   photoUrl?: string;
 }
