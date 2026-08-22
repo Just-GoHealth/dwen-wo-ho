@@ -27,6 +27,14 @@ export const patientsService = {
     const qs = query.toString() ? `?${query.toString()}` : "";
     const result = await api(`${PD.PATIENTS}${qs}`);
     if (result?.success && result.data)
+      // NOTE: blind type-cast, no runtime validation. In particular,
+      // `PatientCase.avatarUrl` is unconfirmed against this endpoint's real
+      // response shape (no OpenAPI/swagger spec was found in this repo to
+      // verify field names against) — if the backend's actual JSON key
+      // differs from `avatarUrl`, this field silently resolves to
+      // `undefined` with no visible error, and patient photos won't render
+      // on the provider dashboard grid. Verify against a real response
+      // before trusting this field.
       return result.data as PatientListResponse;
     throw new Error("Failed to fetch provider patients");
   },
