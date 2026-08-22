@@ -2,6 +2,7 @@
 
 import { ChevronLeft, History, Heart } from "lucide-react";
 import { PatientResult } from "@/lib/types/entities/patient";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface PatientDetailTopBarProps {
   patientResult: PatientResult;
@@ -66,11 +67,15 @@ export function PatientDetailTopBar({
       </div>
 
       <div className="flex min-w-0 items-center justify-center gap-3 sm:absolute sm:top-1/2 sm:left-1/2 sm:order-2 sm:max-w-[60vw] sm:-translate-x-1/2 sm:-translate-y-1/2">
-        <span className="border-primary size-12 shrink-0 overflow-hidden rounded-full border-2 shadow-[0_10px_26px_rgba(0,0,0,.5)]">
-          <span className="bg-primary/15 text-primary flex h-full w-full items-center justify-center text-lg font-bold">
+        <Avatar className="border-primary size-12 shrink-0 border-2 shadow-[0_10px_26px_rgba(0,0,0,.5)]">
+          <AvatarImage
+            src={patientResult.photoUrl ?? undefined}
+            alt={patientResult.patientName}
+          />
+          <AvatarFallback className="bg-primary/15 text-primary text-lg font-bold">
             {initials}
-          </span>
-        </span>
+          </AvatarFallback>
+        </Avatar>
         <div className="flex min-w-0 flex-col items-start gap-0.5">
           <span className="text-primary truncate text-xl font-extrabold tracking-[-.6px]">
             {patientResult.patientName}

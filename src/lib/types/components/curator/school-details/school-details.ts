@@ -29,6 +29,14 @@ export interface SchoolPatientRecord {
   lockinScore: number;
   comment?: string | null;
   patientLevel: string;
+  /**
+   * Patient's profile photo, if one exists. Field name is a best-evidence
+   * guess, not confirmed against a real API spec — see the identical
+   * comment on `PatientResult.photoUrl` (`src/lib/types/entities/patient.ts`)
+   * for the reasoning. Verify against the real backend response for the
+   * curator school-patients endpoint and rename if it differs.
+   */
+  photoUrl?: string;
 }
 
 export interface PatientsTabProps {

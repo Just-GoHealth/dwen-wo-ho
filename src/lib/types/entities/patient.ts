@@ -34,6 +34,17 @@ export interface PatientResult {
   // Optional fields for list views
   comment?: string | null;
   lockinScore: number;
+  /**
+   * Patient's profile photo, if one exists. Field name is NOT confirmed
+   * against a real API spec for `GET /v1/patient-results/{resultId}` — no
+   * OpenAPI/swagger doc was found in this repo. Chosen by convention: the
+   * codebase's photo-upload responses use `profilePhotoUrl`/`profilePhotoURL`
+   * (e.g. `AddPhotoResponse`, `SchoolProvider.profilePhotoURL`) while list
+   * entities use `avatarUrl` (e.g. `PatientCase`, `ProviderProfileData`);
+   * `photoUrl` was picked as the best-evidence guess. Verify against the
+   * real backend response and rename if it differs.
+   */
+  photoUrl?: string;
 }
 
 export interface UrgentPatient {

@@ -16,7 +16,7 @@ const defaultSchoolPatientRecordAccessors = {
   getPatientName: (p: SchoolPatientRecord) => p.patientName,
   getSchoolNickname: (p: SchoolPatientRecord) => p.schoolNickname,
   getSchoolName: (p: SchoolPatientRecord) => p.schoolName,
-  getAvatarUrl: () => undefined,
+  getAvatarUrl: (p: SchoolPatientRecord) => p.photoUrl,
 };
 
 const defaultPatientCaseAccessors = {

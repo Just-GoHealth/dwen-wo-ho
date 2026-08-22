@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { IconProgress } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getColorHex } from "@/lib/utils/shared/color-hex";
 import type { PatientHeaderProps } from "@/lib/types/components/curator/patient-dashboard";
 
@@ -33,9 +34,15 @@ export default function PatientHeader({
 
       <div className="flex flex-col items-start gap-8 md:flex-row md:items-center">
         <div className="flex flex-col items-center justify-center space-y-2">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-teal-500/10 text-teal-600 shadow-inner ring-1 ring-teal-500/20 md:h-32 md:w-32">
-            <User className="h-12 w-12 opacity-80 md:h-16 md:w-16" />
-          </div>
+          <Avatar className="size-24 shrink-0 rounded-3xl bg-teal-500/10 text-teal-600 shadow-inner ring-1 ring-teal-500/20 md:size-32">
+            <AvatarImage
+              src={patientResult.photoUrl ?? undefined}
+              alt={patientResult.patientName}
+            />
+            <AvatarFallback className="rounded-3xl bg-transparent text-teal-600">
+              <User className="h-12 w-12 opacity-80 md:h-16 md:w-16" />
+            </AvatarFallback>
+          </Avatar>
           <Button
             variant="destructive"
             onClick={onDelete}
