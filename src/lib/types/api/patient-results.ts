@@ -26,6 +26,10 @@ export interface UrgentPatientListResponse {
 
 export interface PatientCase {
   patientId: number;
+  // confirmed real field on this schema (api-docs.json) but was missing
+  // from this frontend type entirely — needed to cross-reference a list
+  // entry back to a specific /patients/[resultId] detail page
+  patientResultId: number;
   patientName: string;
   score: number;
   status: string;
