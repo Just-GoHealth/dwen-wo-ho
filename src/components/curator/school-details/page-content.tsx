@@ -19,7 +19,7 @@ import { FilterTabBar } from "@/components/shared/filter-tab-bar/index";
 import type { SchoolTab } from "@/lib/types/components/curator/school-details/school-details";
 import type { SchoolDetailsPageContentProps } from "@/lib/types/components/curator/school-details/school-details";
 import { Users } from "lucide-react";
-import { deriveTriageTier, type TriageTier } from "@/lib/utils/shared/triage";
+import { resolveTriageTier, type TriageTier } from "@/lib/utils/shared/triage";
 import SchoolDetailsModals from "@/components/curator/school-details/overlay-host";
 import { SchoolDetailsBackNav } from "./back-nav";
 import { SchoolDetailsSearchSection } from "./search-section";
@@ -77,7 +77,7 @@ export function SchoolDetailsPageContent({
       ? patients
       : patients.filter(
           (p) =>
-            deriveTriageTier(p.lockinScore, p.visibilityStatus) ===
+            resolveTriageTier(p.nsmqTag, p.lockinScore, p.visibilityStatus) ===
             triageFilter,
         );
 

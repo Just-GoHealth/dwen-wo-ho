@@ -35,6 +35,12 @@ export interface PatientResult {
   comment?: string | null;
   lockinScore: number;
   profilePhotoURL?: string | null;
+  // server-decided triage tag - never recompute this client-side (see
+  // deriveTriageTier in triage.ts, which is only a fallback for data that
+  // doesn't have this field yet)
+  nsmqTag?: "911" | "NOW" | "ASAP" | null;
+  nsmqReasonCode?: string | null;
+  nsmqResponseDueAt?: string | null;
 }
 
 export interface UrgentPatient {

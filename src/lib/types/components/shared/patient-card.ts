@@ -27,6 +27,9 @@ export interface PatientCardProps<T> {
   getSchoolName?: (patient: T) => string;
   /** Extract the avatar photo URL from the patient object, if any */
   getAvatarUrl?: (patient: T) => string | null | undefined;
+  /** Extract the backend's own triage tag from the patient object, if the
+   * data source carries one (see resolveTriageTier in triage.ts) */
+  getNsmqTag?: (patient: T) => string | null | undefined;
   selectedPatients?: Set<string | number>;
   handleSelectPatient?: (id: string | number, checked: boolean) => void;
   showCheckbox: boolean;
@@ -44,6 +47,7 @@ export interface PatientCardAccessorFns<T> {
   getSchoolNickname: (patient: T) => string | undefined;
   getSchoolName: (patient: T) => string;
   getAvatarUrl: (patient: T) => string | null | undefined;
+  getNsmqTag: (patient: T) => string | null | undefined;
 }
 
 export interface PatientCardResolvedFields {
@@ -56,6 +60,7 @@ export interface PatientCardResolvedFields {
   schoolNickname: string | undefined;
   schoolName: string;
   avatarUrl: string | null | undefined;
+  nsmqTag: string | null | undefined;
 }
 
 export interface PatientCardInfoProps {

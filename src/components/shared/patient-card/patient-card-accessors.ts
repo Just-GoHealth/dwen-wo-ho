@@ -17,6 +17,7 @@ const defaultSchoolPatientRecordAccessors = {
   getSchoolNickname: (p: SchoolPatientRecord) => p.schoolNickname,
   getSchoolName: (p: SchoolPatientRecord) => p.schoolName,
   getAvatarUrl: (p: SchoolPatientRecord) => p.profilePhotoURL,
+  getNsmqTag: (p: SchoolPatientRecord) => p.nsmqTag,
 };
 
 const defaultPatientCaseAccessors = {
@@ -32,6 +33,9 @@ const defaultPatientCaseAccessors = {
   getSchoolNickname: (p: PatientCase) => p.schoolNickname,
   getSchoolName: (p: PatientCase) => p.schoolName,
   getAvatarUrl: (p: PatientCase) => p.avatarUrl,
+  // PatientCase has no nsmqTag yet (backend hasn't wired it to the
+  // provider list endpoint) - always falls through to deriveTriageTier
+  getNsmqTag: () => undefined,
 };
 
 function isPatientCase(patient: PatientCardPatient): patient is PatientCase {
@@ -51,6 +55,7 @@ function resolveAccessors<T extends PatientCardPatient>(
     | "getSchoolNickname"
     | "getSchoolName"
     | "getAvatarUrl"
+    | "getNsmqTag"
   >,
 ): PatientCardAccessorFns<T> {
   const defaults = isPatientCase(patient)
@@ -75,6 +80,9 @@ function resolveAccessors<T extends PatientCardPatient>(
     getAvatarUrl:
       overrides.getAvatarUrl ??
       (defaults.getAvatarUrl as (p: T) => string | null | undefined),
+    getNsmqTag:
+      overrides.getNsmqTag ??
+      (defaults.getNsmqTag as (p: T) => string | null | undefined),
   };
 }
 
@@ -91,6 +99,7 @@ export function resolvePatientCardFields<T extends PatientCardPatient>(
     | "getSchoolNickname"
     | "getSchoolName"
     | "getAvatarUrl"
+    | "getNsmqTag"
   >,
 ): PatientCardResolvedFields {
   const accessors = resolveAccessors(patient, accessorOverrides);
@@ -104,6 +113,7 @@ export function resolvePatientCardFields<T extends PatientCardPatient>(
     patientName: accessors.getPatientName(patient),
     schoolNickname: accessors.getSchoolNickname(patient),
     schoolName: accessors.getSchoolName(patient),
+    nsmqTag: accessors.getNsmqTag(patient),
     avatarUrl: accessors.getAvatarUrl(patient),
   };
 }

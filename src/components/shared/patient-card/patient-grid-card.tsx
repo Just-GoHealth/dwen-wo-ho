@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, User } from "lucide-react";
 import { compactTimeAgo } from "@/lib/utils/shared/time-ago";
 import {
-  deriveTriageTier,
+  resolveTriageTier,
   TRIAGE_TIER_LABELS,
 } from "@/lib/utils/shared/triage";
 import type { TriageTier } from "@/lib/utils/shared/triage";
@@ -130,6 +130,7 @@ export default function PatientGridCard<T extends PatientCardPatient>({
   getSchoolNickname,
   getSchoolName,
   getAvatarUrl,
+  getNsmqTag,
   activeTriageFilter = "all",
   showCheckbox = false,
   selected = false,
@@ -149,9 +150,14 @@ export default function PatientGridCard<T extends PatientCardPatient>({
     getSchoolNickname,
     getSchoolName,
     getAvatarUrl,
+    getNsmqTag,
   });
 
-  const tier = deriveTriageTier(fields.score ?? null, fields.status || "new");
+  const tier = resolveTriageTier(
+    fields.nsmqTag,
+    fields.score ?? null,
+    fields.status || "new",
+  );
   const isLit = activeTriageFilter === tier;
   const isNew = (fields.status || "").toLowerCase() === "new";
   const initials = (fields.patientName || "?").charAt(0).toUpperCase();

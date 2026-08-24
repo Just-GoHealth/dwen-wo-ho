@@ -23,6 +23,28 @@ export function deriveTriageTier(
   return "asap";
 }
 
+const NSMQ_TAG_TO_TIER: Record<string, TriageTier> = {
+  "911": "911",
+  NOW: "now",
+  ASAP: "asap",
+};
+
+/**
+ * Prefers the backend's own triage tag (`nsmqTag`, confirmed real on
+ * `PatientResultResponse` - see api-docs) over the client-side
+ * approximation, falling back to `deriveTriageTier` only where the data
+ * source doesn't carry that field yet (e.g. the provider home grid's
+ * `PatientCase`, which the backend hasn't wired up to nsmqTag).
+ */
+export function resolveTriageTier(
+  nsmqTag: string | null | undefined,
+  score: number | null,
+  status: string,
+): TriageTier {
+  if (nsmqTag && nsmqTag in NSMQ_TAG_TO_TIER) return NSMQ_TAG_TO_TIER[nsmqTag];
+  return deriveTriageTier(score, status);
+}
+
 export const TRIAGE_TIER_LABELS: Record<TriageTier, string> = {
   "911": "911",
   now: "Now",
