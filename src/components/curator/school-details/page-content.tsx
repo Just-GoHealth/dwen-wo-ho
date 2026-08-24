@@ -178,7 +178,16 @@ export function SchoolDetailsPageContent({
         onEditClick={() => setShowEditModal(true)}
         onOpenAccessCodes={() => setShowAccessCodesSheet(true)}
         fixturePill={
-          effectiveTeam ? (
+          // an eliminated team is a terminal state for that competition
+          // (the backend refuses to untag a team once students have
+          // joined - see DELETE .../teams/campus/{campusId}'s own
+          // description) - there's nothing left to schedule, so this
+          // falls back to the same "join a competition" prompt as a
+          // school with no team at all, which lets it register for a
+          // different contest (re-entering the same code it was
+          // eliminated from just resolves back to that same team, since
+          // the backend won't let it be re-registered fresh)
+          effectiveTeam && effectiveTeam.status !== "ELIMINATED" ? (
             <NextFixturePill
               teamId={effectiveTeam.id}
               fixtures={effectiveTeam.fixtures}
