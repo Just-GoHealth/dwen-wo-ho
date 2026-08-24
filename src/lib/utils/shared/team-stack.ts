@@ -8,7 +8,7 @@
  * guide/provider-design-refactor-backend-needs.md for why this is dummy
  * data ahead of a real `assignedProviders` field.
  */
-export function deriveTeamCount(patientId: string | number): number {
+export function deriveTeamCount(patientId: string | number | null): number {
   const seed = String(patientId)
     .split("")
     .reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 0);

@@ -11,7 +11,15 @@ export interface SchoolDetailsIconsTabProps {
 }
 
 export interface SchoolPatientRecord {
-  id: number | string;
+  // the result id - null for a curator roster entry with no submitted
+  // result yet (curators see every registered patient at the campus,
+  // providers only ever see submitted-result patients, so this is only
+  // ever null on curator-facing rows). Result-specific actions (view
+  // result, delete record) must be hidden/disabled when this is null.
+  id: number | string | null;
+  // the stable identifier for this patient, present on every row
+  // regardless of whether they have a submitted result
+  patientId: number | string;
   lockinId: number;
   schoolId: number;
   schoolName: string;
@@ -29,17 +37,7 @@ export interface SchoolPatientRecord {
   lockinScore: number;
   comment?: string | null;
   patientLevel: string;
-  /**
-   * CONFIRMED ABSENT from the real backend response. This type is fed by
-   * `GET /v1/schools/{schoolId}/patients-overview`
-   * (`use-school-data.ts:46`), whose `patients` array is typed in the
-   * OpenAPI spec (api-docs.json, sibling `silverwingg` repo) as
-   * `PatientResultResponse[]` — the exact same schema checked for
-   * `PatientResult.photoUrl` (`src/lib/types/entities/patient.ts`), which
-   * has no photo/avatar field at all. Same conclusion applies here: this
-   * is a backend gap, not a frontend naming mismatch.
-   */
-  photoUrl?: string;
+  profilePhotoURL?: string | null;
 }
 
 export interface PatientsTabProps {

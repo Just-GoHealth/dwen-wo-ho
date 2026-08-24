@@ -157,12 +157,17 @@ export default function PatientGridCard<T extends PatientCardPatient>({
   const initials = (fields.patientName || "?").charAt(0).toUpperCase();
   const teamCount = deriveTeamCount(fields.id);
 
+  // no submitted result yet for this row (a curator roster entry) - there's
+  // nothing to prefetch or open
+  const hasResult = fields.id != null;
+
   // Warm the patient-detail page's cache before it even mounts — same
   // query keys the detail screen itself uses (see usePatientFullDetails/
   // usePatientActions in use-patient-result.ts), so its own skeleton
   // resolves as soon as possible instead of starting the fetch from zero.
   const prefetchPatientDetails = () => {
     const id = fields.id;
+    if (id == null) return;
     queryClient.prefetchQuery({
       queryKey: [QUERY_KEYS.patientResult, "full-details", String(id)],
       queryFn: () => patientsService.getFullPatientDetails(id),
@@ -176,11 +181,13 @@ export default function PatientGridCard<T extends PatientCardPatient>({
   };
 
   const handleOpen = () => {
+    const id = fields.id;
+    if (id == null) return;
     prefetchPatientDetails();
     if (onActionClick) {
-      onActionClick(fields.id);
+      onActionClick(id);
     } else if (detailRoute) {
-      router.push(detailRoute(fields.id) as Parameters<typeof router.push>[0]);
+      router.push(detailRoute(id) as Parameters<typeof router.push>[0]);
     }
   };
 
@@ -196,13 +203,13 @@ export default function PatientGridCard<T extends PatientCardPatient>({
         "hover:shadow-[0_10px_26px_rgba(0,0,0,.2)]",
       )}
     >
-      {showCheckbox && (
+      {showCheckbox && hasResult && (
         <Checkbox
           id={`patient-grid-${fields.id}-checkbox`}
           name={`patient-grid-${fields.id}-checkbox`}
           checked={selected}
           onCheckedChange={(checked) =>
-            onToggleSelect?.(fields.id, checked === true)
+            onToggleSelect?.(fields.id as string | number, checked === true)
           }
           onClick={(e) => e.stopPropagation()}
           className="bg-background border-primary absolute top-2 left-2 z-30"
@@ -213,7 +220,8 @@ export default function PatientGridCard<T extends PatientCardPatient>({
         type="button"
         onClick={handleOpen}
         onMouseEnter={prefetchPatientDetails}
-        className="flex w-full min-w-0 flex-col items-center gap-1"
+        disabled={!hasResult}
+        className="flex w-full min-w-0 flex-col items-center gap-1 disabled:cursor-default"
       >
         {/* top row — team stack or NEW badge, school pill, triage flag. Grid
           (not flex justify-between) so the school pill is genuinely
@@ -272,10 +280,16 @@ export default function PatientGridCard<T extends PatientCardPatient>({
           Active {compactTimeAgo(fields.time || "")} ago
         </span>
 
-        <span className="border-foreground/20 bg-foreground/10 text-foreground group-hover:bg-primary mt-[.35em] inline-flex items-center gap-[.4em] rounded-full border px-[1.15em] py-[.55em] text-[12.8px] font-extrabold shadow-[0_8px_20px_rgba(0,0,0,.2)] transition-all group-hover:scale-[1.04] group-hover:border-[var(--gold-hi)] group-hover:text-[#161207]">
-          Open
-          <ChevronRight className="size-3" strokeWidth={2.8} />
-        </span>
+        {hasResult ? (
+          <span className="border-foreground/20 bg-foreground/10 text-foreground group-hover:bg-primary mt-[.35em] inline-flex items-center gap-[.4em] rounded-full border px-[1.15em] py-[.55em] text-[12.8px] font-extrabold shadow-[0_8px_20px_rgba(0,0,0,.2)] transition-all group-hover:scale-[1.04] group-hover:border-[var(--gold-hi)] group-hover:text-[#161207]">
+            Open
+            <ChevronRight className="size-3" strokeWidth={2.8} />
+          </span>
+        ) : (
+          <span className="border-foreground/10 bg-foreground/5 text-muted-foreground mt-[.35em] inline-flex items-center gap-[.4em] rounded-full border px-[1.15em] py-[.55em] text-[12.8px] font-extrabold">
+            No result yet
+          </span>
+        )}
       </button>
     </div>
   );

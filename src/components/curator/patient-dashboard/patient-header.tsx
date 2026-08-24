@@ -36,7 +36,7 @@ export default function PatientHeader({
         <div className="flex flex-col items-center justify-center space-y-2">
           <Avatar className="size-24 shrink-0 rounded-3xl bg-teal-500/10 text-teal-600 shadow-inner ring-1 ring-teal-500/20 md:size-32">
             <AvatarImage
-              src={patientResult.photoUrl ?? undefined}
+              src={patientResult.profilePhotoURL ?? undefined}
               alt={patientResult.patientName}
             />
             <AvatarFallback className="rounded-3xl bg-transparent text-teal-600">

@@ -79,6 +79,8 @@ export interface RecordFixtureOutcomeRequest {
   outcome: FixtureOutcome;
 }
 
+export type TeamStatus = "REGISTERED" | "ACTIVE" | "ELIMINATED" | "CHAMPION";
+
 export interface Team {
   id: number;
   versionCode: string;
@@ -86,7 +88,7 @@ export interface Team {
   campusName: string;
   campusLogo: string;
   seatCapacity: number;
-  status: string;
+  status: TeamStatus;
   coordinatorName: string;
   coordinatorContact: string;
   memberCount: number;

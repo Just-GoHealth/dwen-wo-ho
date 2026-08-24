@@ -2,17 +2,32 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { KeyRound, Plus, Trash2, Pencil } from "lucide-react";
+import { KeyRound, Plus, Trash2, Pencil, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import useTeamsQuery from "@/hooks/curator/competitions/use-teams";
 import useFixturesQuery from "@/hooks/curator/competitions/use-fixtures";
 import { SchoolAccessCodesSheet } from "@/components/curator/school-details";
 import type { AddFixtureRequest, Fixture } from "@/lib/types/api/competitions";
+
+const TEAM_STATUS_BADGE: Record<string, "secondary" | "default" | "destructive"> = {
+  REGISTERED: "secondary",
+  ACTIVE: "default",
+  ELIMINATED: "destructive",
+  CHAMPION: "default",
+};
 
 // Display-only (renders whenLabel, e.g. "Today · 3pm") — not the curator's
 // own browser timezone, which could be anywhere. Every school here is in
@@ -31,10 +46,16 @@ export default function CompetitionTeamPage() {
   const [showAccessCodes, setShowAccessCodes] = useState(false);
   const [editingFixture, setEditingFixture] = useState<Fixture | null>(null);
   const [showFixtureForm, setShowFixtureForm] = useState(false);
+  const [showEliminateConfirm, setShowEliminateConfirm] = useState(false);
   const [form, setForm] = useState<AddFixtureRequest>(EMPTY_FIXTURE_FORM);
 
-  const { useTeam } = useTeamsQuery();
+  const { useTeam, updateTeam, isUpdatingTeam } = useTeamsQuery();
   const { data: team, isLoading } = useTeam(teamId);
+
+  const handleEliminate = async () => {
+    await updateTeam({ teamId, data: { status: "ELIMINATED" } });
+    setShowEliminateConfirm(false);
+  };
   const {
     addFixture,
     updateFixture,
@@ -99,21 +120,69 @@ export default function CompetitionTeamPage() {
               {team.coordinatorName || "No coordinator"}
               {team.coordinatorContact ? ` · ${team.coordinatorContact}` : ""}
             </p>
-            <p className="text-muted-foreground mt-1 text-xs">
+            <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
               Seats: {team.memberCount}/{team.seatCapacity} · Status:{" "}
-              {team.status}
+              <Badge variant={TEAM_STATUS_BADGE[team.status] ?? "secondary"}>
+                {team.status}
+              </Badge>
             </p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="gap-1.5"
-            onClick={() => setShowAccessCodes(true)}
-          >
-            <KeyRound className="size-4" />
-            Access Codes
-          </Button>
+          <div className="flex items-center gap-2">
+            {team.status !== "ELIMINATED" && (
+              <Button
+                type="button"
+                variant="outline"
+                className="text-destructive hover:text-destructive gap-1.5"
+                onClick={() => setShowEliminateConfirm(true)}
+              >
+                <UserX className="size-4" />
+                Mark as Out
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => setShowAccessCodes(true)}
+            >
+              <KeyRound className="size-4" />
+              Access Codes
+            </Button>
+          </div>
         </div>
+
+        <Dialog
+          open={showEliminateConfirm}
+          onOpenChange={setShowEliminateConfirm}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Mark {team.campusName} as out?</DialogTitle>
+              <DialogDescription>
+                This eliminates the team from the competition. They&apos;ll
+                stay visible in results, but marked out of future rounds.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEliminateConfirm(false)}
+                disabled={isUpdatingTeam}
+              >
+                Cancel
+              </Button>
+              <LoadingButton
+                onClick={handleEliminate}
+                loading={isUpdatingTeam}
+                loadingText="Marking as out..."
+                variant="destructive"
+              >
+                Mark as Out
+              </LoadingButton>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-foreground text-lg font-extrabold">Fixtures</h2>

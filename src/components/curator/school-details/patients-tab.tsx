@@ -30,11 +30,24 @@ export function PatientsTab({
     });
   };
 
-  const selectAll = selectedPatients.size === patients.length;
+  // only rows with a submitted result are selectable at all
+  const selectablePatients = patients.filter((p) => p.id != null);
+  const selectAll =
+    selectablePatients.length > 0 &&
+    selectedPatients.size === selectablePatients.length;
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedPatients(new Set(patients.map((p) => p.id)));
+      // only rows with a submitted result can be bulk-deleted
+      setSelectedPatients(
+        new Set(
+          patients
+            .filter((p): p is typeof p & { id: number | string } =>
+              p.id != null,
+            )
+            .map((p) => p.id),
+        ),
+      );
     } else {
       setSelectedPatients(new Set());
     }
@@ -109,12 +122,12 @@ export function PatientsTab({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {filteredPatients.map((patient, index) => (
           <PatientGridCard
-            key={patient.id}
+            key={patient.patientId}
             index={index}
             patient={patient}
             onActionClick={onViewPatient}
             showCheckbox
-            selected={selectedPatients.has(patient.id)}
+            selected={patient.id != null && selectedPatients.has(patient.id)}
             onToggleSelect={handleSelectPatient}
           />
         ))}

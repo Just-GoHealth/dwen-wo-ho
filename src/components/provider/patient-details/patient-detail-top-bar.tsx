@@ -3,7 +3,6 @@
 import { ChevronLeft, History, Heart } from "lucide-react";
 import { PatientResult } from "@/lib/types/entities/patient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useProviderPatientAvatar } from "@/hooks/provider/patient-details/use-patient-avatar";
 
 interface PatientDetailTopBarProps {
   patientResult: PatientResult;
@@ -25,14 +24,6 @@ export function PatientDetailTopBar({
   onGiveCare,
 }: PatientDetailTopBarProps) {
   const initials = (patientResult?.patientName || "?").charAt(0).toUpperCase();
-  // PatientResultResponse has no photo field (confirmed against the real
-  // backend spec) — borrow one from the patients list endpoint instead,
-  // which does have a real avatarUrl. See use-patient-avatar.ts.
-  const listAvatarUrl = useProviderPatientAvatar(
-    patientResult.id,
-    patientResult.schoolId,
-    patientResult.patientName,
-  );
 
   const giveCareButton = (
     <button
@@ -78,7 +69,7 @@ export function PatientDetailTopBar({
       <div className="flex min-w-0 items-center justify-center gap-3 sm:absolute sm:top-1/2 sm:left-1/2 sm:order-2 sm:max-w-[60vw] sm:-translate-x-1/2 sm:-translate-y-1/2">
         <Avatar className="border-primary size-12 shrink-0 border-2 shadow-[0_10px_26px_rgba(0,0,0,.5)]">
           <AvatarImage
-            src={patientResult.photoUrl ?? listAvatarUrl}
+            src={patientResult.profilePhotoURL ?? undefined}
             alt={patientResult.patientName}
           />
           <AvatarFallback className="bg-primary/15 text-primary text-lg font-bold">

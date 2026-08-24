@@ -7,8 +7,10 @@ export interface PatientCardProps<T> {
   index?: number;
   onActionClick?: (id: string | number) => void;
   detailRoute?: (patientId: string | number) => string;
-  /** Extract the unique identifier from the patient object */
-  getId?: (patient: T) => string | number;
+  /** Extract the unique identifier from the patient object - null for a
+   * curator roster entry with no submitted result yet (see
+   * SchoolPatientRecord.id) */
+  getId?: (patient: T) => string | number | null;
   /** Extract the lockin score from the patient object */
   getScore?: (patient: T) => number;
   /** Extract the visibility status from the patient object */
@@ -33,7 +35,7 @@ export interface PatientCardProps<T> {
 export type PatientCardPatient = SchoolPatientRecord | PatientCase;
 
 export interface PatientCardAccessorFns<T> {
-  getId: (patient: T) => string | number;
+  getId: (patient: T) => string | number | null;
   getScore: (patient: T) => number;
   getStatus: (patient: T) => string;
   getTime: (patient: T) => string;
@@ -45,7 +47,7 @@ export interface PatientCardAccessorFns<T> {
 }
 
 export interface PatientCardResolvedFields {
-  id: string | number;
+  id: string | number | null;
   score: number;
   status: string;
   time: string;
