@@ -20,7 +20,10 @@ const defaultSchoolPatientRecordAccessors = {
 };
 
 const defaultPatientCaseAccessors = {
-  getId: (p: PatientCase) => p.patientId,
+  // patientResultId, not patientId - detailRoute/prefetch use this to hit
+  // /provider/patients/[resultId], which needs the result's own id (see
+  // the same pattern in use-school-details.ts)
+  getId: (p: PatientCase) => p.patientResultId,
   getScore: (p: PatientCase) => p.score,
   getStatus: (p: PatientCase) => p.status,
   getTime: (p: PatientCase) => p.time,
