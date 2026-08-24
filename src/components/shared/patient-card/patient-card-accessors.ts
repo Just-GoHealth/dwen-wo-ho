@@ -32,7 +32,7 @@ const defaultPatientCaseAccessors = {
 };
 
 function isPatientCase(patient: PatientCardPatient): patient is PatientCase {
-  return patient && typeof patient === "object" && "patientId" in patient;
+  return patient && typeof patient === "object" && "patientResultId" in patient;
 }
 
 function resolveAccessors<T extends PatientCardPatient>(
