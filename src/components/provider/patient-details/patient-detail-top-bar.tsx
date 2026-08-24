@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { ChevronLeft, History, Heart } from "lucide-react";
 import { PatientResult } from "@/lib/types/entities/patient";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface PatientDetailTopBarProps {
   patientResult: PatientResult;
@@ -24,6 +26,7 @@ export function PatientDetailTopBar({
   onGiveCare,
 }: PatientDetailTopBarProps) {
   const initials = (patientResult?.patientName || "?").charAt(0).toUpperCase();
+  const [photoFailed, setPhotoFailed] = useState(false);
 
   const giveCareButton = (
     <button
@@ -68,13 +71,20 @@ export function PatientDetailTopBar({
 
       <div className="flex min-w-0 items-center justify-center gap-3 sm:absolute sm:top-1/2 sm:left-1/2 sm:order-2 sm:max-w-[60vw] sm:-translate-x-1/2 sm:-translate-y-1/2">
         <Avatar className="border-primary size-12 shrink-0 border-2 shadow-[0_10px_26px_rgba(0,0,0,.5)]">
-          <AvatarImage
-            src={patientResult.profilePhotoURL ?? undefined}
-            alt={patientResult.patientName}
-          />
-          <AvatarFallback className="bg-primary/15 text-primary text-lg font-bold">
-            {initials}
-          </AvatarFallback>
+          {patientResult.profilePhotoURL && !photoFailed ? (
+            <Image
+              src={patientResult.profilePhotoURL}
+              alt={patientResult.patientName}
+              fill
+              sizes="48px"
+              className="object-cover"
+              onError={() => setPhotoFailed(true)}
+            />
+          ) : (
+            <AvatarFallback className="bg-primary/15 text-primary text-lg font-bold">
+              {initials}
+            </AvatarFallback>
+          )}
         </Avatar>
         <div className="flex min-w-0 flex-col items-start gap-0.5">
           <span className="text-primary truncate text-xl font-extrabold tracking-[-.6px]">

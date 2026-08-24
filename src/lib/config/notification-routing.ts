@@ -35,12 +35,15 @@ export function getProviderNotificationRoute(
   const validActionKey =
     computedAction as keyof typeof providerNotificationRouteConfig;
   const generator = providerNotificationRouteConfig[validActionKey];
-  return generator(
+  // targetId/targetSchoolId are nullable on the wire - a route needing an id
+  // this notification doesn't carry has nowhere useful to go
+  const id =
     computedAction === PROVIDER_NOTIFICATION_ACTIONS.OPEN_PROVIDER_SCHOOL ||
-      computedAction === PROVIDER_NOTIFICATION_ACTIONS.OPEN_SCHOOL_PATIENTS
+    computedAction === PROVIDER_NOTIFICATION_ACTIONS.OPEN_SCHOOL_PATIENTS
       ? notification.targetSchoolId
-      : notification.targetId,
-  );
+      : notification.targetId;
+  if (id == null) return null;
+  return generator(id);
 }
 
 const curatorNotificationRouteConfig = {

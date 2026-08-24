@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, User } from "lucide-react";
 import { compactTimeAgo } from "@/lib/utils/shared/time-ago";
@@ -10,7 +12,7 @@ import {
 } from "@/lib/utils/shared/triage";
 import type { TriageTier } from "@/lib/utils/shared/triage";
 import { deriveTeamCount } from "@/lib/utils/shared/team-stack";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
@@ -140,6 +142,7 @@ export default function PatientGridCard<T extends PatientCardPatient>({
 }: PatientCardProps<T> & PatientGridCardOwnProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [photoFailed, setPhotoFailed] = useState(false);
 
   const fields = resolvePatientCardFields(patient, {
     getId,
@@ -271,12 +274,18 @@ export default function PatientGridCard<T extends PatientCardPatient>({
 
         {/* the face */}
         <Avatar className="size-20 shadow-[0_0_0_1.5px_rgba(232,212,173,.55),0_10px_24px_rgba(0,0,0,.4)] transition-transform duration-[240ms] ease-out group-hover:scale-[1.07] group-hover:shadow-[0_0_0_2px_rgba(246,231,196,.95),0_14px_32px_rgba(0,0,0,.5)]">
-          <AvatarImage
-            src={fields.avatarUrl ?? undefined}
-            alt={fields.patientName}
-            className="transition-transform duration-500 ease-out group-hover:scale-110"
-          />
-          <AvatarFallback className="text-xl">{initials}</AvatarFallback>
+          {fields.avatarUrl && !photoFailed ? (
+            <Image
+              src={fields.avatarUrl}
+              alt={fields.patientName}
+              fill
+              sizes="80px"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+              onError={() => setPhotoFailed(true)}
+            />
+          ) : (
+            <AvatarFallback className="text-xl">{initials}</AvatarFallback>
+          )}
         </Avatar>
 
         <b className="text-foreground text-[15.5px] font-extrabold tracking-[-.2px]">

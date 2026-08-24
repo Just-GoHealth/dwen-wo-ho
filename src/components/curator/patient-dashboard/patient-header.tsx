@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import {
   ChevronLeft,
   User,
@@ -10,7 +12,7 @@ import {
 } from "lucide-react";
 import { IconProgress } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getColorHex } from "@/lib/utils/shared/color-hex";
 import type { PatientHeaderProps } from "@/lib/types/components/curator/patient-dashboard";
 
@@ -20,6 +22,8 @@ export default function PatientHeader({
   onBack,
   onDelete,
 }: PatientHeaderProps) {
+  const [photoFailed, setPhotoFailed] = useState(false);
+
   return (
     <div className="bg-card border-border relative mb-8 overflow-hidden rounded-3xl border p-6 shadow-sm md:p-8">
       <div className="mb-6 flex items-center justify-between">
@@ -35,13 +39,20 @@ export default function PatientHeader({
       <div className="flex flex-col items-start gap-8 md:flex-row md:items-center">
         <div className="flex flex-col items-center justify-center space-y-2">
           <Avatar className="size-24 shrink-0 rounded-3xl bg-teal-500/10 text-teal-600 shadow-inner ring-1 ring-teal-500/20 md:size-32">
-            <AvatarImage
-              src={patientResult.profilePhotoURL ?? undefined}
-              alt={patientResult.patientName}
-            />
-            <AvatarFallback className="rounded-3xl bg-transparent text-teal-600">
-              <User className="h-12 w-12 opacity-80 md:h-16 md:w-16" />
-            </AvatarFallback>
+            {patientResult.profilePhotoURL && !photoFailed ? (
+              <Image
+                src={patientResult.profilePhotoURL}
+                alt={patientResult.patientName}
+                fill
+                sizes="(min-width: 768px) 128px, 96px"
+                className="object-cover"
+                onError={() => setPhotoFailed(true)}
+              />
+            ) : (
+              <AvatarFallback className="rounded-3xl bg-transparent text-teal-600">
+                <User className="h-12 w-12 opacity-80 md:h-16 md:w-16" />
+              </AvatarFallback>
+            )}
           </Avatar>
           <Button
             variant="destructive"

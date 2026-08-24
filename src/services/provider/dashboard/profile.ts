@@ -37,19 +37,14 @@ export const profileService = {
 
   uploadAvatar: async (file: File): Promise<{ avatarUrl: string }> => {
     const formData = new FormData();
-    formData.append("image", file);
-    const response = await api(STATIC_ENDPOINTS.AUTH.ADD_PHOTO, {
+    formData.append("file", file);
+    const response = await api(PD.AVATAR, {
       method: "POST",
       body: formData,
     });
-
-    const data = response?.data as
-      | { profilePhotoUrl?: string; avatarUrl?: string }
-      | undefined;
-
-    return (data?.profilePhotoUrl ?? data?.avatarUrl) as unknown as {
-      avatarUrl: string;
-    };
+    if (response?.success && response.data)
+      return response.data as { avatarUrl: string };
+    throw new Error("Failed to upload avatar");
   },
 
   updatePhoneNumber: async (payload: {

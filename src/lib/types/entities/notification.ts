@@ -24,11 +24,11 @@ export type ProviderNotificationAction =
 
 export interface ProviderNotification {
   notificationId: string;
-  targetId: number;
+  targetId: number | null;
   targetType: string;
   unread: boolean;
   targetName: string;
-  targetSchoolId: number;
+  targetSchoolId: number | null;
   targetSchoolName: string | null;
   text: string;
   category: ProviderNotificationCategory;
