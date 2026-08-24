@@ -37,12 +37,33 @@ export function JoinCompetitionPill({
 }: JoinCompetitionPillProps) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
+  const [checkingExisting, setCheckingExisting] = useState(false);
   const setCurrentCode = useSetAtom(currentCompetitionCodeAtom);
   const { registerTeam, isRegisteringTeam } = useVersionsQuery();
 
   const handleJoin = async () => {
     const trimmed = code.trim();
     if (!trimmed) return;
+
+    // check first rather than registering blind and recovering from the
+    // 409 - this school may already have a team here (re-entering the
+    // code it was eliminated from, a fresh browser session that never
+    // learned the code, etc.), and the backend has no "register or
+    // return existing" variant of this endpoint.
+    setCheckingExisting(true);
+    const existingTeams = await versionsService
+      .getTeams(trimmed)
+      .catch(() => [])
+      .finally(() => setCheckingExisting(false));
+    const existing = existingTeams.find(
+      (t) => String(t.campusId) === String(schoolId),
+    );
+    if (existing) {
+      setCurrentCode(trimmed);
+      onRegistered(existing);
+      setOpen(false);
+      return;
+    }
 
     try {
       const team = await registerTeam({
@@ -53,10 +74,9 @@ export function JoinCompetitionPill({
       onRegistered(team);
       setOpen(false);
     } catch (error) {
-      // A 409 here means this school already has a team in this
-      // competition (a real, expected case — e.g. a fresh browser session
-      // that never learned the code) — recover by looking the existing
-      // team up instead of leaving the curator stuck.
+      // the check above is best-effort (a concurrent registration could
+      // still land between it and this call) - fall back to the same
+      // existing-team recovery for that race.
       const { code: errorCode } = parseApiError(error);
       if (errorCode !== "TEAM_ALREADY_EXISTS") {
         // Any other failure already got its toast from the mutation's own
@@ -65,10 +85,10 @@ export function JoinCompetitionPill({
       }
 
       const teams = await versionsService.getTeams(trimmed).catch(() => []);
-      const existing = teams.find(
+      const raceWinner = teams.find(
         (t) => String(t.campusId) === String(schoolId),
       );
-      if (!existing) {
+      if (!raceWinner) {
         toast.error(
           "This school already has a team here, but it couldn't be found — try again.",
         );
@@ -76,7 +96,7 @@ export function JoinCompetitionPill({
       }
 
       setCurrentCode(trimmed);
-      onRegistered(existing);
+      onRegistered(raceWinner);
       setOpen(false);
     }
   };
@@ -113,7 +133,7 @@ export function JoinCompetitionPill({
             </div>
             <LoadingButton
               onClick={handleJoin}
-              loading={isRegisteringTeam}
+              loading={checkingExisting || isRegisteringTeam}
               loadingText="Joining..."
               disabled={!code.trim()}
               className="w-full"
