@@ -70,7 +70,9 @@ function mapPatientToSuggestion(
   patient: SchoolPatientRecord,
 ): SchoolDetailSearchSuggestion {
   return {
-    id: patient.id,
+    // fall back to the always-present patientId for a roster entry with no
+    // submitted result yet, so the suggestion still has an identifier
+    id: patient.id ?? patient.patientId,
     name: patient.patientName,
     score: patient.lockinScore ?? 0,
     status: derivePatientSuggestionStatus(patient),
