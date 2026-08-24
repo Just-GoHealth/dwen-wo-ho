@@ -70,9 +70,11 @@ function mapPatientToSuggestion(
   patient: SchoolPatientRecord,
 ): SchoolDetailSearchSuggestion {
   return {
-    // fall back to the always-present patientId for a roster entry with no
-    // submitted result yet, so the suggestion still has an identifier
-    id: patient.id ?? patient.patientId,
+    // undefined (never patientId) when there's no submitted result yet -
+    // patientId is not a resultId, and openPatientFromSuggestion navigates
+    // to a result-detail route, so substituting it here would send a
+    // non-numeric id to a backend endpoint that requires one
+    id: patient.id ?? undefined,
     name: patient.patientName,
     score: patient.lockinScore ?? 0,
     status: derivePatientSuggestionStatus(patient),
