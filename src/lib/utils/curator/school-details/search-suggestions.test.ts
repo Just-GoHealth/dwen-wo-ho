@@ -15,6 +15,7 @@ const newPatientFilter: FilterOption = {
 
 const patient = {
   id: 1,
+  patientId: 1,
   lockinId: 10,
   schoolId: 2,
   schoolName: "North High",
@@ -31,6 +32,7 @@ const patient = {
 const seenPatient = {
   ...patient,
   id: 2,
+  patientId: 2,
   patientName: "John Smith",
   visibilityStatus: "SEEN",
 } satisfies SchoolPatientRecord;
