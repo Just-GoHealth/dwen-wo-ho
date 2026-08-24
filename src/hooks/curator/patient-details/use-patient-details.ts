@@ -9,8 +9,12 @@ import { buildPatientLockinMetrics } from "@/lib/utils/curator/patient-dashboard
 export function useCuratorPatientDetails() {
   const params = useParams();
   const router = useRouter();
-  const patientId = params.patientId as string;
+  const rawPatientId = params.patientId as string;
   const schoolId = params.schoolId as string;
+  // this route segment is a result id (a Long on the backend), not the
+  // patient's own (UUID) patientId - reject anything else before it ever
+  // reaches the backend as a raw 400
+  const patientId = /^\d+$/.test(rawPatientId) ? rawPatientId : "";
 
   const [activeTab, setActiveTab] = useState<"assessment" | "history">(
     "assessment",
