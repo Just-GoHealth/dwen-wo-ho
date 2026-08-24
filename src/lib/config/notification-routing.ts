@@ -63,6 +63,19 @@ export function getCuratorNotificationRoute(notification: CuratorNotification) {
     computedAction as keyof typeof curatorNotificationRouteConfig;
   const generator = curatorNotificationRouteConfig[validAction];
   if (computedAction === CURATOR_NOTIFICATION_ACTIONS.OPEN_PATIENT) {
+    // relatedEntityId is only a result id (safe to open a result-detail
+    // page with) when relatedEntityType is PATIENT_RESULT. A "PATIENT"
+    // entity's id is the patient's own UUID, not a result id - a
+    // NEW_PATIENT_ADDED notification fires before any result exists, so
+    // its relatedEntityId is always this UUID (even later, once the
+    // patient does have a result, since the notification's payload was
+    // captured at creation time). Sending that UUID to the result-detail
+    // route 400s on the backend ("resultId must be a valid Long"), so
+    // route those to the school's roster instead, where the patient is
+    // still visible without needing a result id at all.
+    if (notification.relatedEntityType !== "PATIENT_RESULT") {
+      return DYNAMIC_ROUTES.curator.schoolDetails(notification.schoolId);
+    }
     return generator(notification.schoolId, notification.relatedEntityId);
   }
   if (computedAction === CURATOR_NOTIFICATION_ACTIONS.OPEN_PARTNER) {
