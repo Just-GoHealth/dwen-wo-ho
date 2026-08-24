@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import { CalendarClock, Power, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoadingButton } from "@/components/ui/loading-button";
+import { Button } from "@/components/ui/button";
 import useFixturesQuery from "@/hooks/curator/competitions/use-fixtures";
-import type { Fixture } from "@/lib/types/api/competitions";
+import useTeamsQuery from "@/hooks/curator/competitions/use-teams";
+import type { Fixture, TeamStatus } from "@/lib/types/api/competitions";
 import { cn } from "@/lib/utils";
 
 interface NextFixturePillProps {
   teamId: number;
   fixtures: Fixture[];
+  campusName: string;
+  status: TeamStatus;
 }
 
 const MONTHS = [
@@ -92,8 +96,14 @@ function soonestFixture(fixtures: Fixture[]): Fixture | null {
  * exists) so there's an actual way to choose the first date — the toggle
  * only comes into play once a fixture exists, to turn it back off.
  */
-export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
+export function NextFixturePill({
+  teamId,
+  fixtures,
+  campusName,
+  status,
+}: NextFixturePillProps) {
   const [open, setOpen] = useState(false);
+  const [confirmingEliminate, setConfirmingEliminate] = useState(false);
   const next = soonestFixture(fixtures);
 
   const [draftDate, setDraftDate] = useState<Date>(() => new Date());
@@ -101,20 +111,16 @@ export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
     "month" | "day" | "time" | null
   >(null);
 
-  const {
-    addFixture,
-    updateFixture,
-    deleteFixture,
-    isAddingFixture,
-    isUpdatingFixture,
-    isDeletingFixture,
-  } = useFixturesQuery();
-  const isBusy = isAddingFixture || isUpdatingFixture || isDeletingFixture;
+  const { addFixture, updateFixture, isAddingFixture, isUpdatingFixture } =
+    useFixturesQuery();
+  const { updateTeam, isUpdatingTeam } = useTeamsQuery();
+  const isBusy = isAddingFixture || isUpdatingFixture;
 
   useEffect(() => {
     if (open) {
       setDraftDate(next ? new Date(next.scheduledAt) : new Date());
       setOpenPicker(null);
+      setConfirmingEliminate(false);
     }
   }, [open, next]);
 
@@ -161,9 +167,13 @@ export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
     }
   };
 
-  const handleTurnOff = async () => {
-    if (!next) return;
-    await deleteFixture({ fixtureId: next.id, teamId });
+  // "turn off" is the curator marking this team as out of the competition,
+  // not deleting the fixture record - the fixture stays as history, only
+  // the team's status changes (mirrors the same action on the team detail
+  // page, see teams/[teamId]/page.tsx's "Mark as Out").
+  const handleEliminate = async () => {
+    await updateTeam({ teamId, data: { status: "ELIMINATED" } });
+    setConfirmingEliminate(false);
     setOpen(false);
   };
 
@@ -304,35 +314,67 @@ export function NextFixturePill({ teamId, fixtures }: NextFixturePillProps) {
             ))}
           </div>
 
-          <div className="flex items-center justify-between px-5 py-4">
-            <p className="text-[10px] font-bold tracking-[.08em] text-white/40 uppercase">
-              {isDirty
-                ? next
-                  ? "Save to move the contest"
-                  : "Save to set the contest"
-                : "Tap a field to move the contest"}
-            </p>
-            {isDirty ? (
-              <LoadingButton
-                onClick={handleSave}
-                loading={isBusy}
-                loadingText="Saving..."
-                className="h-8 rounded-full px-4 text-xs"
-              >
-                Save
-              </LoadingButton>
-            ) : (
-              <button
-                type="button"
-                onClick={handleTurnOff}
-                disabled={isBusy}
-                className="flex size-9 items-center justify-center rounded-full border-2 border-dashed border-[var(--gold-hi)] text-[var(--gold-hi)] transition-colors disabled:opacity-50"
-                title="Turn off"
-              >
-                <Power className="size-4" />
-              </button>
-            )}
-          </div>
+          {confirmingEliminate ? (
+            <div className="flex items-center justify-between gap-3 px-5 py-4">
+              <p className="text-xs font-bold text-white/70">
+                Mark {campusName} as out? They&apos;ll stay visible in
+                results, but marked out of future rounds.
+              </p>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-full border-white/15 bg-transparent text-xs text-white/70 hover:bg-white/10 hover:text-white"
+                  onClick={() => setConfirmingEliminate(false)}
+                  disabled={isUpdatingTeam}
+                >
+                  Cancel
+                </Button>
+                <LoadingButton
+                  onClick={handleEliminate}
+                  loading={isUpdatingTeam}
+                  loadingText="Marking..."
+                  variant="destructive"
+                  className="h-8 rounded-full px-4 text-xs"
+                >
+                  Mark as Out
+                </LoadingButton>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between px-5 py-4">
+              <p className="text-[10px] font-bold tracking-[.08em] text-white/40 uppercase">
+                {isDirty
+                  ? next
+                    ? "Save to move the contest"
+                    : "Save to set the contest"
+                  : "Tap a field to move the contest"}
+              </p>
+              {isDirty ? (
+                <LoadingButton
+                  onClick={handleSave}
+                  loading={isBusy}
+                  loadingText="Saving..."
+                  className="h-8 rounded-full px-4 text-xs"
+                >
+                  Save
+                </LoadingButton>
+              ) : (
+                status !== "ELIMINATED" && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingEliminate(true)}
+                    disabled={isBusy}
+                    className="flex size-9 items-center justify-center rounded-full border-2 border-dashed border-[var(--gold-hi)] text-[var(--gold-hi)] transition-colors disabled:opacity-50"
+                    title="Mark team as out"
+                  >
+                    <Power className="size-4" />
+                  </button>
+                )
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

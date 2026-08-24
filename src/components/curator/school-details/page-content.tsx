@@ -182,6 +182,8 @@ export function SchoolDetailsPageContent({
             <NextFixturePill
               teamId={effectiveTeam.id}
               fixtures={effectiveTeam.fixtures}
+              campusName={effectiveTeam.campusName}
+              status={effectiveTeam.status}
             />
           ) : (
             <JoinCompetitionPill
