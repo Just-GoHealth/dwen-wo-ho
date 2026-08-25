@@ -18,6 +18,7 @@ import useVersionsQuery from "@/hooks/curator/competitions/use-versions";
 import useSchoolsQuery from "@/hooks/queries/use-schools";
 import { DYNAMIC_ROUTES } from "@/lib/constants/infra/routes";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
+import { parseApiError } from "@/lib/utils/shared/api-error";
 import type { ImportFixtureRow, Team } from "@/lib/types/api/competitions";
 
 export default function CompetitionVersionPage() {
@@ -87,6 +88,26 @@ export default function CompetitionVersionPage() {
       code: versionCode,
       data: { campusIds: Array.from(selectedSchoolIds) },
     });
+    setSelectedSchoolIds(new Set());
+  };
+
+  const handleRegisterSelected = async () => {
+    const [campusId] = Array.from(selectedSchoolIds);
+    if (!campusId) return;
+    try {
+      await registerTeam({ code: versionCode, data: { campusId } });
+    } catch (error) {
+      // this school already has a team here (e.g. the teams list was
+      // stale when this button became selectable) - nothing to do, it's
+      // already registered, so just proceed as if this had succeeded
+      // instead of leaving the curator stuck on a selection that can
+      // never submit. Refresh the list so the stale entry stops showing
+      // as selectable.
+      if (parseApiError(error).code !== "TEAM_ALREADY_EXISTS") throw error;
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.competitionTeam, versionCode],
+      });
+    }
     setSelectedSchoolIds(new Set());
   };
 
@@ -313,14 +334,7 @@ export default function CompetitionVersionPage() {
                   loading={isRegisteringTeam}
                   loadingText="Registering..."
                   disabled={selectedSchoolIds.size !== 1}
-                  onClick={async () => {
-                    const [campusId] = Array.from(selectedSchoolIds);
-                    await registerTeam({
-                      code: versionCode,
-                      data: { campusId },
-                    });
-                    setSelectedSchoolIds(new Set());
-                  }}
+                  onClick={handleRegisterSelected}
                 >
                   Register as a full team
                 </LoadingButton>
