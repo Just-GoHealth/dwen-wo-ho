@@ -387,26 +387,54 @@
 .animate-pulse-subtle {
   animation: pulse-subtle 2.5s ease-in-out infinite;
 }
-@media (min-width: 1024px) {
-  ::-webkit-scrollbar {
-    @apply bg-background h-1 w-1;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-primary/60 rounded-4xl border-0;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-accent cursor-grab;
-  }
+/* the scrollbar, dressed - same treatment as just-go-patient's globals.css
+   (the two apps share this exact gold palette already, see --gold/--gold-hi/
+   --gold-lo above), applied app-wide instead of only where it happened to
+   be reached before: one bar everywhere, dark channel, gold thumb, always
+   visible (not hidden on mobile - a long list needs the visual cue that
+   there's more below, which a hidden bar can't give). .scrollbar-hide stays
+   available as an explicit opt-out for anywhere that's still meant to be
+   swiped, not scrolled with a visible bar. */
+html body,
+html body * {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--gold-lo) rgba(18, 12, 10, 0.55) !important;
 }
-
-@media (max-width: 1023px) {
-  ::-webkit-scrollbar {
-    display: none;
-  }
-  * {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
+html body ::-webkit-scrollbar,
+html body::-webkit-scrollbar {
+  width: 10px !important;
+  height: 10px !important;
+  background: transparent !important;
+}
+html body ::-webkit-scrollbar-track,
+html body::-webkit-scrollbar-track {
+  background: rgba(18, 12, 10, 0.5) !important;
+  border-radius: 999px !important;
+  margin: 3px 0 !important;
+}
+html body ::-webkit-scrollbar-thumb,
+html body::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: linear-gradient(
+    180deg,
+    var(--gold-hi),
+    var(--gold) 46%,
+    var(--gold-lo)
+  ) !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+}
+html body ::-webkit-scrollbar-thumb:hover,
+html body::-webkit-scrollbar-thumb:hover {
+  filter: brightness(1.09);
+  cursor: grab;
+}
+html body ::-webkit-scrollbar-thumb:active {
+  filter: brightness(0.96);
+}
+html body ::-webkit-scrollbar-corner {
+  background: transparent !important;
 }
 
 /* New Modern Animations */
