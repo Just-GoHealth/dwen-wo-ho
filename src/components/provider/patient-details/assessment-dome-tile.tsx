@@ -124,7 +124,12 @@ export function AssessmentDomeTile({
       </button>
 
       {open && (
-        <div className="mt-3 flex max-h-[40vh] flex-col gap-2 overflow-y-auto">
+        // mb matches the page's own reserved space for the fixed
+        // ProviderGlassBar (see patients/[resultId]/page.tsx's outer
+        // scroll container) - without it, this list's own scroll area
+        // doesn't know the bar exists and its last rows render underneath
+        // it instead of stopping short.
+        <div className="mt-3 mb-[clamp(112px,20vh,188px)] flex max-h-[40vh] flex-col gap-2 overflow-y-auto">
           {category.items.map((item, i) => (
             <div
               key={item.name}
