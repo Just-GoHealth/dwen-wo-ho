@@ -196,6 +196,8 @@ export const DYNAMIC_ENDPOINTS = {
       `${BASE_URLS.PATIENT_RESULTS}/${resultId}/referred-provider`,
     GET: (resultId: string | number) =>
       `${BASE_URLS.PATIENT_RESULTS}/${resultId}`,
+    BOARD: (resultId: string | number) =>
+      `${BASE_URLS.PATIENT_RESULTS}/${resultId}/board`,
     GET_SCHOOL_RESULTS: (schoolId: string | number) =>
       `${BASE_URLS.PATIENT_RESULTS}/school/${schoolId}`,
     GET_NEW_SCHOOL_RESULTS: (schoolId: string | number) =>

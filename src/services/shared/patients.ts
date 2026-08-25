@@ -10,7 +10,10 @@ import { LockInAssessment } from "@/lib/types/entities/lockin";
 import { Provider } from "@/lib/types/entities/provider";
 import { LockinUpdateResponse } from "@/lib/types/api/lockin";
 
-import { PatientActionResponseDTO } from "@/lib/types/api/patient-results";
+import {
+  BoardResponse,
+  PatientActionResponseDTO,
+} from "@/lib/types/api/patient-results";
 import {
   extractArrayData,
   requireSuccessData,
@@ -60,6 +63,24 @@ export const patientsService = {
       response,
       "Failed to fetch patient result",
     );
+  },
+
+  // 404 ("no screening board recorded") is the expected response for a
+  // patient who hasn't gone through the newer screening system yet, not an
+  // error - callers should fall back to the older lockin-assessment data.
+  getPatientResultBoard: async (
+    resultId: string | number,
+  ): Promise<BoardResponse | null> => {
+    try {
+      const response = await api(
+        DYNAMIC_ENDPOINTS.PATIENT_RESULTS.BOARD(resultId),
+      );
+      if (response?.success && response.data)
+        return response.data as BoardResponse;
+      return null;
+    } catch {
+      return null;
+    }
   },
 
   getSchoolResults: async (
@@ -174,11 +195,14 @@ export const patientsService = {
   ): Promise<{
     patientResult: PatientResult;
     lockInAssessment: LockInAssessment | null;
+    board: BoardResponse | null;
   }> => {
     const patientResult = await patientsService.getPatientResult(resultId);
-    const lockInAssessment =
-      await fetchLockInAssessmentForPatient(patientResult);
-    return { patientResult, lockInAssessment };
+    const [lockInAssessment, board] = await Promise.all([
+      fetchLockInAssessmentForPatient(patientResult),
+      patientsService.getPatientResultBoard(resultId),
+    ]);
+    return { patientResult, lockInAssessment, board };
   },
 
   incrementVisit: async (schoolId: string | number): Promise<void> => {

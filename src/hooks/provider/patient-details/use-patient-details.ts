@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import useUserQuery from "@/hooks/queries/use-user-profile";
 import usePatientResultQuery from "@/hooks/queries/use-patient-result";
 import { getColorHex } from "@/lib/utils/shared/color-hex";
+import { mapBoardToMetricCategories } from "@/lib/utils/patient/map-board-to-assessment";
 import { PatientActionResponseDTO } from "@/lib/types/api/patient-results";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
 
@@ -90,6 +91,7 @@ export function useProviderPatientDetails() {
 
   const patientResult = patientData?.patientResult ?? null;
   const lockInAssessment = patientData?.lockInAssessment ?? null;
+  const board = patientData?.board ?? null;
 
   const { data: allActions = [], isLoading: isActionsLoading } =
     usePatientActions(resultId, { enabled: !!resultId });
@@ -116,8 +118,13 @@ export function useProviderPatientDetails() {
     [addPatientActionMutate, resultId],
   );
 
-  // Compute metrics categories (same as curator)
+  // Compute metrics categories (same as curator) - prefer the real
+  // screening board (matches what the patient's own app shows) when this
+  // patient has one; fall back to the older lockin-assessment shape for
+  // patients who haven't gone through the newer screening system yet.
   const metrics = useMemo<MetricCategory[]>(() => {
+    const boardMetrics = mapBoardToMetricCategories(board);
+    if (boardMetrics) return boardMetrics;
     if (!lockInAssessment) return NO_DATA_METRICS;
     return [
       {
@@ -193,7 +200,7 @@ export function useProviderPatientDetails() {
         ],
       },
     ];
-  }, [lockInAssessment]);
+  }, [board, lockInAssessment]);
 
   // Check if provider is treating this patient
   const isTreating = useMemo(() => {

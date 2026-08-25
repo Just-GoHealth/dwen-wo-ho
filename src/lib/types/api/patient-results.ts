@@ -40,3 +40,51 @@ export interface PatientCase {
   avatarUrl: string | null;
   schoolNickname: string;
 }
+
+export interface BoardRowResponse {
+  itemCode?: string;
+  name?: string;
+  label?: string;
+  severity?: "mild" | "mod" | "sev";
+}
+
+export interface BoardSectionResponse {
+  key?: string;
+  title?: string;
+  time?: string;
+  score?: number;
+  max?: number;
+  band?: string;
+  fam?: "green" | "gold" | "red" | "emg";
+  emergency?: boolean;
+  items?: BoardRowResponse[];
+  level?: string;
+  carried?: boolean;
+  sourceScreeningId?: string;
+}
+
+// GET /v1/patient-results/{resultId}/board — the same screening board the
+// patient's own app renders (see just-go-patient's ScreeningBoard type),
+// now exposed to provider/curator. 404 ("no screening board recorded") is
+// the expected response for a patient who hasn't gone through the newer
+// screening system yet, not an error.
+export interface BoardResponse {
+  screeningId?: string;
+  run?: string;
+  label?: string;
+  head?: string;
+  at?: string;
+  school?: string;
+  sections?: BoardSectionResponse[];
+  emergency?: boolean;
+  careAcknowledged?: boolean;
+  publicStatus?: string;
+  tool?: "D1" | "T3" | "TPLUS";
+  tag?: "911" | "NOW" | "ASAP";
+  reasonCode?: string;
+  reason?: string;
+  load?: number;
+  peak?: number;
+  cross?: number | null;
+  carriedContextMissing?: boolean;
+}
