@@ -47,6 +47,11 @@ export interface MetricItem {
   description: string;
   value: string;
   color: string;
+  // only known for the newer screening-board shape (see
+  // mapBoardToMetricCategories) - the older lockin-assessment items only
+  // ever had a resolved color, no raw severity, so this stays undefined
+  // there and AssessmentDomeTile just shows a plain swatch for them
+  severity?: "mild" | "mod" | "sev";
 }
 
 export interface MetricCategory {

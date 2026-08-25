@@ -36,15 +36,49 @@ function mapSection(section: BoardSectionResponse): MetricCategory {
       description: item.label ?? "",
       value: item.label ?? "",
       color: SEVERITY_COLOR[item.severity ?? "mild"],
+      severity: item.severity ?? "mild",
     })),
   };
 }
 
+// same fixed 3-category names/order as NO_DATA_METRICS in
+// use-patient-details.ts and DOME_CAPTIONS in assessment-metrics-panel.tsx -
+// AssessmentDomeTile always needs a name to display, so a missing slot
+// still gets one of these rather than a blank title.
+const PLACEHOLDER_NAMES = [
+  "General Mental Health",
+  "Exam Anxiety",
+  "Exam Prep",
+];
+const MIN_CATEGORY_COUNT = 3;
+
+function placeholderCategory(name: string): MetricCategory {
+  return {
+    name,
+    description: "No data yet",
+    score: "—",
+    color: "var(--sw-red-deep)",
+    items: [],
+  };
+}
+
 /** Real board data when this patient has one, else null so callers fall
- * back to the older lockin-assessment-derived metrics. */
+ * back to the older lockin-assessment-derived metrics. Always at least 3
+ * categories - a board scoring fewer sections than that (e.g. one flagged
+ * emergency section returned on its own) pads the rest with "no data yet"
+ * placeholders instead of leaving the dome row short. */
 export function mapBoardToMetricCategories(
   board: BoardResponse | null,
 ): MetricCategory[] | null {
   if (!board?.sections?.length) return null;
-  return board.sections.map(mapSection);
+  const real = board.sections.map(mapSection);
+  const usedNames = new Set(real.map((c) => c.name));
+  const fillerNames = PLACEHOLDER_NAMES.filter((n) => !usedNames.has(n));
+  let fillerIndex = 0;
+  while (real.length < MIN_CATEGORY_COUNT) {
+    const name = fillerNames[fillerIndex] ?? "";
+    fillerIndex++;
+    real.push(placeholderCategory(name));
+  }
+  return real;
 }

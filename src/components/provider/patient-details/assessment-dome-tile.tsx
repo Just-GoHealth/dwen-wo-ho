@@ -5,6 +5,18 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MetricCategory } from "@/hooks/provider/patient-details/use-patient-details";
 
+// severity -> direction arrow, ported 1:1 from the legacy .ap-ss-box's
+// AP_ARROW paths (same as just-go-patient's DomeTile) - severe points up
+// (worsening), mild points down (safe), moderate points diagonally
+// up-right (trending up). Only known for the newer screening-board shape;
+// legacy lockin-assessment items have no severity, so they keep the plain
+// swatch with no icon.
+const SEVERITY_ARROW: Record<string, string> = {
+  sev: "M12 19V6M6.5 11.5 12 6l5.5 5.5",
+  mild: "M12 5v13M6.5 12.5 12 18l5.5-5.5",
+  mod: "M7.5 16.5 16 8M9 8h7.5v7.5",
+};
+
 interface AssessmentDomeTileProps {
   category: MetricCategory;
   icon: LucideIcon;
@@ -137,13 +149,27 @@ export function AssessmentDomeTile({
               className="animate-in fade-in slide-in-from-top-3 fill-mode-backwards flex items-center gap-2.5 rounded-[10px] border border-black/10 bg-[#f2e7d4] px-3 py-2 shadow-[0_6px_16px_rgba(0,0,0,.3)] duration-300 ease-out"
             >
               <span
-                className="size-5 shrink-0 rounded-[4px] border-2"
+                className="flex size-5 shrink-0 items-center justify-center rounded-[4px] border-2"
                 style={{
                   borderColor: item.color,
                   backgroundColor: item.color,
                 }}
-              />
-              <span className="min-w-0 flex-1 text-xs font-extrabold tracking-wide text-[#2c1622] uppercase">
+              >
+                {item.severity && (
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="size-4"
+                    fill="none"
+                    stroke="#2a1414"
+                    strokeWidth={2.7}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d={SEVERITY_ARROW[item.severity]} />
+                  </svg>
+                )}
+              </span>
+              <span className="min-w-0 flex-1 text-left text-xs font-extrabold tracking-wide text-[#2c1622] uppercase">
                 {item.name}
               </span>
               <span
