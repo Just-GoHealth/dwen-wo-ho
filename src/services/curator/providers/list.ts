@@ -9,13 +9,6 @@ import {
   ProviderDetails,
   ApiActionResponse,
 } from "@/lib/types/entities/provider";
-function getCuratorRefreshTokenHeaders():
-  | { Authorization: string }
-  | undefined {
-  const refreshToken =
-    typeof window !== "undefined" ? localStorage.getItem("refreshToken") : "";
-  return refreshToken ? { Authorization: `Bearer ${refreshToken}` } : undefined;
-}
 
 export const listService = {
   getProviders: async (): Promise<IProviderResponse> => {
@@ -39,7 +32,6 @@ export const listService = {
   approveProvider: async (email: string): Promise<ApiActionResponse> => {
     const result = await api(DYNAMIC_ENDPOINTS.PROVIDERS.APPROVE(email), {
       method: "PUT",
-      headers: getCuratorRefreshTokenHeaders(),
     });
     return {
       success: !!result?.success,
@@ -51,7 +43,6 @@ export const listService = {
   rejectProvider: async (email: string): Promise<ApiActionResponse> => {
     const result = await api(DYNAMIC_ENDPOINTS.PROVIDERS.REJECT(email), {
       method: "PUT",
-      headers: getCuratorRefreshTokenHeaders(),
     });
     return {
       success: !!result?.success,
