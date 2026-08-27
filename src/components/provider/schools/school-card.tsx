@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { MdSchool } from "react-icons/md";
 import { SchoolCardProps } from "@/lib/types/components/provider/schools";
 import { Button } from "@/components/ui/button";
@@ -28,11 +27,10 @@ export function SchoolCard({ school, onClick }: SchoolCardProps) {
       {/* Background Image */}
       {school.logo ? (
         <div className="absolute inset-0">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+          <img
             src={school.logo}
             alt={school.name}
-            width={400}
-            height={400}
             className="h-full w-full object-cover"
           />
         </div>
