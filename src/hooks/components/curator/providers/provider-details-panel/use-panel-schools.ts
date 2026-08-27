@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import { useProvidersQuery } from "@/hooks/queries/use-provider";
 import useSchoolsQuery from "@/hooks/queries/use-schools";
 import { AssociatedSchool } from "@/lib/types/entities/partners";
-import { ProviderAssociatedSchool } from "@/lib/types/api/providers";
 import { ProviderDetails } from "@/lib/types/entities/provider";
 import { toast } from "sonner";
 
@@ -32,10 +31,10 @@ export const useProviderPanelSchools = (
 
   const associatedSchools: AssociatedSchool[] = useMemo(() => {
     const providerSchools = provider?.schools || [];
-    return providerSchools.map((s: ProviderAssociatedSchool) => ({
-      id: String(s.schoolId),
-      name: s.schoolName,
-      logo: s.avatarUrl ?? undefined,
+    return providerSchools.map((s) => ({
+      id: String(s.id),
+      name: s.name,
+      logo: s.logo ?? undefined,
       isAssociated: true,
     }));
   }, [provider?.schools]);
