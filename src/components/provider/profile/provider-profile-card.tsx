@@ -1,5 +1,4 @@
 import { FiUser, FiMail, FiPhone, FiCalendar, FiAward } from "react-icons/fi";
-import Image from "next/image";
 import { formatProviderName } from "@/lib/utils/shared/provider-name";
 import { ProviderProfileCardProps } from "@/lib/types/components/provider/profile";
 
@@ -9,14 +8,13 @@ export function ProviderProfileCard({ provider }: ProviderProfileCardProps) {
       <div className="flex items-start gap-4">
         {provider.profilePhotoURL ? (
           <div className="border-primary relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+            <img
               src={provider.profilePhotoURL}
               alt={formatProviderName(
                 provider.providerName || "",
                 provider.providerTitle,
               )}
-              width={64}
-              height={64}
               className="h-full w-full object-cover"
             />
           </div>

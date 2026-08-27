@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, User } from "lucide-react";
 import { compactTimeAgo } from "@/lib/utils/shared/time-ago";
@@ -275,12 +274,11 @@ export default function PatientGridCard<T extends PatientCardPatient>({
         {/* the face */}
         <Avatar className="size-20 shadow-[0_0_0_1.5px_rgba(232,212,173,.55),0_10px_24px_rgba(0,0,0,.4)] transition-transform duration-[240ms] ease-out group-hover:scale-[1.07] group-hover:shadow-[0_0_0_2px_rgba(246,231,196,.95),0_14px_32px_rgba(0,0,0,.5)]">
           {fields.avatarUrl && !photoFailed ? (
-            <Image
+            // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+            <img
               src={fields.avatarUrl}
               alt={fields.patientName}
-              fill
-              sizes="80px"
-              className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+              className="absolute inset-0 size-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
               onError={() => setPhotoFailed(true)}
             />
           ) : (

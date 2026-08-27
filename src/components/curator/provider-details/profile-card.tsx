@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { User, Mail, Phone, Calendar } from "lucide-react";
 import { ProviderProfileCardProps } from "@/lib/types/components/curator/provider-details/provider-details";
 
@@ -10,7 +9,8 @@ export function ProviderProfileCard({ provider }: ProviderProfileCardProps) {
           {/* Profile Image */}
           <div className="shrink-0">
             {provider.profilePhotoURL ? (
-              <Image
+              // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+              <img
                 src={provider.profilePhotoURL}
                 alt="Profile"
                 width={120}

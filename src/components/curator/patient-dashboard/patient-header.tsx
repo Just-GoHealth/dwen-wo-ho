@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import {
   ChevronLeft,
   User,
@@ -40,12 +39,11 @@ export default function PatientHeader({
         <div className="flex flex-col items-center justify-center space-y-2">
           <Avatar className="size-24 shrink-0 rounded-3xl bg-teal-500/10 text-teal-600 shadow-inner ring-1 ring-teal-500/20 md:size-32">
             {patientResult.profilePhotoURL && !photoFailed ? (
-              <Image
+              // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+              <img
                 src={patientResult.profilePhotoURL}
                 alt={patientResult.patientName}
-                fill
-                sizes="(min-width: 768px) 128px, 96px"
-                className="object-cover"
+                className="absolute inset-0 size-full object-cover"
                 onError={() => setPhotoFailed(true)}
               />
             ) : (

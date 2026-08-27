@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { timeAgo } from "@/lib/utils/shared/time-ago";
 import { FiCheck, FiX } from "react-icons/fi";
 import { formatProviderName } from "@/lib/utils/shared/provider-name";
@@ -34,14 +33,13 @@ const ProviderCard = (props: ProviderCardProps) => {
     >
       {/* Provider Image - Centered at Top */}
       <div className="ring-muted group-hover:ring-primary/20 mb-4 size-16 overflow-hidden rounded-full ring-4 transition-all duration-300">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+        <img
           src={provider.profilePhotoURL || DEFAULT_PROVIDER_IMAGE}
           alt={formatProviderName(
             provider.providerName || "",
             provider.providerTitle,
           )}
-          width={64}
-          height={64}
           className="h-full w-full object-cover"
         />
       </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { ChevronLeft, History, Heart } from "lucide-react";
 import { PatientResult } from "@/lib/types/entities/patient";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -72,12 +71,11 @@ export function PatientDetailTopBar({
       <div className="flex min-w-0 items-center justify-center gap-3 sm:absolute sm:top-1/2 sm:left-1/2 sm:order-2 sm:max-w-[60vw] sm:-translate-x-1/2 sm:-translate-y-1/2">
         <Avatar className="border-primary size-12 shrink-0 border-2 shadow-[0_10px_26px_rgba(0,0,0,.5)]">
           {patientResult.profilePhotoURL && !photoFailed ? (
-            <Image
+            // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+            <img
               src={patientResult.profilePhotoURL}
               alt={patientResult.patientName}
-              fill
-              sizes="48px"
-              className="object-cover"
+              className="absolute inset-0 size-full object-cover"
               onError={() => setPhotoFailed(true)}
             />
           ) : (

@@ -1,5 +1,4 @@
 import { FiX } from "react-icons/fi";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ProviderHeaderProps } from "@/lib/types/components/curator/providers/provider-details-panel";
 
@@ -20,12 +19,10 @@ export const ProviderHeader = ({
       </Button>
 
       <div className="ring-card bg-muted h-24 w-24 shrink-0 overflow-hidden rounded-full shadow-lg ring-4">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+        <img
           src={provider.profilePhotoURL || "/auth/lawyer.jpg"}
           alt={provider.fullName || "Provider"}
-          width={96}
-          height={96}
-          priority
           className="h-full w-full object-cover"
         />
       </div>
