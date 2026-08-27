@@ -1,10 +1,9 @@
 "use client";
 import { timeAgo } from "@/lib/utils/shared/time-ago";
-import { FiCheck, FiX } from "react-icons/fi";
+import { FiCheck, FiUser, FiX } from "react-icons/fi";
 import { formatProviderName } from "@/lib/utils/shared/provider-name";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { ProviderCardProps } from "@/lib/types/components/curator/providers/provider-card";
-import { DEFAULT_PROVIDER_IMAGE } from "@/lib/constants/components/curator/providers/provider-card";
 import { useProviderCard } from "@/hooks/components/curator/providers/provider-card/use-provider-card";
 import { activateOnKeyboard } from "@/lib/utils/shared/a11y";
 
@@ -32,16 +31,20 @@ const ProviderCard = (props: ProviderCardProps) => {
       className="bg-card border-border hover:border-primary/50 group relative flex w-full flex-col items-center rounded-xl border p-6 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
     >
       {/* Provider Image - Centered at Top */}
-      <div className="ring-muted group-hover:ring-primary/20 mb-4 size-16 overflow-hidden rounded-full ring-4 transition-all duration-300">
-        {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
-        <img
-          src={provider.profilePhotoURL || DEFAULT_PROVIDER_IMAGE}
-          alt={formatProviderName(
-            provider.providerName || "",
-            provider.providerTitle,
-          )}
-          className="h-full w-full object-cover"
-        />
+      <div className="ring-muted group-hover:ring-primary/20 bg-muted text-muted-foreground mb-4 flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full ring-4 transition-all duration-300">
+        {provider.profilePhotoURL ? (
+          // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+          <img
+            src={provider.profilePhotoURL}
+            alt={formatProviderName(
+              provider.providerName || "",
+              provider.providerTitle,
+            )}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <FiUser className="h-8 w-8" />
+        )}
       </div>
 
       {/* Provider Info - Centered */}

@@ -1,4 +1,4 @@
-import { FiX } from "react-icons/fi";
+import { FiUser, FiX } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { ProviderHeaderProps } from "@/lib/types/components/curator/providers/provider-details-panel";
 
@@ -18,13 +18,17 @@ export const ProviderHeader = ({
         <FiX className="text-destructive h-5 w-5" />
       </Button>
 
-      <div className="ring-card bg-muted h-24 w-24 shrink-0 overflow-hidden rounded-full shadow-lg ring-4">
-        {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
-        <img
-          src={provider.profilePhotoURL || "/auth/lawyer.jpg"}
-          alt={provider.fullName || "Provider"}
-          className="h-full w-full object-cover"
-        />
+      <div className="ring-card bg-muted text-muted-foreground flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-lg ring-4">
+        {provider.profilePhotoURL ? (
+          // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+          <img
+            src={provider.profilePhotoURL}
+            alt={provider.fullName || "Provider"}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <FiUser className="h-10 w-10" />
+        )}
       </div>
 
       <div className="text-foreground flex-1">
