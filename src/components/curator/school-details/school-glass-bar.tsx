@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { KeyRound } from "lucide-react";
 import { MdSchool } from "react-icons/md";
 import type { ReactNode } from "react";
@@ -55,11 +54,11 @@ export function SchoolGlassBar({
           >
             <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[var(--gold)] bg-[rgba(43,18,16,.5)] shadow-[0_10px_26px_rgba(0,0,0,.55)] sm:size-14">
               {school.logo ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+                <img
                   src={school.logo}
                   alt={school.name}
-                  fill
-                  className="object-cover"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
                 <MdSchool className="text-muted-foreground/60 text-2xl" />

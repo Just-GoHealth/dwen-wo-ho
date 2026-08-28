@@ -6,7 +6,6 @@ import { SchoolSelectionPickerProps } from "@/lib/types/components/shared/overla
 import { useSchoolSelection } from "@/hooks/components/curator/content-pages/use-school-selection";
 import { SCHOOL_FILTER_OPTIONS } from "@/lib/constants/components/curator/content-pages/overlays";
 import { ArrowBigLeftIcon } from "lucide-react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 export default function SchoolSelectionPicker({
@@ -132,11 +131,10 @@ export default function SchoolSelectionPicker({
                   >
                     {school.logo ? (
                       <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
-                        <Image
+                        {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+                        <img
                           src={school.logo}
                           alt={school.name}
-                          width={48}
-                          height={48}
                           className="h-full w-full object-cover"
                         />
                       </div>

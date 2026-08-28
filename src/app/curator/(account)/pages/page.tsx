@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Logo } from "@/components/shared/logo";
 import WidthConstraint from "@/components/ui/width-constraint";
 import { useCuratorContentPages } from "@/hooks/curator/content-pages";
@@ -19,11 +18,10 @@ export default function CuratorPagesPage() {
             <div className="mb-6 flex origin-center scale-[1.2] items-center justify-center gap-4">
               {selectedSchool.logo ? (
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border">
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+                  <img
                     src={selectedSchool.logo}
                     alt={selectedSchool.name}
-                    width={64}
-                    height={64}
                     className="h-full w-full object-cover"
                   />
                 </div>

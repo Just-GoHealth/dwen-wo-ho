@@ -2,7 +2,6 @@
 
 import { MapPin, ChevronDown } from "lucide-react";
 import { m, AnimatePresence } from "motion/react";
-import Image from "next/image";
 import { CAMPUS_OPTIONS } from "@/lib/constants/components/curator/schools/school-forms";
 import { SCHOOL_TYPES } from "@/lib/constants/components/curator/schools/school-forms";
 import { SchoolEditPanelFormProps } from "@/lib/types/components/curator/schools/schools";
@@ -162,11 +161,10 @@ export const SchoolEditForm = ({
           <div className="flex items-center gap-6">
             <div className="flex-1">
               <div className="inline-block">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+                <img
                   src={school.logo}
                   alt="School logo"
-                  width={128}
-                  height={128}
                   className="border-border h-32 w-32 rounded-lg border object-cover shadow-sm"
                 />
               </div>

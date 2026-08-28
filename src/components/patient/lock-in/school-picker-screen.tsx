@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { MdSchool } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { Logo } from "@/components/shared/logo";
@@ -75,11 +74,10 @@ export function PatientLockInSchoolPickerScreen() {
                   <div className="flex items-start gap-4">
                     {school.logo ? (
                       <div className="relative h-16 w-16 shrink-0">
-                        <Image
+                        {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+                        <img
                           src={school.logo}
                           alt={school.name}
-                          width={64}
-                          height={64}
                           className="h-full w-full rounded-lg object-contain"
                         />
                       </div>

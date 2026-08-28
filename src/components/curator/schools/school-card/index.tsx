@@ -1,5 +1,4 @@
 import { m } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { School, Loader2, MapPin } from "lucide-react";
@@ -73,13 +72,13 @@ export function SchoolCard({
             className="absolute inset-0 z-0 p-8"
           >
             {school.logo ? (
-              <Image
+              // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+              <img
                 src={school.logo}
                 alt={school.name}
-                fill
-                priority={priority}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                className="object-contain drop-shadow-md"
+                loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : "auto"}
+                className="absolute inset-0 h-full w-full object-contain drop-shadow-md"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
@@ -123,12 +122,14 @@ export function SchoolCard({
               className="border-warning bg-background relative z-20 -mt-10 flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 shadow-xl"
             >
               {school.logo ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization
+                <img
                   src={school.logo}
                   alt="Logo"
                   width={28}
                   height={28}
-                  priority={priority}
+                  loading={priority ? "eager" : "lazy"}
+                  fetchPriority={priority ? "high" : "auto"}
                   className="object-contain"
                 />
               ) : (

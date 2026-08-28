@@ -3,7 +3,6 @@
 import { ArrowLeft, Users } from "lucide-react";
 import { MdSchool } from "react-icons/md";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import { useProviderSchoolDetails } from "@/hooks/provider/school-details/use-school-details";
 
 export default function ProviderSchoolDetailsPage() {
@@ -110,11 +109,10 @@ export default function ProviderSchoolDetailsPage() {
           <div className="flex items-start gap-6">
             {school.logo ? (
               <div className="border-border bg-card relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border-2">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element -- rendered directly, no optimization */}
+                <img
                   src={school.logo}
                   alt={school.name}
-                  width={128}
-                  height={128}
                   className="h-full w-full object-cover"
                 />
               </div>
