@@ -3,7 +3,6 @@ import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { schoolsService } from "@/services/curator/schools";
-import { lockinsService } from "@/services/patient/lock-ins";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
 
 // ─── Query Hooks ─────────────────────────────────────────────────────────────
@@ -32,15 +31,6 @@ const useSchool = (schoolId: string) =>
     queryKey: [QUERY_KEYS.schools, schoolId],
     queryFn: () => schoolsService.getSchool(schoolId),
     enabled: !!schoolId,
-  });
-
-const useSchoolLockin = (schoolId: string) =>
-  useQuery({
-    queryKey: [QUERY_KEYS.schoolsLockin, schoolId],
-    queryFn: () => lockinsService.getSchoolLockIn(schoolId),
-    enabled: !!schoolId,
-    staleTime: 3 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
   });
 
 const useSchoolStudents = (schoolId: string, options?: { enabled?: boolean }) =>
@@ -108,7 +98,6 @@ export default function useSchoolsQuery() {
     useSchools,
     useSchoolsWithRefetch,
     useSchool,
-    useSchoolLockin,
     useSchoolStudents,
     createSchool: createSchoolMutation.mutateAsync,
     disableSchool: disableSchoolMutation.mutateAsync,

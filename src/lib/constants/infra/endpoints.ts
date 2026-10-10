@@ -75,9 +75,6 @@ export const STATIC_ENDPOINTS = {
   NEWSLETTER: {
     SUBSCRIBE: `${API_V1}/newsletter/subscribe`,
   },
-  LOCKIN: {
-    SUBMIT: `${BASE_URLS.LOCKIN}`,
-  },
   PATIENT_RESULTS: {
     CREATE: `${BASE_URLS.PATIENT_RESULTS}`,
     BULK_DELETE_PATIENT_RECORDS: `${BASE_URLS.PATIENT_RESULTS}/bulk`,
@@ -178,14 +175,6 @@ export const DYNAMIC_ENDPOINTS = {
     UPDATE_COMMENT: (lockinId: string | number) =>
       // NOTE: Use PATCH method, not POST
       `${BASE_URLS.LOCKIN}/updates/${lockinId}/comment`,
-    GET_URGENT_CARE: (schoolId: string | number) =>
-      `${BASE_URLS.LOCKIN}/urgent-care/${schoolId}`,
-    GET_URGENT_CARE_LIGHT: (schoolId: string | number) =>
-      `${BASE_URLS.LOCKIN}/urgent-care/light/${schoolId}`,
-    GET_URGENT_CARE_TREATING: (schoolId: string | number) =>
-      `${BASE_URLS.LOCKIN}/urgent-care/${schoolId}/treating`,
-    GET_BENCHMARKS: (schoolType: string) =>
-      `${BASE_URLS.LOCKIN}/benchmarks/${encodeURIComponent(schoolType)}`,
   },
   PATIENT_RESULTS: {
     OPEN: (resultId: string | number) =>

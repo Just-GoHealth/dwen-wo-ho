@@ -14,7 +14,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
   };
 });
 
-vi.mock("../patient/lock-ins", () => ({
+vi.mock("../shared/lock-ins", () => ({
   lockinsService: {
     getSchoolLockIn,
   },

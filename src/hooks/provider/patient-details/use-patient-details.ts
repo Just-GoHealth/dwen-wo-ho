@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import useUserQuery from "@/hooks/queries/use-user-profile";
 import usePatientResultQuery from "@/hooks/queries/use-patient-result";
 import { getColorHex } from "@/lib/utils/shared/color-hex";
-import { mapBoardToMetricCategories } from "@/lib/utils/patient/map-board-to-assessment";
+import { mapBoardToMetricCategories } from "@/lib/utils/shared/map-board-to-assessment";
 import { PatientActionResponseDTO } from "@/lib/types/api/patient-results";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
 

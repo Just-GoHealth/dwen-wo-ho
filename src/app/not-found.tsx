@@ -6,6 +6,7 @@ import { Logo } from "@/components/shared/logo";
 import { Home, ArrowLeft } from "lucide-react";
 import { m } from "motion/react";
 import { ROUTES } from "@/lib/constants/infra/routes";
+import { PATIENT_APP_URL } from "@/configs/config";
 
 export default function NotFound() {
   const router = useRouter();
@@ -100,14 +101,18 @@ export default function NotFound() {
               Home
             </Button>
             <span className="text-muted-foreground">•</span>
-            <Button
-              variant={"link"}
-              onClick={() => router.push(ROUTES.patient.lockIn)}
-              className="text-muted-foreground hover:text-destructive/50 transition-all duration-300 hover:-translate-y-0.5"
-            >
-              Patient Lock-In
-            </Button>
-            <span className="text-muted-foreground">•</span>
+            {PATIENT_APP_URL && (
+              <>
+                <Button
+                  variant={"link"}
+                  asChild
+                  className="text-muted-foreground hover:text-destructive/50 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  <a href={PATIENT_APP_URL}>Patient Lock-In</a>
+                </Button>
+                <span className="text-muted-foreground">•</span>
+              </>
+            )}
             <Button
               variant={"link"}
               onClick={() => router.push(ROUTES.provider.auth)}

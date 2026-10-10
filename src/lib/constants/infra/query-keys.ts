@@ -3,7 +3,6 @@ export const QUERY_KEYS = {
   schools: "schools",
   providers: "providers",
   lockins: "lockins",
-  schoolsLockin: "schools-lockin",
   patientResults: "patientResults",
   patientResult: "patient-result",
   auth: "auth",

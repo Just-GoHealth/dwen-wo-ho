@@ -9,7 +9,7 @@ import type {
 import type { NotificationUserType } from "@/lib/types/notifications/ws-handler";
 
 interface UseNotificationQuerySeedOptions {
-  userType: NotificationUserType | "patient" | null;
+  userType: NotificationUserType | null;
   initialNotifications:
     | CuratorNotification[]
     | ProviderNotification[]

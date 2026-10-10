@@ -3,7 +3,6 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowUpRight, Lock } from "lucide-react";
 import type { Route } from "next";
 import { Logo } from "@/components/shared/logo";
@@ -15,7 +14,7 @@ import {
 } from "@/lib/marketing/landing-2";
 import { useLanding2Sequence } from "@/hooks/marketing/landing-2/use-sequence";
 import {
-  buildPatientJoinRoute,
+  buildPatientAppUrl,
   getLanding2LockInReferral,
 } from "@/lib/utils/marketing/landing-2-referral";
 import { Landing2AchievementCard } from "./achievement-card";
@@ -29,7 +28,6 @@ const L2_SHELL_STYLE = {
 
 export function Landing2() {
   useLanding2Sequence();
-  const router = useRouter();
   const { navigation, links, intro, assets } = LANDING_2_CONTENT;
 
   return (
@@ -135,9 +133,10 @@ export function Landing2() {
             id="l2-lock-in-btn"
             type="button"
             aria-label="Lock In - Get started now"
-            onClick={() =>
-              router.push(buildPatientJoinRoute(getLanding2LockInReferral()))
-            }
+            onClick={() => {
+              const url = buildPatientAppUrl(getLanding2LockInReferral());
+              if (url) window.location.assign(url);
+            }}
           >
             <Lock className="size-6" />
             <span className="inline-block overflow-hidden align-middle">

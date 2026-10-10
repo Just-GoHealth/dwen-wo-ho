@@ -10,7 +10,7 @@ import {
 } from "@/lib/types/entities/school";
 import { SchoolProvider } from "@/lib/types/entities/provider";
 import { patientsService } from "../shared/patients";
-import { lockinsService } from "../patient/lock-ins";
+import { lockinsService } from "../shared/lock-ins";
 import { LockInStudent } from "@/lib/types/entities/lockin";
 import type { UrgentPatient } from "@/lib/types/entities/patient";
 import { PatientResult } from "@/lib/types/entities/patient";

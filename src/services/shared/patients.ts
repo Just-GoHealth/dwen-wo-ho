@@ -21,8 +21,8 @@ import {
 import {
   buildAssessmentColorMap,
   mapLockInUpdateToAssessment,
-} from "@/lib/utils/patient/map-lockin-to-assessment";
-import { lockinsService } from "../patient/lock-ins";
+} from "@/lib/utils/shared/map-lockin-to-assessment";
+import { lockinsService } from "./lock-ins";
 
 function mapLockInResponseToAssessment(
   data: LockinUpdateResponse,

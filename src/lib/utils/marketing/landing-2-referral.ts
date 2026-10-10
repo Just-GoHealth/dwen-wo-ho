@@ -1,7 +1,6 @@
-import type { Route } from "next";
 import { LANDING_2_SEQUENCE_IDS } from "@/lib/constants/components/marketing/landing-2-sequence";
 import { LANDING_2_CONTENT } from "@/lib/marketing/landing-2";
-import { ROUTES } from "@/lib/constants/infra/routes";
+import { PATIENT_APP_URL } from "@/configs/config";
 
 const LOCK_IN_WITH_PREFIX = "Lock In with @";
 
@@ -45,11 +44,23 @@ export function getLanding2LockInReferral(): string | null {
   return referral || null;
 }
 
-export function buildPatientJoinRoute(referralHandle?: string | null): Route {
-  const trimmed = referralHandle?.trim();
-  if (!trimmed) {
-    return ROUTES.patient.join as Route;
+/**
+ * Entry URL of the patient app, carrying the influencer handle as `?ref=`
+ * (the patient app stores it and sends it with signup). Null when the
+ * patient app URL isn't configured for this environment.
+ */
+export function buildPatientAppUrl(
+  referralHandle?: string | null,
+  baseUrl: string | null = PATIENT_APP_URL,
+): string | null {
+  if (!baseUrl) {
+    return null;
   }
 
-  return `${ROUTES.patient.join}?ref=${encodeURIComponent(trimmed)}` as Route;
+  const url = new URL(`${baseUrl}/`);
+  const trimmed = referralHandle?.trim();
+  if (trimmed) {
+    url.searchParams.set("ref", trimmed);
+  }
+  return url.toString();
 }

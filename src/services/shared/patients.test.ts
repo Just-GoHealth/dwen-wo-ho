@@ -12,7 +12,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
   };
 });
 
-vi.mock("../patient/lock-ins", () => ({
+vi.mock("./lock-ins", () => ({
   lockinsService: {
     getLockInUpdate,
   },

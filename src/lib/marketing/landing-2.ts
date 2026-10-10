@@ -169,7 +169,5 @@ export const LANDING_2_CONTENT = {
     pledge: ROUTES.public.about,
     providers: ROUTES.public.joinAsProvider,
     landing: ROUTES.public.landing,
-    join: ROUTES.patient.join,
-    lockIn: ROUTES.patient.lockIn,
   },
 } as const;
