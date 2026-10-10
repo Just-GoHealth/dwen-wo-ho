@@ -82,7 +82,9 @@ export function CreativeStudiosWizardShell({
   children,
 }: CreativeStudiosWizardShellProps) {
   return (
-    <CreativeStudiosFlowProvider type={type}>
+    // key={type}: switching studio type must start from fresh drafts, not
+    // whatever a previous wizard left in the provider's state (LOG-03).
+    <CreativeStudiosFlowProvider key={type} type={type}>
       <div className="grid h-full min-h-0 w-full grid-cols-1 overflow-hidden md:grid-cols-2">
         <div className="hidden h-full min-h-0 md:block">
           <WizardPreviewColumn type={type} />
