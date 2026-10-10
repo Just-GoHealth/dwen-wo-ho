@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -9,6 +8,12 @@ import { Label } from "../ui/label";
 import { BaseSignInFormProps } from "@/lib/types/components/auth/base-sign-in";
 import { useTheme } from "next-themes";
 import { useHydrated } from "@/hooks/shared/use-hydrated";
+import type { AuthAudience } from "@/lib/types/components/auth/base-sign-in";
+
+const AUDIENCE_LABELS: Record<AuthAudience, string> = {
+  provider: "Providers",
+  curator: "Curators",
+};
 
 export const BaseSignInForm = ({
   audience,
@@ -21,7 +26,6 @@ export const BaseSignInForm = ({
   isLoading,
   isRecovering,
   successMessage,
-  forgotPasswordHref,
 }: BaseSignInFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const { theme } = useTheme();
@@ -36,7 +40,7 @@ export const BaseSignInForm = ({
         />
         <p className="text-muted-foreground text-lg font-bold sm:text-2xl">
           <span className="text-sm font-normal">for </span>
-          {audience === "patient" ? "Patients" : "Providers"}
+          {AUDIENCE_LABELS[audience]}
         </p>
       </div>
 
@@ -125,27 +129,16 @@ export const BaseSignInForm = ({
         </div>
 
         <div className="pt-4 text-center">
-          {audience === "patient" && forgotPasswordHref ? (
-            <Button
-              type="button"
-              variant="link"
-              className="text-muted-foreground hover:text-primary h-auto p-0 font-normal transition-colors"
-              asChild
-            >
-              <Link href={forgotPasswordHref}>Forgot your password?</Link>
-            </Button>
-          ) : (
-            <LoadingButton
-              type="button"
-              variant="link"
-              onClick={onRecoverAccount}
-              loading={isRecovering}
-              loadingText="Sending recovery email..."
-              className="text-muted-foreground hover:text-primary h-auto p-0 font-normal transition-colors"
-            >
-              Forgot your password?
-            </LoadingButton>
-          )}
+          <LoadingButton
+            type="button"
+            variant="link"
+            onClick={onRecoverAccount}
+            loading={isRecovering}
+            loadingText="Sending recovery email..."
+            className="text-muted-foreground hover:text-primary h-auto p-0 font-normal transition-colors"
+          >
+            Forgot your password?
+          </LoadingButton>
         </div>
       </form>
 

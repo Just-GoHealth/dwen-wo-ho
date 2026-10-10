@@ -20,7 +20,7 @@ const SignInContent = (props: ProviderSignInProps) => {
   return (
     <div className="flex h-full min-h-screen flex-col">
       <BaseSignInForm
-        audience="provider"
+        audience={props.audience ?? "provider"}
         email={props.email}
         register={register}
         errors={errors}

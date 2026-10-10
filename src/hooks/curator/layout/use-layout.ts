@@ -26,7 +26,7 @@ export function useCuratorLayout() {
     setMounted(true);
     if (typeof window !== "undefined") {
       if (!hasValidToken() || getStoredUserType() !== "curator") {
-        router.replace(ROUTES.provider.auth);
+        router.replace(ROUTES.curator.auth);
         setIsAuthenticated(false);
         return;
       }
@@ -35,7 +35,7 @@ export function useCuratorLayout() {
   }, [router]);
 
   const handleLogout = useCallback(() => {
-    logout(ROUTES.provider.auth);
+    logout(ROUTES.curator.auth);
   }, [logout]);
 
   return {

@@ -3,6 +3,7 @@ import { ROUTES } from "@/lib/constants/infra/routes";
 import { finalizeProviderSignInSession } from "@/lib/utils/auth/provider-sign-in-session";
 import { mockBrowserStorage } from "@/lib/utils/shared/mock-browser-storage.test-helper";
 import type { SignInResponse } from "@/lib/types/api/auth";
+import { clearTokens, getAccessToken } from "@/lib/auth/access-token";
 
 function buildSignInResponse(
   overrides: Partial<SignInResponse["userData"]> = {},
@@ -33,6 +34,7 @@ describe("finalizeProviderSignInSession", () => {
   });
 
   afterEach(() => {
+    clearTokens();
     vi.unstubAllGlobals();
   });
 
@@ -83,17 +85,19 @@ describe("finalizeProviderSignInSession", () => {
     expect(target).toBe(ROUTES.provider.home);
   });
 
-  it("persists auth tokens to localStorage", () => {
+  it("keeps the access token in memory and no token in localStorage", () => {
     finalizeProviderSignInSession(
       buildSignInResponse({ nextStep: null }),
       "user@example.com",
     );
 
-    expect(storage.get("token")).toBe("access-token");
-    expect(storage.get("refreshToken")).toBe("refresh-token");
+    expect(getAccessToken()).toBe("access-token");
+    expect(storage.get("token")).toBeUndefined();
+    expect(storage.get("refreshToken")).toBeUndefined();
+    expect(storage.get("userType")).toBe("provider");
   });
 
-  it("sets curatorToken when userRole is ROLE_CURATOR", () => {
+  it("marks the session as curator when userRole is ROLE_CURATOR", () => {
     finalizeProviderSignInSession(
       buildSignInResponse({
         userRole: "ROLE_CURATOR",
@@ -102,7 +106,9 @@ describe("finalizeProviderSignInSession", () => {
       "curator@example.com",
     );
 
-    expect(storage.get("curatorToken")).toBe("access-token");
+    expect(getAccessToken()).toBe("access-token");
+    expect(storage.get("curatorToken")).toBeUndefined();
+    expect(storage.get("userType")).toBe("curator");
   });
 
   it("uses fallback email when userData email is missing", () => {

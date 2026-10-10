@@ -3,6 +3,7 @@ export interface CheckEmailProps {
 }
 
 export interface ProviderSignInProps {
+  audience?: "provider" | "curator";
   successMessage?: string;
   email: string;
   onBack: () => void;

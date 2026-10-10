@@ -19,6 +19,15 @@ export const SIGN_IN_TEXTS = {
   },
 };
 
+export const CURATOR_AUTH_TEXTS = {
+  noAccount: {
+    title: "No curator account found",
+    message:
+      "Curator accounts are created by a JustGo administrator. Check the email address, or ask an administrator to invite you.",
+    back: "Use a different email",
+  },
+};
+
 export const CHECK_EMAIL_TEXTS = {
   header: {
     switchToPatients: "Switch to Patients",

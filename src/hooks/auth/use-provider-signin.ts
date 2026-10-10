@@ -10,6 +10,7 @@ import {
 } from "@/lib/schemas/provider-auth-schema";
 import { useAuthQuery } from "@/hooks/queries/use-auth";
 import { setUserType } from "@/lib/utils/auth/get-user-type";
+import { applyProviderAuthTokens } from "@/lib/utils/auth/provider-tokens";
 import { ROUTES } from "@/lib/constants/infra/routes";
 import { SIGN_UP_TEXTS } from "@/lib/constants/components/provider/auth/signup";
 import { getCleanErrorMessage } from "@/lib/utils/auth/error";
@@ -59,24 +60,12 @@ export const useProviderSignIn = ({
         password: values.password,
       });
 
-      const {
-        token,
-        userData,
-        refreshToken: refreshTokenValue,
-      } = response || {};
+      const { token, userData } = response || {};
 
+      // The refresh token is already in an HttpOnly cookie (set by the
+      // sign-in route handler); only the access token reaches the client.
       if (token) {
-        localStorage.setItem("token", token);
-        if (userData?.userRole === "ROLE_CURATOR") {
-          localStorage.setItem("curatorToken", token);
-          setUserType("curator");
-        } else {
-          setUserType("provider");
-        }
-      }
-
-      if (refreshTokenValue) {
-        localStorage.setItem("refreshToken", refreshTokenValue);
+        applyProviderAuthTokens({ token, userRole: userData?.userRole });
       }
 
       if (userData) {

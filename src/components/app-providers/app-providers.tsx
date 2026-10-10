@@ -10,8 +10,10 @@ import MotionProvider from "./motion-provider";
 
 export default function Providers({
   children,
+  nonce,
 }: Readonly<{
   children: ReactNode;
+  nonce?: string;
 }>) {
   return (
     <ThemeProvider
@@ -19,6 +21,7 @@ export default function Providers({
       defaultTheme="dark"
       enableSystem
       disableTransitionOnChange
+      nonce={nonce}
     >
       <JotaiProvider>
         <TanstackQueryProvider>

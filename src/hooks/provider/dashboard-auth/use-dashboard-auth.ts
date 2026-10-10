@@ -4,14 +4,14 @@ import { useEffect, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { authService } from "@/services/shared/auth";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
+import { hasValidToken } from "@/lib/utils/auth/get-user-type";
 
 const emptySubscribe = () => () => {};
 
-const readHasAuth = () =>
-  !!(localStorage.getItem("token") || localStorage.getItem("refreshToken"));
+const readHasAuth = () => hasValidToken();
 
 export default function useProviderDashboardAuth() {
-  // SSR-safe read of auth tokens without a mount effect (avoids hydration
+  // SSR-safe read of the session hint without a mount effect (avoids hydration
   // mismatch: server renders false, client reads localStorage after hydration).
   const hasAuth = useSyncExternalStore(
     emptySubscribe,

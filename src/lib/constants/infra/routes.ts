@@ -19,15 +19,9 @@ export const ROUTES = {
     schools: "/provider/schools",
     patients: "/provider/patients",
   },
-  patient: {
-    join: "/patient/join",
-    resetPassword: "/patient/reset-password",
-    resetPasswordNew: "/patient/reset-password/new",
-    lockIn: "/patient/lock-in",
-    waitingRoom: "/patient/waiting-room",
-    profile: "/patient/profile",
-  },
   curator: {
+    auth: "/curator/auth",
+    signIn: "/curator/auth?step=sign-in",
     dashboard: "/curator",
     create: "/curator/create",
     schools: "/curator/schools",

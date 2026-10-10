@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/constants/infra/routes";
+import { setAccessToken, setRecoveryToken } from "@/lib/auth/access-token";
 import useGetSearchParams from "@/hooks/shared/use-get-search-params";
 import { VerifyPasswordResetProps } from "@/lib/types/components/provider/auth";
 import { useAuthQuery } from "@/hooks/queries/use-auth";
@@ -63,8 +64,11 @@ export const useVerifyPasswordReset = ({
       });
 
       if (response?.token) {
-        localStorage.setItem("recoveryToken", response.token);
-        localStorage.removeItem("refreshToken");
+        // Recovery token kept in memory only (SEC-01). It survives the
+        // client-side navigation to the new-password screen; a hard reload
+        // drops it and the user re-requests a code.
+        setRecoveryToken(response.token);
+        setAccessToken(null);
         toast.success(VERIFY_PASSWORD_RESET_TEXTS.toasts.success);
         router.push(
           `${ROUTES.provider.newPassword}?email=${encodeURIComponent(email)}`,

@@ -83,7 +83,7 @@ export function useStompProvider() {
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key !== "token" && event.key !== "userType") return;
+      if (event.key !== "userType") return;
       disconnect();
       if (isAuthenticated()) {
         setTimeout(connect, 500);

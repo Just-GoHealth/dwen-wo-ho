@@ -7,7 +7,7 @@ import { useAuthQuery } from "@/hooks/queries/use-auth";
 import { toast } from "sonner";
 import { SignUpVerificationProps } from "@/lib/types/components/provider/auth";
 import { getCleanErrorMessage } from "@/lib/utils/auth/error";
-import { setUserType } from "@/lib/utils/auth/get-user-type";
+import { applyProviderAuthTokens } from "@/lib/utils/auth/provider-tokens";
 import { buildProviderSignupResumeUrl } from "@/lib/utils/provider/signup-resume";
 import {
   OTP_INPUT_FOCUS_DELAY_MS,
@@ -61,15 +61,9 @@ export const useSignUpVerification = ({
         const token = verifyResponse.token;
 
         if (token) {
-          localStorage.setItem("token", token);
-
-          // If refreshToken is present in TokenResponse or SignInResponse
-          const refreshTokenValue = verifyResponse.refreshToken;
-          if (refreshTokenValue) {
-            localStorage.setItem("refreshToken", refreshTokenValue);
-          }
-
-          setUserType("provider");
+          // Access token in memory only; any refresh token was moved into an
+          // HttpOnly cookie by the submit-signup-code route handler.
+          applyProviderAuthTokens({ token });
           toast.success(SIGN_UP_TEXTS.toasts.verified);
           router.replace(
             buildProviderSignupResumeUrl(email.trim(), "photo") as Route,

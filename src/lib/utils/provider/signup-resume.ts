@@ -1,4 +1,7 @@
 import { ROUTES } from "@/lib/constants/infra/routes";
+import { clearTokens, getAccessToken } from "@/lib/auth/access-token";
+import { clearServerSession } from "@/lib/auth/session";
+import { getStoredUserType } from "@/lib/utils/auth/get-user-type";
 import type { ProviderOnboardingNextStep } from "@/lib/types/api/auth";
 import type { RedirectInfo } from "@/lib/types/auth/redirect";
 import type {
@@ -104,9 +107,7 @@ export function hasProviderAuthToken(): boolean {
     return false;
   }
 
-  return Boolean(
-    localStorage.getItem("token") || localStorage.getItem("refreshToken"),
-  );
+  return Boolean(getAccessToken() || getStoredUserType());
 }
 
 export function isProfileIncompleteError(message: string): boolean {
@@ -133,8 +134,7 @@ export function clearProviderAuthStorage(): void {
     return;
   }
 
-  localStorage.removeItem("token");
-  localStorage.removeItem("curatorToken");
-  localStorage.removeItem("refreshToken");
+  clearTokens();
+  void clearServerSession();
   localStorage.removeItem("pendingUser:v1");
 }

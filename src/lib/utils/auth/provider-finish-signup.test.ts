@@ -5,6 +5,7 @@ import {
   runProviderFinishSignupAutoLogin,
 } from "@/lib/utils/auth/provider-finish-signup";
 import { mockBrowserStorage } from "@/lib/utils/shared/mock-browser-storage.test-helper";
+import { clearTokens, setAccessToken } from "@/lib/auth/access-token";
 
 describe("executeProviderFinishSignup", () => {
   beforeEach(() => {
@@ -12,11 +13,12 @@ describe("executeProviderFinishSignup", () => {
   });
 
   afterEach(() => {
+    clearTokens();
     vi.unstubAllGlobals();
   });
 
-  it("navigates home when a token already exists", async () => {
-    localStorage.setItem("token", "existing-token");
+  it("navigates home when a session already exists", async () => {
+    setAccessToken("existing-token");
     const navigate = vi.fn();
     const login = vi.fn();
 

@@ -1,81 +1,69 @@
-import { ROUTES } from "@/lib/constants/infra/routes";
 import { STATIC_ENDPOINTS } from "@/lib/constants/infra/endpoints";
-import { API_BASE_URL } from "@/configs/config";
 import { setUserType, getStoredUserType } from "@/lib/utils/auth/get-user-type";
+import { getSignInRoute } from "@/lib/utils/auth/sign-in-route";
+import {
+  clearTokens,
+  getAccessToken,
+  LEGACY_TOKEN_STORAGE_KEYS,
+  setAccessToken,
+} from "@/lib/auth/access-token";
 import type { QueryClient } from "@tanstack/react-query";
 
 let isHandlingAuthError = false;
-let isRefreshingToken = false;
 let refreshPromise: Promise<string | null> | null = null;
+// Set by logout so a refresh already in flight can't quietly reinstate the
+// session once it resolves.
+let loggedOut = false;
 
+/**
+ * Re-issues the access token from the HttpOnly refresh cookie (via the
+ * same-origin route handler) and keeps it in memory only. Concurrent callers
+ * share one in-flight request.
+ */
 export const refreshToken = async (): Promise<string | null> => {
-  if (isRefreshingToken && refreshPromise) {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  if (refreshPromise) {
     return refreshPromise;
   }
 
-  isRefreshingToken = true;
+  loggedOut = false;
 
   refreshPromise = (async () => {
     try {
-      if (typeof window === "undefined") {
+      // Call the refresh route directly (not via api()) to avoid a circular
+      // dependency between this module and lib/api.
+      const res = await fetch(STATIC_ENDPOINTS.AUTH.REFRESH_TOKEN, {
+        method: "POST",
+        headers: { Accept: "*/*" },
+        credentials: "same-origin",
+      });
+
+      if (!res.ok || loggedOut) {
         return null;
       }
 
-      const refreshTokenValue = localStorage.getItem("refreshToken");
+      const json = await res.json();
+      const data = json?.data ?? json;
+      const newAccessToken: string | undefined =
+        data?.accessToken || data?.token;
 
-      if (!refreshTokenValue) {
+      if (!newAccessToken) {
         return null;
       }
 
-      // Call refresh token endpoint directly (not via api()) to avoid a
-      // circular dependency between this module and lib/api.
-      const res = await fetch(
-        `${API_BASE_URL}${STATIC_ENDPOINTS.AUTH.REFRESH_TOKEN}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "*/*" },
-          body: JSON.stringify({ refreshToken: refreshTokenValue }),
-        },
-      );
-
-      if (res.ok) {
-        const json = await res.json();
-        const data = json?.data ?? json;
-        const newAccessToken = data?.accessToken || data?.token;
-        const newRefreshToken = data?.refreshToken;
-
-        if (newAccessToken) {
-          const storedUserType = getStoredUserType();
-          const isCurator =
-            storedUserType === "curator" ||
-            localStorage.getItem("curatorToken");
-
-          if (isCurator) {
-            localStorage.setItem("curatorToken", newAccessToken);
-            setUserType("curator");
-          } else {
-            localStorage.setItem("token", newAccessToken);
-            if (!storedUserType) {
-              setUserType("provider");
-            }
-          }
-        }
-
-        if (newRefreshToken) {
-          localStorage.setItem("refreshToken", newRefreshToken);
-        }
-
-        return newAccessToken || null;
+      setAccessToken(newAccessToken);
+      if (!getStoredUserType()) {
+        setUserType(
+          data?.userData?.userRole === "ROLE_CURATOR" ? "curator" : "provider",
+        );
       }
-
-      return null;
+      return newAccessToken;
     } catch {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("refreshToken");
-      }
       return null;
     } finally {
-      isRefreshingToken = false;
       refreshPromise = null;
     }
   })();
@@ -83,34 +71,59 @@ export const refreshToken = async (): Promise<string | null> => {
   return refreshPromise;
 };
 
-export const handleTokenExpiration = async () => {
-  if (isHandlingAuthError) {
-    return;
-  }
-
+/**
+ * Clears the HttpOnly refresh cookie server-side (and signs out on the
+ * backend when we still hold an access token). Awaited before redirecting,
+ * otherwise the sign-in page could silently restore the session from a
+ * cookie that hasn't been cleared yet.
+ */
+export const clearServerSession = async (): Promise<void> => {
   if (typeof window === "undefined") {
     return;
   }
 
-  const newToken = await refreshToken();
+  const token = getAccessToken();
+  try {
+    await fetch(STATIC_ENDPOINTS.AUTH.SIGN_OUT, {
+      method: "POST",
+      credentials: "same-origin",
+      keepalive: true,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  } catch {
+    // Network failure — the cookie expires on its own; local state is
+    // still cleared by the caller.
+  }
+};
 
-  if (newToken) {
-    const isCurator = localStorage.getItem("curatorToken");
-    if (isCurator) {
-      localStorage.setItem("curatorToken", newToken);
-    } else {
-      localStorage.setItem("token", newToken);
-    }
-    window.location.reload();
+const clearLocalAuthState = () => {
+  loggedOut = true;
+  clearTokens();
+  refreshPromise = null;
+  try {
+    LEGACY_TOKEN_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    localStorage.removeItem("userType");
+  } catch {
+    // Storage unavailable — nothing to clear.
+  }
+};
+
+/**
+ * Called when an authenticated request still fails after a refresh attempt:
+ * the session is gone, so clear it and send the user to sign in.
+ */
+export const handleTokenExpiration = async () => {
+  if (isHandlingAuthError || typeof window === "undefined") {
     return;
   }
 
   isHandlingAuthError = true;
 
-  localStorage.removeItem("token");
-  localStorage.removeItem("curatorToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("userType");
+  // Read before clearing: it decides which sign-in screen to return to.
+  const signInRoute = getSignInRoute();
+
+  await clearServerSession();
+  clearLocalAuthState();
 
   const currentPath = window.location.pathname;
   const isAuthPage =
@@ -119,7 +132,7 @@ export const handleTokenExpiration = async () => {
     currentPath.includes("/reset-password");
 
   if (!isAuthPage) {
-    window.location.replace(ROUTES.provider.auth);
+    window.location.replace(signInRoute);
   }
 
   setTimeout(() => {
@@ -128,9 +141,10 @@ export const handleTokenExpiration = async () => {
 };
 
 /**
- * Clears auth storage, optional query cache, and redirects to sign-in.
+ * Clears auth state (memory, cookie, storage), optional query cache, and
+ * redirects to sign-in.
  */
-export const performLogout = (
+export const performLogout = async (
   queryClient?: QueryClient,
   redirectTo?: string,
 ) => {
@@ -138,16 +152,13 @@ export const performLogout = (
     return;
   }
 
-  const authKeys = [
-    "token",
-    "curatorToken",
-    "refreshToken",
-    "userType",
-    "pendingUser:v1",
-    "recoveryToken",
-    "profileCompletionEmail",
-    "authToken",
-  ];
+  // Read before clearing: it decides which sign-in screen to return to.
+  const signInRoute = getSignInRoute();
+
+  await clearServerSession();
+  clearLocalAuthState();
+
+  const authKeys = ["pendingUser:v1", "profileCompletionEmail"];
 
   authKeys.forEach((key) => {
     localStorage.removeItem(key);
@@ -159,8 +170,7 @@ export const performLogout = (
       const key = localStorage.key(i);
       if (
         key &&
-        (key.startsWith("lockin-form-") ||
-          key.startsWith("cached-") ||
+        (key.startsWith("cached-") ||
           key.includes("auth") ||
           key.includes("token") ||
           key.includes("user"))
@@ -189,9 +199,7 @@ export const performLogout = (
   }
 
   isHandlingAuthError = false;
-  isRefreshingToken = false;
-  refreshPromise = null;
 
-  const redirectPath = redirectTo || ROUTES.provider.auth;
+  const redirectPath = redirectTo || signInRoute;
   window.location.replace(redirectPath);
 };

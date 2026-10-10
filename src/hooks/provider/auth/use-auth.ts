@@ -9,6 +9,7 @@ import {
 } from "@/lib/utils/auth/get-user-type";
 import { ROUTES } from "@/lib/constants/infra/routes";
 import { refreshToken } from "@/lib/auth/session";
+import { clearTokens } from "@/lib/auth/access-token";
 import { authService } from "@/services/shared/auth";
 import { getProviderRedirectInfo } from "@/lib/utils/auth/redirect";
 import {
@@ -44,10 +45,7 @@ export function useProviderAuth() {
 
       const clearAuthAndProceed = () => {
         if (typeof window !== "undefined") {
-          localStorage.removeItem("token");
-          localStorage.removeItem("curatorToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("userType");
+          clearTokens();
           localStorage.removeItem("pendingUser:v1");
         }
         setUserType(null);
@@ -121,23 +119,15 @@ export function useProviderAuth() {
         }
       };
 
-      const refreshTokenValue =
-        typeof window !== "undefined"
-          ? localStorage.getItem("refreshToken")
-          : null;
-
-      if (refreshTokenValue) {
+      // A session hint means the HttpOnly refresh cookie may still be valid:
+      // try to re-issue the access token from it before showing sign-in.
+      if (hasValidToken()) {
         const refreshedToken = await refreshToken();
         if (refreshedToken && !hasRedirectedRef.current) {
           await verifyProfileAndRedirect();
           return;
         }
-      }
-
-      const hasToken = hasValidToken();
-
-      if (hasToken) {
-        await verifyProfileAndRedirect();
+        clearAuthAndProceed();
         return;
       }
 

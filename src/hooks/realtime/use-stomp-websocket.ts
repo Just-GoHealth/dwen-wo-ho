@@ -6,6 +6,33 @@ import { stompClient } from "@/services/shared/websocket/stomp-client";
 import { subscriptionManager } from "@/services/shared/websocket/subscription-manager";
 import { connectionStatusAtom } from "@/atoms/websocket";
 import { getUserType, hasValidToken } from "@/lib/utils/auth/get-user-type";
+import { getAccessToken } from "@/lib/auth/access-token";
+import { refreshToken } from "@/lib/auth/session";
+
+const TOKEN_EXPIRY_SKEW_SECONDS = 30;
+
+const isExpiringSoon = (jwt: string): boolean => {
+  try {
+    const base64 = (jwt.split(".")[1] ?? "").replace(/-/g, "+").replace(/_/g, "/");
+    const { exp } = JSON.parse(atob(base64)) as { exp?: number };
+    return (
+      typeof exp === "number" &&
+      exp - TOKEN_EXPIRY_SKEW_SECONDS <= Math.floor(Date.now() / 1000)
+    );
+  } catch {
+    return false;
+  }
+};
+
+// Called by the STOMP client on every (re)connect: the in-memory token while
+// it's still valid, otherwise re-issue it from the HttpOnly refresh cookie.
+const getFreshAccessToken = async (): Promise<string | null> => {
+  const token = getAccessToken();
+  if (token && !isExpiringSoon(token)) {
+    return token;
+  }
+  return refreshToken();
+};
 
 export function useStompWebSocket() {
   const [connectionStatus, setConnectionStatus] = useAtom(connectionStatusAtom);
@@ -22,13 +49,7 @@ export function useStompWebSocket() {
       return;
     }
 
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      return;
-    }
-
-    stompClient.connect(token);
+    void stompClient.connect(getFreshAccessToken);
   }, []);
 
   // Disconnect

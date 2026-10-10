@@ -1,10 +1,11 @@
 import { FieldErrors, UseFormRegister } from "react-hook-form";
-import type { Route } from "next";
 
 export type AuthStep = "check-email" | "sign-in" | "sign-up" | "reset-password";
 
+export type AuthAudience = "provider" | "curator";
+
 export interface BaseSignInFormProps {
-  audience: "patient" | "provider";
+  audience: AuthAudience;
   email: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   register: UseFormRegister<any>;
@@ -16,5 +17,4 @@ export interface BaseSignInFormProps {
   isLoading: boolean;
   isRecovering?: boolean;
   successMessage?: string;
-  forgotPasswordHref?: Route;
 }

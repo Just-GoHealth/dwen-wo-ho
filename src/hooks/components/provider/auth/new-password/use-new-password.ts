@@ -7,6 +7,7 @@ import * as z from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/constants/infra/routes";
+import { getRecoveryToken, setRecoveryToken } from "@/lib/auth/access-token";
 import useGetSearchParams from "@/hooks/shared/use-get-search-params";
 import { useAuthQuery } from "@/hooks/queries/use-auth";
 import { ProviderPasswordSchema } from "@/lib/schemas/provider-auth-schema";
@@ -40,7 +41,7 @@ export const useNewPassword = () => {
   const confirmPassword = watch("confirmPassword");
 
   // Client-side guard kept intentionally: the redirect depends on values that
-  // only exist in the browser (URL search param + localStorage recovery token),
+  // only exist in the browser (URL search param + in-memory recovery token),
   // so it cannot be relocated to middleware or a server redirect.
   useEffect(() => {
     if (!email) {
@@ -48,7 +49,7 @@ export const useNewPassword = () => {
       return;
     }
 
-    const storedToken = localStorage.getItem("recoveryToken");
+    const storedToken = getRecoveryToken();
     if (!storedToken) {
       toast.error(NEW_PASSWORD_TEXTS.toasts.sessionExpired);
       router.push(
@@ -69,7 +70,7 @@ export const useNewPassword = () => {
 
   const onSubmit = async (values: z.output<typeof ProviderPasswordSchema>) => {
     try {
-      const storedToken = localStorage.getItem("recoveryToken");
+      const storedToken = getRecoveryToken();
 
       const response = await resetPasswordMutation.mutateAsync({
         password: values.password,
@@ -77,7 +78,7 @@ export const useNewPassword = () => {
         token: storedToken || undefined,
       });
 
-      localStorage.removeItem("recoveryToken");
+      setRecoveryToken(null);
 
       const { token, userData } = response;
 

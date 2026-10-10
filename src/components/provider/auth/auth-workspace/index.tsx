@@ -6,9 +6,37 @@ import SignIn from "@/components/provider/auth/signin/index";
 import SignUp from "@/components/provider/auth/sign-up/index";
 import VerifyPasswordReset from "@/components/provider/auth/verify-password-reset/index";
 import { useProviderAuth } from "@/hooks/provider/auth/use-auth";
-import { SIGN_IN_TEXTS } from "@/lib/constants/components/provider/auth/auth-copy";
+import {
+  CURATOR_AUTH_TEXTS,
+  SIGN_IN_TEXTS,
+} from "@/lib/constants/components/provider/auth/auth-copy";
+import { Button } from "@/components/ui/button";
 
-function ProviderAuthPageContent() {
+type AuthWorkspaceAudience = "provider" | "curator";
+
+// Curators can't self-register (accounts are created by an administrator),
+// so an unknown email on the curator screen gets a notice, not provider signup.
+function CuratorNoAccount({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-4 text-center sm:px-8">
+      <h1 className="text-3xl font-extrabold tracking-tight">
+        {CURATOR_AUTH_TEXTS.noAccount.title}
+      </h1>
+      <p className="text-muted-foreground">
+        {CURATOR_AUTH_TEXTS.noAccount.message}
+      </p>
+      <Button type="button" variant="outline" onClick={onBack}>
+        {CURATOR_AUTH_TEXTS.noAccount.back}
+      </Button>
+    </div>
+  );
+}
+
+function ProviderAuthPageContent({
+  audience,
+}: {
+  audience: AuthWorkspaceAudience;
+}) {
   const {
     step,
     email,
@@ -31,6 +59,7 @@ function ProviderAuthPageContent() {
     case "sign-in":
       authContent = (
         <SignIn
+          audience={audience}
           email={email}
           successMessage={
             passwordResetSuccess
@@ -49,6 +78,10 @@ function ProviderAuthPageContent() {
       );
       break;
     default:
+      if (audience === "curator") {
+        authContent = <CuratorNoAccount onBack={handleBackToCheckEmail} />;
+        break;
+      }
       authContent = (
         <SignUp
           email={email}
@@ -82,7 +115,11 @@ function ProviderAuthPageContent() {
   );
 }
 
-export function ProviderAuthWorkspace() {
+export function ProviderAuthWorkspace({
+  audience = "provider",
+}: {
+  audience?: AuthWorkspaceAudience;
+}) {
   return (
     <Suspense
       fallback={
@@ -91,7 +128,7 @@ export function ProviderAuthWorkspace() {
         </div>
       }
     >
-      <ProviderAuthPageContent />
+      <ProviderAuthPageContent audience={audience} />
     </Suspense>
   );
 }

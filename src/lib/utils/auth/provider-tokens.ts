@@ -1,8 +1,13 @@
+import { setAccessToken } from "@/lib/auth/access-token";
 import { setUserType } from "@/lib/utils/auth/get-user-type";
 
+/**
+ * Stores a freshly issued session. The access token is kept in memory only;
+ * the refresh token never reaches the client — the auth route handler has
+ * already moved it into an HttpOnly cookie (SEC-01).
+ */
 export function applyProviderAuthTokens({
   token,
-  refreshToken,
   userRole,
 }: {
   token?: string | null;
@@ -13,22 +18,9 @@ export function applyProviderAuthTokens({
     return;
   }
 
-  if (refreshToken) {
-    localStorage.setItem("refreshToken", refreshToken);
-  }
-
   if (token) {
-    localStorage.setItem("token", token);
+    setAccessToken(token);
   }
 
-  if (userRole === "ROLE_CURATOR") {
-    const curatorToken = token || refreshToken;
-    if (curatorToken) {
-      localStorage.setItem("curatorToken", curatorToken);
-    }
-    setUserType("curator");
-    return;
-  }
-
-  setUserType("provider");
+  setUserType(userRole === "ROLE_CURATOR" ? "curator" : "provider");
 }

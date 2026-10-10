@@ -3,6 +3,8 @@ import SockJS from "sockjs-client";
 import { ConnectionStatus } from "@/lib/types/entities/websocket";
 import { API_BASE_URL } from "@/configs/config";
 
+type TokenProvider = () => Promise<string | null>;
+
 class StompWebSocketClient {
   private client: Client | null = null;
   private connectionStatus: ConnectionStatus = "DISCONNECTED";
@@ -16,6 +18,7 @@ class StompWebSocketClient {
   private statusChangeCallbacks: ((status: ConnectionStatus) => void)[] = [];
   private lastMessageTimestamp: number = 0;
   private reconnectCallbacks: (() => void)[] = [];
+  private tokenProvider: TokenProvider | null = null;
 
   // Get singleton instance
   private static instance: StompWebSocketClient;
@@ -44,13 +47,31 @@ class StompWebSocketClient {
     this.statusChangeCallbacks.forEach((cb) => cb(status));
   }
 
-  connect(token: string): void {
+  /**
+   * Connects using a token provider rather than a fixed token: it is called
+   * again on every reconnect attempt, so a reconnect after the access token
+   * has been refreshed uses the current token instead of the expired one
+   * captured at first connect (LOG-05).
+   */
+  async connect(getToken: TokenProvider): Promise<void> {
     if (this.client?.active) {
       console.log("[STOMP] Already connected");
       return;
     }
 
+    this.tokenProvider = getToken;
     this.setStatus("CONNECTING");
+
+    const token = await getToken();
+    // disconnect() may have run while the token was being fetched.
+    if (this.tokenProvider !== getToken) {
+      return;
+    }
+    if (!token) {
+      console.warn("[STOMP] No access token available - not connecting");
+      this.setStatus("DISCONNECTED");
+      return;
+    }
 
     // Use SockJS with the correct URL format
     // The backend expects: /ws/notifications?token=JWT
@@ -81,7 +102,7 @@ class StompWebSocketClient {
       onDisconnect: () => {
         console.log("[STOMP] Disconnected");
         this.setStatus("DISCONNECTED");
-        this.scheduleReconnect(token);
+        this.scheduleReconnect();
       },
 
       onStompError: (frame) => {
@@ -92,20 +113,25 @@ class StompWebSocketClient {
       onWebSocketError: (event) => {
         console.error("[STOMP] WebSocket error:", event);
         this.setStatus("ERROR");
-        this.scheduleReconnect(token);
+        this.scheduleReconnect();
       },
 
       onWebSocketClose: (event) => {
         console.log("[STOMP] WebSocket closed:", event.code, event.reason);
         this.setStatus("DISCONNECTED");
-        this.scheduleReconnect(token);
+        this.scheduleReconnect();
       },
     });
 
     this.client.activate();
   }
 
-  private scheduleReconnect(token: string): void {
+  private scheduleReconnect(): void {
+    const getToken = this.tokenProvider;
+    if (!getToken) {
+      return;
+    }
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
     }
@@ -122,11 +148,13 @@ class StompWebSocketClient {
 
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectAttempt++;
-      this.connect(token);
+      // connect() re-reads the token from the provider on every attempt.
+      void this.connect(getToken);
     }, delay);
   }
 
   disconnect(): void {
+    this.tokenProvider = null;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;

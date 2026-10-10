@@ -52,7 +52,7 @@ describe("useProviderDashboardAuth", () => {
     storage.clear();
   });
 
-  it("skips profile fetch and reports not approved when no auth tokens exist", async () => {
+  it("skips profile fetch and reports not approved when there is no session", async () => {
     const { default: useProviderDashboardAuth } =
       await import("./use-dashboard-auth");
 
@@ -69,8 +69,8 @@ describe("useProviderDashboardAuth", () => {
     expect(result.current.authProfile).toBeUndefined();
   });
 
-  it("loads profile when token exists and reports approved status", async () => {
-    storage.set("token", "test-token");
+  it("loads profile when a session exists and reports approved status", async () => {
+    storage.set("userType", "provider");
     getProfile.mockResolvedValue({
       id: "provider-1",
       email: "provider@example.com",
@@ -94,7 +94,7 @@ describe("useProviderDashboardAuth", () => {
   });
 
   it("uses status fallback when applicationStatus is missing", async () => {
-    storage.set("refreshToken", "refresh-token");
+    storage.set("userType", "provider");
     getProfile.mockResolvedValue({
       email: "pending@example.com",
       status: "PENDING",

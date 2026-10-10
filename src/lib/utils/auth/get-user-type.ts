@@ -4,9 +4,7 @@ const USER_TYPE_KEY = "userType";
  * Stores the user type in localStorage
  * @param userType - The user type to store
  */
-export const setUserType = (
-  userType: "curator" | "provider" | "patient" | null,
-): void => {
+export const setUserType = (userType: "curator" | "provider" | null): void => {
   if (typeof window === "undefined") {
     return;
   }
@@ -20,96 +18,30 @@ export const setUserType = (
 
 /**
  * Gets the stored user type from localStorage
- * @returns "curator" | "provider" | "patient" | null
+ * @returns "curator" | "provider" | null
  */
-export const getStoredUserType = ():
-  | "curator"
-  | "provider"
-  | "patient"
-  | null => {
+export const getStoredUserType = (): "curator" | "provider" | null => {
   if (typeof window === "undefined") {
     return null;
   }
 
-  return localStorage.getItem(USER_TYPE_KEY) as
-    | "curator"
-    | "provider"
-    | "patient"
-    | null;
+  return localStorage.getItem(USER_TYPE_KEY) as "curator" | "provider" | null;
 };
 
 /**
- * Determines the user type based on stored tokens and user type flag
- * @returns "curator" | "provider" | "patient" | null
+ * Determines the signed-in user type.
+ *
+ * Tokens are no longer readable from JS (SEC-01: access token in memory,
+ * refresh token in an HttpOnly cookie), so the stored user type doubles as
+ * the "this browser has a session" hint. If the cookie has actually expired,
+ * the first authenticated request fails its refresh and logs the user out.
+ * @returns "curator" | "provider" | null
  */
-export const getUserType = (): "curator" | "provider" | "patient" | null => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  // Read auth tokens once to avoid repeated storage lookups.
-  const curatorToken = localStorage.getItem("curatorToken");
-  const providerToken = localStorage.getItem("token");
-  const patientToken = localStorage.getItem("patientToken");
-  const refreshToken = localStorage.getItem("refreshToken");
-
-  // First check stored user type
-  const storedUserType = getStoredUserType();
-  if (storedUserType) {
-    if (storedUserType === "curator" && (curatorToken || refreshToken)) {
-      return "curator";
-    }
-    if (storedUserType === "provider" && (providerToken || refreshToken)) {
-      return "provider";
-    }
-    if (storedUserType === "patient" && (patientToken || refreshToken)) {
-      return "patient";
-    }
-  }
-
-  // Fallback: Check for curator token first (curators have both curatorToken and token)
-  if (curatorToken) {
-    setUserType("curator");
-    return "curator";
-  }
-
-  // If we have refreshToken and stored type is provider, return provider
-  if (refreshToken && storedUserType === "provider") {
-    return "provider";
-  }
-
-  if (providerToken) {
-    setUserType("provider");
-    return "provider";
-  }
-
-  // Check for patient token (if exists)
-  if (patientToken) {
-    setUserType("patient");
-    return "patient";
-  }
-
-  // Check for refresh token - if exists, return stored type or null
-  if (refreshToken && storedUserType) {
-    return storedUserType;
-  }
-
-  return null;
-};
+export const getUserType = (): "curator" | "provider" | null =>
+  getStoredUserType();
 
 /**
- * Checks if user has a valid token (access token or refresh token)
+ * Checks whether this browser holds a session (see getUserType).
  * @returns boolean
  */
-export const hasValidToken = (): boolean => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const curatorToken = localStorage.getItem("curatorToken");
-  const providerToken = localStorage.getItem("token");
-  const patientToken = localStorage.getItem("patientToken");
-  const refreshToken = localStorage.getItem("refreshToken");
-
-  return !!(curatorToken || providerToken || patientToken || refreshToken);
-};
+export const hasValidToken = (): boolean => getStoredUserType() !== null;
