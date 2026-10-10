@@ -19,7 +19,6 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky",
     "components:audit": "node src/lib/scripts/audit-component-conventions.mjs",
     "components:reorg": "node src/lib/scripts/reorganize-components.mjs --dry-run",
     "components:reorg:apply": "node src/lib/scripts/reorganize-components.mjs --apply",
@@ -39,9 +38,6 @@
     "services:reorg": "node src/lib/scripts/reorganize-services.mjs --dry-run",
     "services:reorg:apply": "node src/lib/scripts/reorganize-services.mjs --apply",
     "conventions:audit": "pnpm components:audit && pnpm hooks:audit && pnpm constants:audit && pnpm types:audit && pnpm utils:audit && pnpm services:audit"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,cjs,json,css,md,mdx}": "prettier --write"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -99,8 +95,6 @@
     "eslint-config-next": "15.3.4",
     "fallow": "^2.91.0",
     "happy-dom": "^20.10.2",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "shadcn": "^3.8.4",
