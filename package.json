@@ -91,6 +91,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/sockjs-client": "^1.5.4",
+    "@vitest/coverage-v8": "4.1.11",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "fallow": "^2.91.0",
