@@ -47,10 +47,7 @@ export interface PartnerDetailsData {
 }
 
 export type PartnerDetailsTab =
-  | "overview"
-  | "schools"
-  | "providers"
-  | "partners";
+  "overview" | "schools" | "providers" | "partners";
 
 export interface UsePartnerSearchProps {
   availableSchools: AssociatedSchool[];

@@ -1,5 +1,5 @@
 allowBuilds:
-  '@fallow-cli/fallow-cov': true
+  "@fallow-cli/fallow-cov": true
   msw: true
   sharp: true
   unrs-resolver: true

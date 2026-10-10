@@ -22,8 +22,7 @@ export function PlaceholdersAndVanishInput({
   value?: string; // Add support for controlled external value
   autoFocus?: boolean;
   submitButton?:
-    | React.ReactNode
-    | ((props: { value: string }) => React.ReactNode); // Allow replacing the default button with access to value
+    React.ReactNode | ((props: { value: string }) => React.ReactNode); // Allow replacing the default button with access to value
 }) {
   const [internalValue, setInternalValue] = useState("");
   const currentPlaceholder = usePlaceholderRotation(placeholders.length);

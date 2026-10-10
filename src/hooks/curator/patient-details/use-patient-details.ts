@@ -29,8 +29,12 @@ export function useCuratorPatientDetails() {
   // instead of a disjoint one under its own key. The actions fetch only
   // needs patientId, not the full-details result, so it runs in parallel
   // rather than waiting on it.
-  const { usePatientFullDetails, usePatientActions, addPatientAction, isAddingAction } =
-    usePatientResultQuery();
+  const {
+    usePatientFullDetails,
+    usePatientActions,
+    addPatientAction,
+    isAddingAction,
+  } = usePatientResultQuery();
   const { data, isLoading } = usePatientFullDetails(patientId, {
     enabled: !!patientId,
   });

@@ -42,8 +42,8 @@ export function PatientsTab({
       setSelectedPatients(
         new Set(
           patients
-            .filter((p): p is typeof p & { id: number | string } =>
-              p.id != null,
+            .filter(
+              (p): p is typeof p & { id: number | string } => p.id != null,
             )
             .map((p) => p.id),
         ),

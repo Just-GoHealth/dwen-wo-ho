@@ -1,9 +1,7 @@
 export type JoinAsProvider2PillIconKey = "heart" | "zap" | "handshake";
 
 export type JoinAsProvider2FooterIconKey =
-  | "lock"
-  | "graduation-cap"
-  | "message-circle";
+  "lock" | "graduation-cap" | "message-circle";
 
 export type JoinAsProvider2BubbleMarkupKey = "bubble1" | "bubble2" | "bubble3";
 

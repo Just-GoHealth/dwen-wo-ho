@@ -7,16 +7,10 @@ export interface PasswordRequirements {
 }
 
 export type PasswordStrengthTone =
-  | "destructive"
-  | "warning"
-  | "successLight"
-  | "success";
+  "destructive" | "warning" | "successLight" | "success";
 
 export type PasswordStrengthLabel =
-  | "Weak"
-  | "Moderate"
-  | "Strong"
-  | "VeryStrong";
+  "Weak" | "Moderate" | "Strong" | "VeryStrong";
 
 export interface PasswordStrengthResult {
   score: number;

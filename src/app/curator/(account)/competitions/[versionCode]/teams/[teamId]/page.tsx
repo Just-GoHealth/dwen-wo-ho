@@ -22,7 +22,10 @@ import useFixturesQuery from "@/hooks/curator/competitions/use-fixtures";
 import { SchoolAccessCodesSheet } from "@/components/curator/school-details";
 import type { AddFixtureRequest, Fixture } from "@/lib/types/api/competitions";
 
-const TEAM_STATUS_BADGE: Record<string, "secondary" | "default" | "destructive"> = {
+const TEAM_STATUS_BADGE: Record<
+  string,
+  "secondary" | "default" | "destructive"
+> = {
   REGISTERED: "secondary",
   ACTIVE: "default",
   ELIMINATED: "destructive",
@@ -159,8 +162,8 @@ export default function CompetitionTeamPage() {
             <DialogHeader>
               <DialogTitle>Mark {team.campusName} as out?</DialogTitle>
               <DialogDescription>
-                This eliminates the team from the competition. They&apos;ll
-                stay visible in results, but marked out of future rounds.
+                This eliminates the team from the competition. They&apos;ll stay
+                visible in results, but marked out of future rounds.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

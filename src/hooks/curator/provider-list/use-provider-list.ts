@@ -36,14 +36,10 @@ export function useCuratorProviderList(
             officePhoneNumber: fallbackData.officePhoneNumber || undefined,
             applicationStatus:
               (fallbackData.applicationStatus as
-                | "PENDING"
-                | "APPROVED"
-                | "REJECTED") || "PENDING",
+                "PENDING" | "APPROVED" | "REJECTED") || "PENDING",
             status:
               (fallbackData.applicationStatus as
-                | "PENDING"
-                | "APPROVED"
-                | "REJECTED") || "PENDING",
+                "PENDING" | "APPROVED" | "REJECTED") || "PENDING",
             profilePhotoURL: fallbackData.profilePhotoURL || undefined,
             createdAt: fallbackData.applicationDate || new Date().toISOString(),
             updatedAt: fallbackData.applicationDate || new Date().toISOString(),

@@ -48,7 +48,9 @@ export function SchoolProfileBar({
             >
               <Badge
                 variant={
-                  isOn ? TRIAGE_CHIP_VARIANT_LIT[tier] : TRIAGE_CHIP_VARIANT[tier]
+                  isOn
+                    ? TRIAGE_CHIP_VARIANT_LIT[tier]
+                    : TRIAGE_CHIP_VARIANT[tier]
                 }
                 className="cursor-pointer px-3 py-1 text-xs font-bold tracking-[.08em]"
               >

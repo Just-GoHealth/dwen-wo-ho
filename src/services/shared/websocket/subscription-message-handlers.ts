@@ -71,8 +71,7 @@ function dispatchProviderTopicNotification(payload: unknown): void {
   }
 
   const notificationObj = rawPayload.notification as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   if (rawPayload.type === "NEW_NOTIFICATION" && notificationObj) {
     const notification: ProviderNotification = {
       notificationId: (notificationObj.id as string) || "",

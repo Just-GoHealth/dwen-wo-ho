@@ -73,9 +73,7 @@ export function useSchoolDerived({
       createdAt: "",
       updatedAt: "",
       applicationStatus: p.applicationStatus as
-        | "PENDING"
-        | "APPROVED"
-        | "REJECTED",
+        "PENDING" | "APPROVED" | "REJECTED",
       applicationDate: "",
       bio: undefined,
       officePhoneNumber: p.officePhoneNumber || undefined,

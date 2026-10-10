@@ -107,9 +107,9 @@ export function NextFixturePill({
   const next = soonestFixture(fixtures);
 
   const [draftDate, setDraftDate] = useState<Date>(() => new Date());
-  const [openPicker, setOpenPicker] = useState<
-    "month" | "day" | "time" | null
-  >(null);
+  const [openPicker, setOpenPicker] = useState<"month" | "day" | "time" | null>(
+    null,
+  );
 
   const { addFixture, updateFixture, isAddingFixture, isUpdatingFixture } =
     useFixturesQuery();
@@ -274,7 +274,7 @@ export function NextFixturePill({
                           className={cn(
                             "cursor-pointer px-3 py-1.5 text-sm text-white/80 hover:bg-white/10",
                             i === draftDate.getMonth() &&
-                              "text-[var(--gold-hi)] font-extrabold",
+                              "font-extrabold text-[var(--gold-hi)]",
                           )}
                         >
                           {m}
@@ -288,7 +288,7 @@ export function NextFixturePill({
                           className={cn(
                             "cursor-pointer px-3 py-1.5 text-sm text-white/80 hover:bg-white/10",
                             d === draftDate.getDate() &&
-                              "text-[var(--gold-hi)] font-extrabold",
+                              "font-extrabold text-[var(--gold-hi)]",
                           )}
                         >
                           {d}
@@ -302,7 +302,7 @@ export function NextFixturePill({
                           className={cn(
                             "cursor-pointer px-3 py-1.5 text-sm text-white/80 hover:bg-white/10",
                             t === formatTime(draftDate) &&
-                              "text-[var(--gold-hi)] font-extrabold",
+                              "font-extrabold text-[var(--gold-hi)]",
                           )}
                         >
                           {t}
@@ -317,8 +317,8 @@ export function NextFixturePill({
           {confirmingEliminate ? (
             <div className="flex items-center justify-between gap-3 px-5 py-4">
               <p className="text-xs font-bold text-white/70">
-                Mark {campusName} as out? They&apos;ll stay visible in
-                results, but marked out of future rounds.
+                Mark {campusName} as out? They&apos;ll stay visible in results,
+                but marked out of future rounds.
               </p>
               <div className="flex shrink-0 items-center gap-2">
                 <Button

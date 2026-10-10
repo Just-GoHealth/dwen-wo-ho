@@ -6,3 +6,11 @@ dist
 coverage
 pnpm-lock.yaml
 next-env.d.ts
+
+# Vendored agent skills, dead code and generated API docs
+.agents
+.cursor
+.impeccable
+_unused
+audit
+api-docs.json

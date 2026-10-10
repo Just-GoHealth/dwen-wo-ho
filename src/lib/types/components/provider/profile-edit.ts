@@ -1,8 +1,5 @@
 export type ProviderProfileTextField =
-  | "title"
-  | "name"
-  | "specialty"
-  | "status";
+  "title" | "name" | "specialty" | "status";
 
 export interface PersistProviderProfileEditParams {
   editFieldKey: string | null;

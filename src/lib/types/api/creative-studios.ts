@@ -1,9 +1,5 @@
 export type CampusApiType =
-  | "HIGH_SCHOOL"
-  | "JUNIOR_HIGH"
-  | "SENIOR_HIGH"
-  | "COLLEGE"
-  | "UNIVERSITY";
+  "HIGH_SCHOOL" | "JUNIOR_HIGH" | "SENIOR_HIGH" | "COLLEGE" | "UNIVERSITY";
 
 export interface CreateCampusInput {
   fullName: string;

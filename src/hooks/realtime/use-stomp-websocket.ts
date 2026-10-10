@@ -13,7 +13,9 @@ const TOKEN_EXPIRY_SKEW_SECONDS = 30;
 
 const isExpiringSoon = (jwt: string): boolean => {
   try {
-    const base64 = (jwt.split(".")[1] ?? "").replace(/-/g, "+").replace(/_/g, "/");
+    const base64 = (jwt.split(".")[1] ?? "")
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
     const { exp } = JSON.parse(atob(base64)) as { exp?: number };
     return (
       typeof exp === "number" &&

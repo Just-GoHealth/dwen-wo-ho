@@ -26,8 +26,7 @@ export function useSchoolData(schoolId: string) {
   const schoolQuery = useSchool(schoolId);
 
   const rawSchool = schoolQuery.data as
-    | (School & { campuses?: unknown })
-    | undefined;
+    (School & { campuses?: unknown }) | undefined;
 
   const school = useMemo(() => {
     if (!rawSchool) return null;

@@ -235,8 +235,8 @@ export default function CompetitionVersionPage() {
                 Replace existing fixtures for these campuses
               </label>
               <p className="text-muted-foreground mt-1 text-xs">
-                A campus with no team here is skipped and reported, not
-                dropped silently.
+                A campus with no team here is skipped and reported, not dropped
+                silently.
               </p>
               <LoadingButton
                 onClick={handleImportFixtures}

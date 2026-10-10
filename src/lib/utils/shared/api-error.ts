@@ -6,7 +6,8 @@ export function parseApiError(error: unknown): {
   code: string | null;
   message: string;
 } {
-  const fallback = error instanceof Error ? error.message : "Something went wrong";
+  const fallback =
+    error instanceof Error ? error.message : "Something went wrong";
   if (!(error instanceof Error)) return { code: null, message: fallback };
 
   try {

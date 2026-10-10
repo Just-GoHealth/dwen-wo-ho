@@ -18,6 +18,12 @@ const eslintConfig = [
       "build/**",
       "dist/**",
       "next-env.d.ts",
+      // Vendored agent skills, dead code and local audit reports
+      ".agents/**",
+      ".cursor/**",
+      ".impeccable/**",
+      "_unused/**",
+      "audit/**",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

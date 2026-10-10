@@ -112,7 +112,9 @@ export default function useVersionsQuery() {
           `Imported ${result.imported}, skipped ${result.skipped.length} (no team for that campus)`,
         );
       } else {
-        toast.success(`Imported ${result.imported} fixture${result.imported === 1 ? "" : "s"}`);
+        toast.success(
+          `Imported ${result.imported} fixture${result.imported === 1 ? "" : "s"}`,
+        );
       }
     },
     onError: (error: Error) => {

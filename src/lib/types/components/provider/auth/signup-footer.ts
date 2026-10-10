@@ -19,8 +19,7 @@ export type ProviderSignUpProfileFooterProps = {
 };
 
 export type ProviderSignUpFooterProps =
-  | ProviderSignUpMainFooterProps
-  | ProviderSignUpProfileFooterProps;
+  ProviderSignUpMainFooterProps | ProviderSignUpProfileFooterProps;
 
 export type ProfileStepIndicatorProps = {
   currentStep: number;

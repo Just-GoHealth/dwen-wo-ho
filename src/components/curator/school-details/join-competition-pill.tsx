@@ -119,8 +119,8 @@ export function JoinCompetitionPill({
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-muted-foreground text-sm">
-              Registers this school as a team so it can have access codes
-              and fixtures.
+              Registers this school as a team so it can have access codes and
+              fixtures.
             </p>
             <div>
               <Label htmlFor="join-code">Competition code</Label>

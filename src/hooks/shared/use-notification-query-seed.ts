@@ -11,9 +11,7 @@ import type { NotificationUserType } from "@/lib/types/notifications/ws-handler"
 interface UseNotificationQuerySeedOptions {
   userType: NotificationUserType | null;
   initialNotifications:
-    | CuratorNotification[]
-    | ProviderNotification[]
-    | undefined;
+    CuratorNotification[] | ProviderNotification[] | undefined;
   curatorUnreadCount: number | undefined;
   providerUnreadCount: number | undefined;
   setCuratorNotifications: Dispatch<SetStateAction<CuratorNotification[]>>;

@@ -1,8 +1,5 @@
 export type ConnectionStatus =
-  | "CONNECTING"
-  | "CONNECTED"
-  | "DISCONNECTED"
-  | "ERROR";
+  "CONNECTING" | "CONNECTED" | "DISCONNECTED" | "ERROR";
 
 // WebSocket event payloads from backend
 export interface NewNotificationEvent<T> {

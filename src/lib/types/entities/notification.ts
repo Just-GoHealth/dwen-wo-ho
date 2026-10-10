@@ -16,8 +16,7 @@ export type CuratorNotificationType =
   | "STAR_PROVIDER_ASSIGNED";
 
 export type ProviderNotificationCategory =
-  | "NEW_PATIENT_ADDED"
-  | "STAR_PROVIDER_ASSIGNED";
+  "NEW_PATIENT_ADDED" | "STAR_PROVIDER_ASSIGNED";
 
 export type ProviderNotificationAction =
   (typeof PROVIDER_NOTIFICATION_ACTIONS)[keyof typeof PROVIDER_NOTIFICATION_ACTIONS];
