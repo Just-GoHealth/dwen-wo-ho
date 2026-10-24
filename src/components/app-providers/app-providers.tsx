@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { ThemeProvider } from "./theme-provider";
 import TanstackQueryProvider from "./tanstack-query-provider";
 import JotaiProvider from "./jotai-provider";
-import { StompProvider } from "@/components/app-providers/stomp-provider";
+import { LiveUpdatesProvider } from "@/components/app-providers/live-updates-provider";
 import { OnlineStatus } from "./online-status";
 import MotionProvider from "./motion-provider";
 
@@ -25,10 +25,10 @@ export default function Providers({
     >
       <JotaiProvider>
         <TanstackQueryProvider>
-          <StompProvider>
+          <LiveUpdatesProvider>
             <OnlineStatus />
             <MotionProvider>{children}</MotionProvider>
-          </StompProvider>
+          </LiveUpdatesProvider>
         </TanstackQueryProvider>
       </JotaiProvider>
     </ThemeProvider>

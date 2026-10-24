@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import type { Dispatch, SetStateAction } from "react";
@@ -17,6 +17,7 @@ import type {
 } from "@/lib/types/components/curator/create/creative-studios";
 import { getDefaultProgrammeYears } from "@/lib/utils/curator/create/reconcile-programme-years";
 import { revokeObjectUrl } from "@/lib/utils/shared/revoke-object-url";
+import { isApiError } from "@/lib/v2/curator/errors";
 
 const defaultProgrammeYears = getDefaultProgrammeYears();
 
@@ -81,8 +82,46 @@ export function useCreativeStudiosFlow(
   >,
 ): CreativeStudiosFlowContextValue {
   const router = useRouter();
-  const { createCampus, createProgramme, createTag, createSpecialty } =
+  const { createCampus, createProgramme, createTag, createProvider } =
     useCreativeStudiosQuery();
+  // `fields[]` from a failed create (e.g. NAME_TAKEN on fullName), keyed by the
+  // request field name; the step forms show them beside their inputs.
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
+
+  const clearServerError = useCallback((field: string) => {
+    setServerErrors((prev) => {
+      if (!(field in prev)) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }, []);
+
+  /**
+   * Runs a create. On failure the mutation has already toasted `detail`; field
+   * problems are kept for the forms, and a problem on a step-1 field sends the
+   * curator back there to fix it.
+   */
+  const runCreate = async (
+    create: () => Promise<unknown>,
+    step1Fields: readonly string[],
+  ): Promise<boolean> => {
+    setServerErrors({});
+    try {
+      await create();
+      return true;
+    } catch (error) {
+      if (isApiError(error) && error.fields.length > 0) {
+        setServerErrors(
+          Object.fromEntries(error.fields.map((f) => [f.field, f.message])),
+        );
+        if (error.fields.some((f) => step1Fields.includes(f.field))) {
+          navigateToStep1(router, type);
+        }
+      }
+      return false;
+    }
+  };
 
   const preview = useMemo((): PreviewPanelProps => {
     switch (type) {
@@ -154,49 +193,69 @@ export function useCreativeStudiosFlow(
   };
 
   const submitCampus = async () => {
-    await createCampus({
-      fullName: drafts.campus.name.trim(),
-      nicknames: [...drafts.campus.nicks],
-      motto: drafts.campus.motto,
-      type: drafts.campus.type,
-      location: drafts.campus.location,
-      logo: drafts.campus.logoFile,
-      bannerPhoto: drafts.campus.bannerFile,
-    });
+    const created = await runCreate(
+      () =>
+        createCampus({
+          fullName: drafts.campus.name.trim(),
+          nicknames: [...drafts.campus.nicks],
+          motto: drafts.campus.motto,
+          type: drafts.campus.type,
+          location: drafts.campus.location,
+          logo: drafts.campus.logoFile,
+          bannerPhoto: drafts.campus.bannerFile,
+        }),
+      ["fullName", "nicknames", "motto", "type", "locationId", "name"],
+    );
+    if (!created) return;
     resetDrafts();
     navigateToStep1(router, "campus");
   };
 
   const submitProvider = async () => {
-    await createSpecialty({
-      name: drafts.provider.name.trim(),
-      nicknames: [...drafts.provider.nicks],
-      bio: drafts.provider.bio,
-      clinical: drafts.provider.clinical,
-      icon: drafts.provider.iconFile,
-    });
+    const created = await runCreate(
+      () =>
+        createProvider({
+          fullName: drafts.provider.name.trim(),
+          nicknames: [...drafts.provider.nicks],
+          bio: drafts.provider.bio,
+          clinical: drafts.provider.clinical,
+          photo: drafts.provider.iconFile,
+        }),
+      ["fullName", "nicknames", "bio"],
+    );
+    if (!created) return;
     resetDrafts();
     navigateToStep1(router, "provider");
   };
 
   const submitProgramme = async () => {
-    await createProgramme({
-      fullName: drafts.programme.name.trim(),
-      nicknames: [...drafts.programme.nicks],
-      bio: drafts.programme.bio,
-      durationFromYear: drafts.programme.durationFromYear,
-      durationToYear: drafts.programme.durationToYear,
-      coverPhoto: drafts.programme.coverFile,
-    });
+    const created = await runCreate(
+      () =>
+        createProgramme({
+          fullName: drafts.programme.name.trim(),
+          nicknames: [...drafts.programme.nicks],
+          bio: drafts.programme.bio,
+          durationFromYear: drafts.programme.durationFromYear,
+          durationToYear: drafts.programme.durationToYear,
+          coverPhoto: drafts.programme.coverFile,
+        }),
+      ["fullName", "nicknames", "bio", "defaultYears"],
+    );
+    if (!created) return;
     resetDrafts();
     navigateToStep1(router, "programme");
   };
 
   const submitTag = async () => {
-    await createTag({
-      mainTitle: drafts.tag.mainTitle.trim(),
-      tags: [...drafts.tag.tags],
-    });
+    const created = await runCreate(
+      () =>
+        createTag({
+          mainTitle: drafts.tag.mainTitle.trim(),
+          tags: [...drafts.tag.tags],
+        }),
+      [],
+    );
+    if (!created) return;
     resetDrafts();
     navigateToStep1(router, "tag");
   };
@@ -208,6 +267,8 @@ export function useCreativeStudiosFlow(
     programme: drafts.programme,
     tag: drafts.tag,
     preview,
+    serverErrors,
+    clearServerError,
     updateCampus,
     updateProvider,
     updateProgramme,

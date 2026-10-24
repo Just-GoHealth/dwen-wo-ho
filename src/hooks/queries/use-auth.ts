@@ -1,132 +1,86 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authService } from "@/services/shared/auth";
+import { authApi } from "@/lib/v2/auth";
 import { performLogout } from "@/lib/auth/session";
+import { setUserType } from "@/lib/utils/auth/get-user-type";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
-import { toast } from "sonner";
-import { SIGN_UP_TEXTS } from "@/lib/constants/components/provider/auth/signup";
+import type { Me } from "@/lib/v2/types";
 
-// After any auth mutation, cached auth-scoped data (profile, session) may be
-// stale, so refresh it. invalidateQueries only refetches active queries.
-const authQueryKey = { queryKey: [QUERY_KEYS.auth] };
+/** Records the UI hint for which workspace this browser is signed in to. */
+export const rememberSignedIn = (me: Me) => {
+  setUserType(me.role === "CURATOR" ? "curator" : "provider");
+};
 
+/**
+ * Auth mutations (backend v2 `/auth/*`). Every call carries `role`; the
+ * session itself is the backend's HttpOnly cookies.
+ */
 export const useAuthQuery = () => {
   const queryClient = useQueryClient();
 
-  const loginMutation = useMutation({
-    mutationKey: ["auth", "login"],
-    mutationFn: authService.login,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
+  const onSignedIn = (me: Me) => {
+    rememberSignedIn(me);
+    queryClient.setQueryData(QUERY_KEYS.v2.me, me);
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.v2.providerMe });
+  };
+
+  const lookupMutation = useMutation({
+    mutationKey: ["auth", "lookup"],
+    mutationFn: authApi.lookup,
+  });
+
+  const signInMutation = useMutation({
+    mutationKey: ["auth", "sign-in"],
+    mutationFn: authApi.signIn,
+    onSuccess: onSignedIn,
+  });
+
+  const providerSignUpMutation = useMutation({
+    mutationKey: ["auth", "provider-sign-up"],
+    mutationFn: authApi.providerSignUp,
+  });
+
+  const verifyMutation = useMutation({
+    mutationKey: ["auth", "verify"],
+    mutationFn: authApi.verify,
+    onSuccess: (res) => {
+      if (res.me) onSignedIn(res.me);
     },
   });
 
-  const signupMutation = useMutation({
-    mutationKey: ["auth", "signup"],
-    mutationFn: authService.signup,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
+  const sendCodeMutation = useMutation({
+    mutationKey: ["auth", "codes"],
+    mutationFn: authApi.sendCode,
   });
 
-  const verifyEmailMutation = useMutation({
-    mutationKey: ["auth", "verifyEmail"],
-    mutationFn: authService.verifyEmail,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
+  const recoveryMutation = useMutation({
+    mutationKey: ["auth", "recovery"],
+    mutationFn: authApi.recovery,
   });
 
-  const checkEmailMutation = useMutation({
-    mutationKey: ["auth", "checkEmail"],
-    mutationFn: authService.checkEmail,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
+  const claimMutation = useMutation({
+    mutationKey: ["auth", "claim"],
+    mutationFn: authApi.claim,
   });
 
-  const resendSignupVerificationMutation = useMutation({
-    mutationKey: ["auth", "resendSignupVerification"],
-    mutationFn: authService.resendSignupVerification,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-      toast.success(SIGN_UP_TEXTS.toasts.resend);
-    },
-  });
-
-  const resendPasswordResetVerificationMutation = useMutation({
-    mutationKey: ["auth", "resendPasswordResetVerification"],
-    mutationFn: authService.resendPasswordResetVerification,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-      toast.success(SIGN_UP_TEXTS.toasts.resendPasswordReset);
-    },
-  });
-
-  const recoverAccountMutation = useMutation({
-    mutationKey: ["auth", "recoverAccount"],
-    mutationFn: authService.recoverAccount,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
-  });
-
-  const submitRecoveryCodeMutation = useMutation({
-    mutationKey: ["auth", "submitRecoveryCode"],
-    mutationFn: authService.submitAccountRecoveryCode,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
-  });
-
-  const resetPasswordMutation = useMutation({
-    mutationKey: ["auth", "resetPassword"],
-    mutationFn: authService.resetPassword,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
-  });
-
-  const addPhotoMutation = useMutation({
-    mutationKey: ["auth", "addPhoto"],
-    mutationFn: authService.addPhoto,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
-  });
-
-  const updateProfileMutation = useMutation({
-    mutationKey: ["auth", "updateProfile"],
-    mutationFn: authService.updateProfile,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
-  });
-
-  const addSpecialtyMutation = useMutation({
-    mutationKey: ["auth", "addSpecialty"],
-    mutationFn: authService.addSpecialty,
-    onSuccess: () => {
-      queryClient.invalidateQueries(authQueryKey);
-    },
+  const setPasswordMutation = useMutation({
+    mutationKey: ["auth", "password"],
+    mutationFn: authApi.setPassword,
+    onSuccess: onSignedIn,
   });
 
   const logout = (redirectTo?: string) => {
-    performLogout(queryClient, redirectTo);
+    void performLogout(queryClient, redirectTo);
   };
 
   return {
-    loginMutation,
-    signupMutation,
-    verifyEmailMutation,
-    checkEmailMutation,
-    resendSignupVerificationMutation,
-    recoverAccountMutation,
-    submitRecoveryCodeMutation,
-    resetPasswordMutation,
-    addPhotoMutation,
-    updateProfileMutation,
-    addSpecialtyMutation,
+    lookupMutation,
+    signInMutation,
+    providerSignUpMutation,
+    verifyMutation,
+    sendCodeMutation,
+    recoveryMutation,
+    claimMutation,
+    setPasswordMutation,
     logout,
-    resendPasswordResetVerificationMutation,
   };
 };

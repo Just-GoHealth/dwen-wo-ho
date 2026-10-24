@@ -4,6 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { partnersService } from "@/services/curator/partners";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
+import { toastCuratorError } from "@/lib/v2/curator/errors";
+
+// Partners are v2 hosts. Creating a host lives in Studios; disabling one has
+// no v2 endpoint (see backend-gaps/curator-v2-gaps.md).
 
 // Hoisted query hooks — they close over no component state.
 const usePartnersList = (options?: { enabled?: boolean }) =>
@@ -29,7 +33,7 @@ const usePartnerFullDetails = (
   options?: { enabled?: boolean },
 ) =>
   useQuery({
-    queryKey: [QUERY_KEYS.partners, partnerId],
+    queryKey: [QUERY_KEYS.partners, partnerId, "details"],
     queryFn: () => partnersService.getPartnerWithDetails(partnerId),
     enabled: (options?.enabled ?? true) && !!partnerId,
     staleTime: 3 * 60 * 1000,
@@ -39,23 +43,16 @@ const usePartnerFullDetails = (
 export default function usePartnerQuery() {
   const queryClient = useQueryClient();
 
-  const createPartnerMutation = useMutation({
-    mutationFn: partnersService.createPartner,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.partners] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.providers] });
-      toast.success("Partner created successfully");
+  const invalidatePartners = useCallback(
+    async (partnerId?: string) => {
+      await queryClient.invalidateQueries({
+        queryKey: partnerId
+          ? [QUERY_KEYS.partners, partnerId]
+          : [QUERY_KEYS.partners],
+      });
     },
-    onError: (error: Error) => {
-      const errorMessage = error.message || "Failed to create partner";
-      try {
-        const parsed = JSON.parse(errorMessage);
-        toast.error(parsed.message || errorMessage);
-      } catch {
-        toast.error(errorMessage);
-      }
-    },
-  });
+    [queryClient],
+  );
 
   const addSchoolMutation = useMutation({
     mutationFn: ({
@@ -63,32 +60,15 @@ export default function usePartnerQuery() {
       schoolId,
     }: {
       partnerId: string;
-      schoolId: string | number;
+      schoolId: string;
     }) => partnersService.addSchoolToPartner(partnerId, schoolId),
     onSuccess: (_, { partnerId }) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.partners, partnerId],
-      });
+      void invalidatePartners(partnerId);
       toast.success("School added successfully");
     },
-    onError: (error: Error) =>
-      toast.error(error.message || "Failed to add school"),
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to add school" }),
   });
-
-  const invalidatePartners = useCallback(
-    async (partnerId?: string) => {
-      if (partnerId) {
-        await queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.partners, partnerId],
-        });
-      } else {
-        await queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.partners],
-        });
-      }
-    },
-    [queryClient],
-  );
 
   const removeSchoolMutation = useMutation({
     mutationFn: ({
@@ -96,16 +76,14 @@ export default function usePartnerQuery() {
       schoolId,
     }: {
       partnerId: string;
-      schoolId: string | number;
+      schoolId: string;
     }) => partnersService.removeSchoolFromPartner(partnerId, schoolId),
     onSuccess: (_, { partnerId }) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.partners, partnerId],
-      });
+      void invalidatePartners(partnerId);
       toast.success("School removed successfully");
     },
-    onError: (error: Error) =>
-      toast.error(error.message || "Failed to remove school"),
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to remove school" }),
   });
 
   const addProviderMutation = useMutation({
@@ -114,16 +92,14 @@ export default function usePartnerQuery() {
       providerId,
     }: {
       partnerId: string;
-      providerId: string | number;
+      providerId: string;
     }) => partnersService.addProviderToPartner(partnerId, providerId),
     onSuccess: (_, { partnerId }) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.partners, partnerId],
-      });
+      void invalidatePartners(partnerId);
       toast.success("Provider added successfully");
     },
-    onError: (error: Error) =>
-      toast.error(error.message || "Failed to add provider"),
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to add provider" }),
   });
 
   const removeProviderMutation = useMutation({
@@ -132,34 +108,19 @@ export default function usePartnerQuery() {
       providerId,
     }: {
       partnerId: string;
-      providerId: string | number;
+      providerId: string;
     }) => partnersService.removeProviderFromPartner(partnerId, providerId),
     onSuccess: (_, { partnerId }) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.partners, partnerId],
-      });
+      void invalidatePartners(partnerId);
       toast.success("Provider removed successfully");
     },
-    onError: (error: Error) =>
-      toast.error(error.message || "Failed to remove provider"),
-  });
-
-  const disablePartnerMutation = useMutation({
-    mutationFn: (partnerId: string) =>
-      partnersService.disablePartner(partnerId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.partners] });
-      toast.success("Partner disabled successfully");
-    },
-    onError: (error: Error) =>
-      toast.error(error.message || "Failed to disable partner"),
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to remove provider" }),
   });
 
   return {
     usePartnersList,
     usePartner,
-    createPartner: createPartnerMutation.mutateAsync,
-    isCreating: createPartnerMutation.isPending,
     addSchool: addSchoolMutation.mutateAsync,
     isAddingSchool: addSchoolMutation.isPending,
     removeSchool: removeSchoolMutation.mutateAsync,
@@ -170,7 +131,5 @@ export default function usePartnerQuery() {
     isRemovingProvider: removeProviderMutation.isPending,
     usePartnerFullDetails,
     invalidatePartners,
-    disablePartner: disablePartnerMutation.mutateAsync,
-    isDisablingPartner: disablePartnerMutation.isPending,
   };
 }

@@ -53,13 +53,16 @@ export interface PartnerDetailsPanelProps {
 export interface ProviderDetailsPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  providerEmail: string;
+  /** The provider's UUID (v2). */
+  providerId?: string;
+  /** @deprecated Pre-v2 name; pass `providerId`. Read as the id when set. */
+  providerEmail?: string;
   provider?: ProviderDetails;
-  onShowApproveModal?: (email: string) => void;
-  onShowRejectModal?: (email: string) => void;
+  onShowApproveModal?: (providerId: string) => void;
+  onShowRejectModal?: (providerId: string) => void;
   isModerating?: boolean;
   currentAction?: "approving" | "rejecting" | null;
-  moderatingProviderEmail?: string | null;
+  moderatingProviderId?: string | null;
 }
 
 export type ProviderDetailsPanelTab =

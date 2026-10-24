@@ -2,10 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useProvidersQuery } from "@/hooks/queries/use-provider";
-import {
-  Provider,
-  Provider as ApiProvider,
-} from "@/lib/types/entities/provider";
+import { Provider } from "@/lib/types/entities/provider";
 import {
   formatProviderName,
   getProviderTitle,
@@ -14,10 +11,10 @@ import {
 export function useCuratorProviders() {
   const [filter, setFilter] = useState("All");
   const [showProviderModal, setShowProviderModal] = useState(false);
-  const [selectedProviderEmail, setSelectedProviderEmail] = useState("");
+  const [selectedProviderId, setSelectedProviderId] = useState("");
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [modalProviderEmail, setModalProviderEmail] = useState("");
+  const [modalProviderId, setModalProviderId] = useState("");
   const [currentAction, setCurrentAction] = useState<
     "approving" | "rejecting" | null
   >(null);
@@ -31,61 +28,49 @@ export function useCuratorProviders() {
     rejectProvider,
   } = useProvidersQuery();
 
-  const providersList: Provider[] = useMemo(
-    () =>
-      (providers?.data || []).map((provider: ApiProvider) => ({
-        id: provider.email,
-        email: provider.email,
-        providerName: provider.providerName,
-        providerTitle: provider.providerTitle || undefined,
-        profilePhotoURL: provider.profilePhotoURL || undefined,
-        specialty: provider.specialty || "",
-        applicationStatus: provider.applicationStatus,
-        applicationDate: provider.applicationDate,
-      })),
-    [providers],
-  );
+  // Keyed by provider id (UUID); v2 provider summaries carry no email.
+  const providersList: Provider[] = useMemo(() => providers ?? [], [providers]);
 
-  const handleProviderSelect = useCallback((providerEmail: string) => {
-    setSelectedProviderEmail(providerEmail);
+  const handleProviderSelect = useCallback((providerId: string) => {
+    setSelectedProviderId(providerId);
     setShowProviderModal(true);
   }, []);
 
-  const handleShowApproveModal = useCallback((email: string) => {
-    setModalProviderEmail(email);
+  const handleShowApproveModal = useCallback((providerId: string) => {
+    setModalProviderId(providerId);
     setShowApproveModal(true);
   }, []);
 
-  const handleShowRejectModal = useCallback((email: string) => {
-    setModalProviderEmail(email);
+  const handleShowRejectModal = useCallback((providerId: string) => {
+    setModalProviderId(providerId);
     setShowRejectModal(true);
   }, []);
 
   const handleApproveConfirm = useCallback(() => {
     setShowApproveModal(false);
     setCurrentAction("approving");
-    approveProvider(modalProviderEmail, {
+    approveProvider(modalProviderId, {
       onSettled: () => {
         setCurrentAction(null);
-        setModalProviderEmail("");
+        setModalProviderId("");
       },
     });
-  }, [approveProvider, modalProviderEmail]);
+  }, [approveProvider, modalProviderId]);
 
   const handleRejectConfirm = useCallback(() => {
     setShowRejectModal(false);
     setCurrentAction("rejecting");
-    rejectProvider(modalProviderEmail, {
+    rejectProvider(modalProviderId, {
       onSettled: () => {
         setCurrentAction(null);
-        setModalProviderEmail("");
+        setModalProviderId("");
       },
     });
-  }, [rejectProvider, modalProviderEmail]);
+  }, [rejectProvider, modalProviderId]);
 
   const getProviderName = useCallback(
-    (email: string) => {
-      const provider = providersList.find((p) => p.email === email);
+    (providerId: string) => {
+      const provider = providersList.find((p) => p.id === providerId);
       if (!provider) return "";
       return formatProviderName(
         provider.providerName || "",
@@ -149,11 +134,11 @@ export function useCuratorProviders() {
 
   const selectedProvider = useMemo(() => {
     const foundProvider = providersList.find(
-      (p) => p.email === selectedProviderEmail,
+      (p) => p.id === selectedProviderId,
     );
     if (!foundProvider) return undefined;
     return {
-      id: foundProvider.email,
+      id: foundProvider.id,
       email: foundProvider.email,
       fullName: formatProviderName(
         foundProvider.providerName || "",
@@ -171,7 +156,7 @@ export function useCuratorProviders() {
       updatedAt: foundProvider.lastActive || foundProvider.applicationDate,
       applicationStatus: foundProvider.applicationStatus,
     };
-  }, [providersList, selectedProviderEmail]);
+  }, [providersList, selectedProviderId]);
 
   return {
     // Query state
@@ -192,13 +177,13 @@ export function useCuratorProviders() {
     // Modal state
     showProviderModal,
     setShowProviderModal,
-    selectedProviderEmail,
+    selectedProviderId,
     showApproveModal,
     setShowApproveModal,
     showRejectModal,
     setShowRejectModal,
-    modalProviderEmail,
-    setModalProviderEmail,
+    modalProviderId,
+    setModalProviderId,
     currentAction,
 
     // Handlers

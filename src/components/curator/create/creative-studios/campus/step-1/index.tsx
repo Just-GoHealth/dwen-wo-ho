@@ -37,6 +37,7 @@ export function CampusStep1() {
     control,
     register,
     errors,
+    serverErrors,
     nickError,
     nickRef,
     addNick,
@@ -66,7 +67,10 @@ export function CampusStep1() {
           {CAMPUS_STEP_1_FORM_SECTIONS.map((section) => {
             switch (section.kind) {
               case "text": {
-                const error = errors[section.name];
+                const serverError = serverErrors[section.name];
+                const error =
+                  errors[section.name] ??
+                  (serverError ? { message: serverError } : undefined);
 
                 return (
                   <Field key={section.name} data-invalid={!!error}>
@@ -85,7 +89,7 @@ export function CampusStep1() {
                       aria-invalid={section.required ? !!error : undefined}
                       {...register(section.name)}
                     />
-                    {section.required ? (
+                    {section.required || error ? (
                       <FieldError
                         className={CAMPUS_STEP_1_FIELD_ERROR_CLASS}
                         errors={[error]}
@@ -154,7 +158,11 @@ export function CampusStep1() {
                     name={section.name}
                     control={control}
                     render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
+                      <Field
+                        data-invalid={
+                          fieldState.invalid || !!serverErrors[section.name]
+                        }
+                      >
                         <FieldLabel
                           htmlFor={section.id}
                           className={CAMPUS_STEP_1_FIELD_LABEL_CLASS}
@@ -187,7 +195,12 @@ export function CampusStep1() {
                         </Select>
                         <FieldError
                           className={CAMPUS_STEP_1_FIELD_ERROR_CLASS}
-                          errors={[fieldState.error]}
+                          errors={[
+                            fieldState.error ??
+                              (serverErrors[section.name]
+                                ? { message: serverErrors[section.name] }
+                                : undefined),
+                          ]}
                         />
                       </Field>
                     )}

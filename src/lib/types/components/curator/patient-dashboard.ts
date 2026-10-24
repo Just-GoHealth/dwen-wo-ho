@@ -1,13 +1,19 @@
-import type { LockInAssessment } from "@/lib/types/entities/lockin";
-import type { PatientResult } from "@/lib/types/entities/patient";
-import type { PatientActionResponseDTO } from "@/lib/types/api/patient-results";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import type {
+  CommentView,
+  OutcomeView,
+  ResultDetail,
+} from "@/lib/v2/curator/types";
 
 export interface PatientHeaderProps {
-  patientResult: PatientResult;
-  lockInAssessment: LockInAssessment;
+  detail: ResultDetail;
   onBack: () => void;
-  onDelete: () => void;
+  /** Toggles Active / Inactive (PATCH /results/{id}). */
+  onToggleActive: () => void;
+  isTogglingActive: boolean;
+  /** Shown while the result awaits acceptance (C19). */
+  onAccept: () => void;
+  isAccepting: boolean;
 }
 
 export interface PatientMetricItem {
@@ -29,40 +35,55 @@ export interface PatientMetricsProps {
 }
 
 export interface AssessmentDetailsCardProps {
-  lockInAssessment: LockInAssessment;
-}
-
-export type PatientActionsTab = "assessment" | "history";
-
-export interface PatientActionsPanelProps {
-  actions: PatientActionResponseDTO[];
-  isActionsLoading: boolean;
-  activeTab: PatientActionsTab;
-  onTabChange: (tab: PatientActionsTab) => void;
+  detail: ResultDetail;
 }
 
 export interface UrgentCareStatusCardProps {
-  lockInAssessment: LockInAssessment;
+  detail: ResultDetail;
+}
+
+/** One section's average from GET /benchmarks. */
+export interface BenchmarkAverage {
+  average: number | null;
+  count: number;
+}
+
+export interface Benchmarks {
+  campus?: { id: string; averages: Record<string, BenchmarkAverage> };
+  campusType?: { type: string; averages: Record<string, BenchmarkAverage> };
+  overall: { averages: Record<string, BenchmarkAverage> };
 }
 
 export interface SchoolTypeComparisonCardProps {
-  lockInAssessment: LockInAssessment;
+  outcomes: OutcomeView[];
+  benchmarks: Benchmarks | null;
+}
+
+export interface PatientCommentsPanelProps {
+  comments: CommentView[];
+  isLoading: boolean;
+  onAddComment: (body: string) => Promise<unknown>;
+  isAdding: boolean;
+  /** `fieldError("body")` from the last failed post. */
+  bodyError?: string;
 }
 
 export interface CuratorPatientDetailsState {
   router: AppRouterInstance;
-  patientResult: PatientResult | null;
-  lockInAssessment: LockInAssessment | null;
+  detail: ResultDetail | null;
   isLoading: boolean;
-  activeTab: "assessment" | "history";
-  setActiveTab: (tab: "assessment" | "history") => void;
+  isError: boolean;
   metrics: PatientMetricCategory[];
-  actions: PatientActionResponseDTO[];
-  isActionsLoading: boolean;
-  showDeleteModal: boolean;
-  setShowDeleteModal: (open: boolean) => void;
-  singleDeletePending: boolean;
-  handleDeleteConfirm: () => void;
+  benchmarks: Benchmarks | null;
+  comments: CommentView[];
+  isCommentsLoading: boolean;
+  addComment: (body: string) => Promise<unknown>;
+  isAddingComment: boolean;
+  commentError?: string;
+  toggleActive: () => void;
+  isTogglingActive: boolean;
+  accept: () => void;
+  isAccepting: boolean;
 }
 
 export interface PatientDetailsErrorViewProps {

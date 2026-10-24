@@ -13,6 +13,7 @@ export const SchoolsTab = ({
   setSchoolToRemove,
   setSchoolToAdd,
   applicationStatus,
+  associationsAvailable = false,
 }: SchoolsTabProps) => {
   return (
     <div className="space-y-6">
@@ -27,7 +28,11 @@ export const SchoolsTab = ({
         ) : associatedSchools.length === 0 ? (
           <div className="text-muted-foreground py-8 text-center">
             <FiAward className="text-muted-foreground mx-auto mb-2 h-12 w-12" />
-            <p>No schools associated yet</p>
+            <p>
+              {associationsAvailable
+                ? "No schools associated yet"
+                : "This provider's schools can't be listed yet."}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">

@@ -2,23 +2,33 @@
 
 import { MapPin, ChevronDown } from "lucide-react";
 import { m, AnimatePresence } from "motion/react";
-import { CAMPUS_OPTIONS } from "@/lib/constants/components/curator/schools/school-forms";
-import { SCHOOL_TYPES } from "@/lib/constants/components/curator/schools/school-forms";
 import { SchoolEditPanelFormProps } from "@/lib/types/components/curator/schools/schools";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="text-destructive text-xs font-medium">
+      {message}
+    </p>
+  );
+}
+
 export const SchoolEditForm = ({
   formData,
   handleInputChange,
+  campusTypes,
+  locations,
+  selectedLocationName,
   showCampusDropdown,
   setShowCampusDropdown,
-  selectedCampuses,
-  handleCampusToggle,
+  handleLocationSelect,
   campusDropdownRef,
   handleSubmit,
+  fieldError,
   school,
 }: SchoolEditPanelFormProps) => {
   return (
@@ -32,9 +42,11 @@ export const SchoolEditForm = ({
             type="text"
             value={formData.name}
             onChange={(e) => handleInputChange("name", e.target.value)}
+            aria-invalid={!!fieldError("fullName")}
             className="bg-muted/50 border-border focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 transition-all focus:ring-2 focus:outline-none"
             placeholder="e.g. Achimota School"
           />
+          <FieldError message={fieldError("fullName")} />
         </div>
         <div className="space-y-2">
           <Label className="text-foreground text-sm font-semibold">
@@ -44,57 +56,56 @@ export const SchoolEditForm = ({
             type="text"
             value={formData.nickname}
             onChange={(e) => handleInputChange("nickname", e.target.value)}
+            aria-invalid={!!fieldError("nicknames")}
             className="bg-muted/50 border-border focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 transition-all focus:ring-2 focus:outline-none"
             placeholder="e.g. Motown"
           />
+          <FieldError message={fieldError("nicknames")} />
         </div>
       </div>
 
       {/* Motto */}
       <div className="space-y-2">
-        <Label className="text-foreground text-sm font-semibold">
-          Motto <span className="text-destructive">*</span>
-        </Label>
+        <Label className="text-foreground text-sm font-semibold">Motto</Label>
         <Textarea
           value={formData.motto}
           onChange={(e) => handleInputChange("motto", e.target.value)}
+          aria-invalid={!!fieldError("motto")}
           className="bg-muted/50 border-border focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-muted-foreground w-full resize-none rounded-xl border px-4 py-3 transition-all focus:ring-2 focus:outline-none"
           placeholder="Enter school motto"
           rows={3}
         />
+        <FieldError message={fieldError("motto")} />
       </div>
 
-      <div className="flex items-center gap-6">
-        <Label className="text-foreground w-24 text-lg font-bold">Type</Label>
-        <div className="flex flex-1 flex-wrap gap-4">
-          {SCHOOL_TYPES.map((type) => (
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+        <Label className="text-foreground text-lg font-bold sm:w-24">
+          Type
+        </Label>
+        <div className="flex flex-1 flex-wrap gap-2 sm:gap-4">
+          {campusTypes.map((type) => (
             <Button
-              key={type}
+              key={type.code}
               type="button"
-              onClick={() => handleInputChange("type", type)}
-              className={`rounded-lg px-6 py-2 font-bold transition-colors ${
-                formData.type === type
+              title={type.label}
+              onClick={() => handleInputChange("type", type.code)}
+              className={`rounded-lg px-4 py-2 font-bold transition-colors sm:px-6 ${
+                formData.type === type.code
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
               }`}
             >
-              {type}
+              {type.code}
             </Button>
           ))}
         </div>
       </div>
+      <FieldError message={fieldError("type")} />
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label className="text-foreground text-sm font-semibold">
-            Campuses
-          </Label>
-          {selectedCampuses.length > 0 && (
-            <span className="rounded-full bg-teal-50 px-2 py-1 text-xs font-medium text-teal-600">
-              {selectedCampuses.length} selected
-            </span>
-          )}
-        </div>
+        <Label className="text-foreground text-sm font-semibold">
+          Location
+        </Label>
         <div className="relative" ref={campusDropdownRef}>
           <Button
             type="button"
@@ -105,14 +116,12 @@ export const SchoolEditForm = ({
               <MapPin className="h-4 w-4" />
               <span
                 className={
-                  selectedCampuses.length > 0
+                  selectedLocationName
                     ? "text-foreground font-medium"
                     : "text-muted-foreground"
                 }
               >
-                {selectedCampuses.length > 0
-                  ? selectedCampuses.join(", ")
-                  : "Select campus locations"}
+                {selectedLocationName || "Select a location"}
               </span>
             </div>
             <ChevronDown
@@ -131,19 +140,19 @@ export const SchoolEditForm = ({
                 className="bg-card border-border absolute top-full right-0 left-0 z-20 mt-2 overflow-hidden rounded-xl border shadow-xl"
               >
                 <div className="no-scrollbar max-h-48 overflow-y-auto p-2">
-                  {CAMPUS_OPTIONS.map((campus) => (
+                  {locations.map((location) => (
                     <Button
-                      key={campus}
+                      key={location.id}
                       type="button"
-                      onClick={() => handleCampusToggle(campus)}
+                      onClick={() => handleLocationSelect(location.id)}
                       variant="ghost"
                       className={`w-full justify-start rounded-lg px-4 py-2.5 transition-colors ${
-                        selectedCampuses.includes(campus)
+                        formData.locationId === location.id
                           ? "bg-primary/10 text-primary hover:bg-primary/20 font-medium"
                           : "hover:bg-muted text-foreground"
                       }`}
                     >
-                      <span>{campus}</span>
+                      <span>{location.name}</span>
                     </Button>
                   ))}
                 </div>
@@ -151,6 +160,7 @@ export const SchoolEditForm = ({
             )}
           </AnimatePresence>
         </div>
+        <FieldError message={fieldError("locationId")} />
       </div>
 
       {school.logo && (

@@ -31,6 +31,8 @@ export interface EditFieldDialogProps {
   isUploadingAvatar?: boolean;
   isSaving?: boolean;
   profileData?: { avatarUrl?: string; name?: string };
+  /** Role category names for the specialty field. */
+  specialtyItems?: readonly string[];
 }
 
 export interface EditFieldPhotoFieldProps {

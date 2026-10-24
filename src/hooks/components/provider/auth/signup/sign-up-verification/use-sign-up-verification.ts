@@ -1,101 +1,83 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import type { Route } from "next";
-import { useAuthQuery } from "@/hooks/queries/use-auth";
 import { toast } from "sonner";
+import { useAuthQuery } from "@/hooks/queries/use-auth";
+import { useApiError } from "@/hooks/shared/use-api-error";
 import { SignUpVerificationProps } from "@/lib/types/components/provider/auth";
-import { getCleanErrorMessage } from "@/lib/utils/auth/error";
-import { applyProviderAuthTokens } from "@/lib/utils/auth/provider-tokens";
-import { buildProviderSignupResumeUrl } from "@/lib/utils/provider/signup-resume";
 import {
   OTP_INPUT_FOCUS_DELAY_MS,
   SIGN_UP_TEXTS,
 } from "@/lib/constants/components/provider/auth/signup";
+import { CODE_SENT_TEXT } from "@/lib/constants/components/provider/auth/auth-copy";
 
+const RESEND_SECONDS = 60;
+
+/** `POST /auth/verify {purpose: SIGN_UP}` answers `{me}` and signs in. */
 export const useSignUpVerification = ({
   email,
-  onNext,
+  onVerified,
 }: SignUpVerificationProps) => {
-  const router = useRouter();
-  const [isRunning, setIsRunning] = useState(true);
-  const [seconds, setSeconds] = useState(60);
+  const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const otpInputRef = useRef<HTMLInputElement>(null);
-
-  const { verifyEmailMutation, resendSignupVerificationMutation } =
-    useAuthQuery();
+  const { verifyMutation, sendCodeMutation } = useAuthQuery();
+  const apiError = useApiError();
 
   useEffect(() => {
-    if (verifyEmailMutation.isPending) return;
-
-    const timer = setTimeout(() => {
-      otpInputRef.current?.focus();
-    }, OTP_INPUT_FOCUS_DELAY_MS);
-
+    if (verifyMutation.isPending) return;
+    const timer = setTimeout(
+      () => otpInputRef.current?.focus(),
+      OTP_INPUT_FOCUS_DELAY_MS,
+    );
     return () => clearTimeout(timer);
-  }, [verifyEmailMutation.isPending]);
+  }, [verifyMutation.isPending]);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    if (seconds <= 0) return;
+    const id = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [seconds]);
 
-    if (isRunning && seconds > 0) {
-      intervalId = setInterval(() => {
-        setSeconds((prev) => prev - 1);
-      }, 1000);
-    } else if (seconds === 0) {
-      setIsRunning(false);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [isRunning, seconds]);
-
-  const handleOTPComplete = async (value: string) => {
+  const handleOTPComplete = async (code: string) => {
+    apiError.clear();
     try {
-      const verifyResponse = await verifyEmailMutation.mutateAsync({
-        code: value,
-        email: email.trim(),
+      const { me } = await verifyMutation.mutateAsync({
+        contact: email.trim(),
+        role: "PROVIDER",
+        purpose: "SIGN_UP",
+        code,
       });
-
-      if (verifyResponse) {
-        const token = verifyResponse.token;
-
-        if (token) {
-          // Access token in memory only; any refresh token was moved into an
-          // HttpOnly cookie by the submit-signup-code route handler.
-          applyProviderAuthTokens({ token });
-          toast.success(SIGN_UP_TEXTS.toasts.verified);
-          router.replace(
-            buildProviderSignupResumeUrl(email.trim(), "photo") as Route,
-          );
-          onNext();
-        } else {
-          toast.error(SIGN_UP_TEXTS.errors.noToken);
-        }
-      }
-    } catch (error: unknown) {
-      const errorMsg =
-        getCleanErrorMessage(error) || SIGN_UP_TEXTS.errors.verifyFailed;
-      toast.error(errorMsg);
+      if (!me) return;
+      toast.success(SIGN_UP_TEXTS.toasts.verified);
+      onVerified(me);
+    } catch (error) {
+      apiError.capture(error);
     }
   };
 
   const handleResendCode = async () => {
+    apiError.clear();
     try {
-      await resendSignupVerificationMutation.mutateAsync({ email });
-      setSeconds(60);
-      setIsRunning(true);
-    } catch (error: unknown) {
-      const errorMsg =
-        getCleanErrorMessage(error) || SIGN_UP_TEXTS.errors.resendFailed;
-      toast.error(errorMsg);
+      await sendCodeMutation.mutateAsync({
+        contact: email.trim(),
+        role: "PROVIDER",
+        purpose: "SIGN_UP",
+      });
+      toast.success(CODE_SENT_TEXT);
+      setSeconds(RESEND_SECONDS);
+    } catch (error) {
+      const described = apiError.capture(error);
+      if (described.code === "RATE_LIMITED") {
+        setSeconds(Math.max(1, described.retryAfter ?? RESEND_SECONDS));
+      }
     }
   };
 
   return {
     seconds,
-    verifyEmailMutation,
-    resendSignupVerificationMutation,
+    isVerifying: verifyMutation.isPending,
+    isResending: sendCodeMutation.isPending,
+    apiError: apiError.error,
     handleOTPComplete,
     handleResendCode,
     otpInputRef,

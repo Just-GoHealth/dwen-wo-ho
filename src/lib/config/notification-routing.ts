@@ -1,50 +1,9 @@
-import {
-  PROVIDER_NOTIFICATION_ACTIONS,
-  CURATOR_NOTIFICATION_ACTIONS,
-} from "@/lib/constants/infra/app";
+// TODO(v2-curator): v1 curator notification routing. Provider routing for v2
+// notifications lives in provider-notification-route.ts.
+import { CURATOR_NOTIFICATION_ACTIONS } from "@/lib/constants/infra/app";
 import { DYNAMIC_ROUTES, ROUTES } from "@/lib/constants/infra/routes";
-import {
-  CuratorNotification,
-  ProviderNotification,
-} from "@/lib/types/entities/notification";
-import {
-  inferCuratorNotificationAction,
-  inferProviderNotificationAction,
-} from "./infer-notification-action";
-
-const providerNotificationRouteConfig = {
-  [PROVIDER_NOTIFICATION_ACTIONS.OPEN_PATIENT]:
-    DYNAMIC_ROUTES.provider.patientDetails,
-
-  [PROVIDER_NOTIFICATION_ACTIONS.OPEN_SCHOOL_PATIENTS]:
-    DYNAMIC_ROUTES.provider.patientDetails,
-
-  [PROVIDER_NOTIFICATION_ACTIONS.OPEN_URGENT_CARE]:
-    DYNAMIC_ROUTES.provider.patientDetails,
-
-  [PROVIDER_NOTIFICATION_ACTIONS.OPEN_PROVIDER_SCHOOL]:
-    DYNAMIC_ROUTES.provider.schoolDetails,
-};
-
-export function getProviderNotificationRoute(
-  notification: ProviderNotification,
-) {
-  const computedAction = inferProviderNotificationAction(notification);
-  if (!computedAction) return null;
-
-  const validActionKey =
-    computedAction as keyof typeof providerNotificationRouteConfig;
-  const generator = providerNotificationRouteConfig[validActionKey];
-  // targetId/targetSchoolId are nullable on the wire - a route needing an id
-  // this notification doesn't carry has nowhere useful to go
-  const id =
-    computedAction === PROVIDER_NOTIFICATION_ACTIONS.OPEN_PROVIDER_SCHOOL ||
-    computedAction === PROVIDER_NOTIFICATION_ACTIONS.OPEN_SCHOOL_PATIENTS
-      ? notification.targetSchoolId
-      : notification.targetId;
-  if (id == null) return null;
-  return generator(id);
-}
+import { CuratorNotification } from "@/lib/types/entities/notification";
+import { inferCuratorNotificationAction } from "./infer-notification-action";
 
 const curatorNotificationRouteConfig = {
   [CURATOR_NOTIFICATION_ACTIONS.OPEN_SCHOOL]: (id: string | number) =>

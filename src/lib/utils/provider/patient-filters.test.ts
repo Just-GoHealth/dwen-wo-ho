@@ -33,18 +33,18 @@ const lowScoreSort: FilterOption = {
 
 const patients: PatientCase[] = [
   {
-    patientId: 1,
+    patientId: "1",
     patientName: "Ada Lovelace",
     schoolName: "North High",
-    schoolId: 10,
+    schoolId: "10",
     status: "new",
     score: 8,
   } as PatientCase,
   {
-    patientId: 2,
+    patientId: "2",
     patientName: "Grace Hopper",
     schoolName: "South High",
-    schoolId: 20,
+    schoolId: "20",
     status: "follow-up",
     score: 3,
   } as PatientCase,
@@ -56,7 +56,7 @@ describe("buildProviderTopSuggestions", () => {
       highScoreSort,
     ]);
 
-    expect(suggestions.map((patient) => patient.patientId)).toEqual([1, 2]);
+    expect(suggestions.map((patient) => patient.patientId)).toEqual(["1", "2"]);
   });
 
   it("sorts ascending for low-score", () => {
@@ -64,7 +64,7 @@ describe("buildProviderTopSuggestions", () => {
       lowScoreSort,
     ]);
 
-    expect(suggestions.map((patient) => patient.patientId)).toEqual([2, 1]);
+    expect(suggestions.map((patient) => patient.patientId)).toEqual(["2", "1"]);
   });
 
   it("filters by query and status together", () => {

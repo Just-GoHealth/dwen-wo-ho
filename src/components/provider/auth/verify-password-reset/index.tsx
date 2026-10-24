@@ -26,7 +26,11 @@ import { ArrowRightIcon } from "lucide-react";
 
 import { VerifyPasswordResetProps } from "@/lib/types/components/provider/auth";
 
-import { VERIFY_PASSWORD_RESET_TEXTS } from "@/lib/constants/components/provider/auth/auth-copy";
+import {
+  CLAIM_TEXTS,
+  VERIFY_PASSWORD_RESET_TEXTS,
+} from "@/lib/constants/components/provider/auth/auth-copy";
+import { ApiErrorNote } from "@/components/shared/api-error-note";
 
 import { useVerifyPasswordReset } from "@/hooks/components/provider/auth/verify-password-reset/use-verify-password-reset";
 
@@ -40,9 +44,11 @@ const VerifyContent = (props: VerifyPasswordResetProps) => {
 
     otpInputRef,
 
-    submitRecoveryCodeMutation,
+    isVerifying,
 
-    resendPasswordResetVerificationMutation,
+    isResending,
+
+    apiError,
 
     handleOTPComplete,
 
@@ -74,11 +80,15 @@ const VerifyContent = (props: VerifyPasswordResetProps) => {
         <div className="w-full space-y-8 text-center">
           <div className="space-y-4">
             <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-              {VERIFY_PASSWORD_RESET_TEXTS.content.title}
+              {props.purpose === "CLAIM"
+                ? CLAIM_TEXTS.title
+                : VERIFY_PASSWORD_RESET_TEXTS.content.title}
             </h1>
 
             <p className="text-muted-foreground text-lg">
-              {VERIFY_PASSWORD_RESET_TEXTS.content.subtitlePart1}{" "}
+              {props.purpose === "CLAIM"
+                ? CLAIM_TEXTS.subtitle
+                : VERIFY_PASSWORD_RESET_TEXTS.content.subtitlePart1}{" "}
               <span className="text-foreground mt-1 block font-semibold">
                 {decodeURIComponent(email as string)}
               </span>
@@ -86,7 +96,7 @@ const VerifyContent = (props: VerifyPasswordResetProps) => {
           </div>
 
           <div className="flex flex-col items-center gap-6">
-            {submitRecoveryCodeMutation.isPending ? (
+            {isVerifying ? (
               <div className="flex flex-col items-center gap-4 py-8">
                 <Spinner className="text-primary size-10" />
 
@@ -135,7 +145,7 @@ const VerifyContent = (props: VerifyPasswordResetProps) => {
 
                 <LoadingButton
                   variant={seconds > 0 ? "outline" : "default"}
-                  loading={resendPasswordResetVerificationMutation.isPending}
+                  loading={isResending}
                   disabled={seconds > 0}
                   onClick={handlePasswordResetResendCode}
                   className="hover:bg-muted/50 h-12 w-full text-base font-medium transition-colors"
@@ -154,6 +164,7 @@ const VerifyContent = (props: VerifyPasswordResetProps) => {
                     </span>
                   )}
                 </LoadingButton>
+                <ApiErrorNote error={apiError} secondsLeft={seconds} />
               </div>
             )}
           </div>

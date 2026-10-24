@@ -2,60 +2,40 @@
 
 import { useState } from "react";
 import { curatorProvidersService } from "@/services/curator/providers";
-import { getCleanErrorMessage } from "@/lib/utils/auth/error";
-import { toast } from "sonner";
+import { hasCode, toastCuratorError } from "@/lib/v2/curator/errors";
 
-export function useCuratorProviderApproval(email: string) {
+/** Approve/decline the provider's pending application (Just In). */
+export function useCuratorProviderApproval(
+  providerId: string,
+  onDecided?: () => void,
+) {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const handleApprove = async () => {
+  const decide = async (approve: boolean) => {
     setIsActionLoading(true);
     setSuccessMessage("");
 
     try {
-      const response = await curatorProvidersService.approveProvider(email);
-
-      if (response?.success) {
-        setSuccessMessage("Provider approved successfully!");
-        // Refresh the page after 2 seconds
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+      if (approve) {
+        await curatorProvidersService.approveProvider(providerId);
       } else {
-        toast.error(response.message || "Failed to approve provider");
+        await curatorProvidersService.rejectProvider(providerId);
       }
-    } catch (error: unknown) {
-      toast.error(
-        getCleanErrorMessage(error) ||
-          "Failed to approve provider. Please try again.",
+      setSuccessMessage(
+        approve
+          ? "Provider approved successfully!"
+          : "Provider rejected successfully!",
       );
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  const handleReject = async () => {
-    setIsActionLoading(true);
-    setSuccessMessage("");
-
-    try {
-      const response = await curatorProvidersService.rejectProvider(email);
-
-      if (response?.success) {
-        setSuccessMessage("Provider rejected successfully!");
-        // Refresh the page after 2 seconds
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        toast.error(response.message || "Failed to reject provider");
-      }
+      onDecided?.();
     } catch (error: unknown) {
-      toast.error(
-        getCleanErrorMessage(error) ||
-          "Failed to reject provider. Please try again.",
-      );
+      // REQUEST_DECIDED: someone else already decided; reload to show it.
+      if (hasCode(error, "REQUEST_DECIDED")) onDecided?.();
+      toastCuratorError(error, {
+        fallback: approve
+          ? "Failed to approve provider. Please try again."
+          : "Failed to reject provider. Please try again.",
+      });
     } finally {
       setIsActionLoading(false);
     }
@@ -64,7 +44,7 @@ export function useCuratorProviderApproval(email: string) {
   return {
     isActionLoading,
     successMessage,
-    handleApprove,
-    handleReject,
+    handleApprove: () => decide(true),
+    handleReject: () => decide(false),
   };
 }

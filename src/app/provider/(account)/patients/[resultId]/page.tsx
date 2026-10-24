@@ -2,23 +2,13 @@
 
 import { useState } from "react";
 import { useAtom } from "jotai";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LoadingButton } from "@/components/ui/loading-button";
-import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useProviderPatientDetails } from "@/hooks/provider/patient-details/use-patient-details";
 import { useProviderProfile } from "@/hooks/provider/profile/use-profile";
 import { useProviderDashboardProfileEdit } from "@/hooks/provider/dashboard-profile-edit/use-dashboard-profile-edit";
@@ -27,69 +17,85 @@ import { ProviderGlassBar } from "@/components/provider/workspace/provider-glass
 import { ProviderIdentityTrigger } from "@/components/provider/workspace/provider-identity-trigger";
 import { ProviderBrandMark } from "@/components/provider/workspace/provider-brand-mark";
 import ProviderProfileDialog from "@/components/provider/profile-dialog";
+import { describeApiError } from "@/lib/utils/shared/api-error";
+import { ApiErrorNote } from "@/components/shared/api-error-note";
 import {
   PatientDetailTopBar,
-  PatientDetailsHeader,
   AssessmentMetricsPanel,
-  ActionsPanel,
-  AssessmentMetadataCard,
-  UrgentCareStatusCard,
-  SchoolComparisonCard,
   PatientDetailSkeleton,
+  ResultCommentsPanel,
+  ResultStatusBar,
 } from "@/components/provider/patient-details";
+
+function CenteredMessage({
+  onBack,
+  children,
+}: {
+  onBack: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-app-gradient flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-center">
+      {children}
+      <Button onClick={onBack} variant="ghost" className="text-sm">
+        Back
+      </Button>
+    </div>
+  );
+}
 
 export default function PatientResultPage() {
   const {
     router,
-    patientResult,
-    lockInAssessment,
+    detail,
+    tag,
     isLoading,
+    notAvailable,
+    loadError,
     metrics,
-    activeTab,
-    setActiveTab,
-    pendingActions,
-    historyActions,
-    isActionsLoading,
-    addPatientAction,
-    isAddingAction,
     isTreating,
-    isAnotherProviderTreating,
-    treatingProviderName,
-    handleUpdateActionStatus,
-    isUpdating,
+    otherCare,
+    startTreating,
+    isUpdatingCare,
+    setActive,
+    isUpdatingActive,
+    comments,
+    isCommentsLoading,
+    addComment,
+    isAddingComment,
+    myAccountId,
   } = useProviderPatientDetails();
   const { provider } = useProviderProfile();
   const [profileOpen, setProfileOpen] = useAtom(profileOpenAtom);
   const { profileData, openEdit } = useProviderDashboardProfileEdit();
-
-  // Confirmation dialog state
-  const [showStopConfirm, setShowStopConfirm] = useState(false);
-  // History side panel — the top bar's History button opens the real
-  // actions/history list instead of a stub toast, so there's one place for
-  // "history" rather than a duplicate always-visible card further down.
   const [showHistory, setShowHistory] = useState(false);
 
-  if (isLoading) {
-    return <PatientDetailSkeleton />;
-  }
+  if (isLoading) return <PatientDetailSkeleton />;
 
-  if (!patientResult) {
+  // 404: not attached to this campus, or not accepted yet — not a crash.
+  if (notAvailable) {
     return (
-      <div className="bg-app-gradient flex min-h-screen flex-col items-center justify-center p-6">
-        <Button
-          onClick={() => router.back()}
-          className="text-muted-foreground hover:text-foreground mb-3 text-sm"
-          variant="ghost"
-        >
-          Back
-        </Button>
-        <p className="text-destructive text-sm">
-          Failed to load patient details
+      <CenteredMessage onBack={() => router.back()}>
+        <h1 className="text-lg font-bold">
+          This result isn&apos;t available to you
+        </h1>
+        <p className="text-muted-foreground max-w-sm text-sm">
+          It may belong to a campus you don&apos;t serve, or it hasn&apos;t been
+          shared with providers yet.
         </p>
-      </div>
+      </CenteredMessage>
     );
   }
 
+  if (!detail) {
+    return (
+      <CenteredMessage onBack={() => router.back()}>
+        <ApiErrorNote error={loadError ? describeApiError(loadError) : null} />
+      </CenteredMessage>
+    );
+  }
+
+  const { result } = detail;
   const providerName = provider
     ? `${provider.providerTitle ? provider.providerTitle + " " : ""}${provider.providerName ?? ""}`.trim()
     : "";
@@ -99,106 +105,32 @@ export default function PatientResultPage() {
   return (
     <div className="bg-app-gradient relative flex h-dvh w-full flex-col overflow-hidden">
       <PatientDetailTopBar
-        patientResult={patientResult}
+        patientResult={{
+          patientName: result.displayName,
+          schoolName: detail.campusName ?? "",
+        }}
         onBack={() => router.back()}
         onHistory={() => setShowHistory(true)}
-        onGiveCare={() =>
-          toast.success(`Care request sent for ${patientResult.patientName}.`)
-        }
+        onGiveCare={startTreating}
+        isTreating={isTreating}
+        isGivingCare={isUpdatingCare}
+      />
+
+      <ResultStatusBar
+        result={result}
+        tag={tag}
+        otherCare={otherCare}
+        onToggleActive={setActive}
+        isUpdatingActive={isUpdatingActive}
       />
 
       <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-[clamp(112px,20vh,188px)] md:px-10">
-        <AssessmentMetricsPanel metrics={metrics} />
-
-        {/* Secondary patient info (header card, treating controls, metadata/
-            urgent-care/school-comparison cards) is intentionally hidden for
-            now — set aside so the domes are the sole focus of this screen.
-            Left in place (not deleted) so it can come back. */}
-        {false && (
-          <div className="mx-auto mt-8 max-w-3xl space-y-5">
-            <PatientDetailsHeader
-              patientResult={patientResult!}
-              lockInAssessment={lockInAssessment}
-              isTreating={isTreating}
-            />
-
-            <div className="bg-card border-border flex items-center gap-3 rounded-2xl border p-4 shadow-sm">
-              {!isTreating ? (
-                <LoadingButton
-                  onClick={() => handleUpdateActionStatus("TREATING")}
-                  loading={isUpdating}
-                  loadingText="Updating..."
-                  disabled={isAnotherProviderTreating}
-                  className="bg-teal-600 px-6 py-2.5 hover:bg-teal-700 disabled:opacity-50"
-                  title={
-                    isAnotherProviderTreating
-                      ? "Another provider is already treating this patient"
-                      : ""
-                  }
-                >
-                  Start Treating
-                </LoadingButton>
-              ) : (
-                <LoadingButton
-                  onClick={() => setShowStopConfirm(true)}
-                  loading={isUpdating}
-                  loadingText="Updating..."
-                  variant="outline"
-                  className="border-red-300 px-6 py-2.5 hover:bg-red-50 hover:text-red-700"
-                >
-                  Stop Treating
-                </LoadingButton>
-              )}
-
-              {(isTreating || isAnotherProviderTreating) && (
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={cn(
-                          "flex cursor-help items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium",
-                          isTreating
-                            ? "border-teal-200 bg-teal-50 text-teal-700"
-                            : "border-amber-200 bg-amber-50 text-amber-700",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            isTreating
-                              ? "animate-pulse bg-teal-500"
-                              : "bg-amber-500",
-                          )}
-                        />
-                        Under Treatment
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="bottom"
-                      align="start"
-                      className="max-w-xs rounded-lg border border-slate-200 bg-white p-3 text-slate-700 shadow-lg"
-                    >
-                      <p className="text-xs leading-relaxed">
-                        {isTreating
-                          ? "You are actively treating this patient. Click 'Stop Treating' to end your involvement."
-                          : `Dr. ${treatingProviderName} is currently treating this patient.`}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-
-            {lockInAssessment && (
-              <AssessmentMetadataCard lockInAssessment={lockInAssessment!} />
-            )}
-            {lockInAssessment && (
-              <UrgentCareStatusCard lockInAssessment={lockInAssessment!} />
-            )}
-            {lockInAssessment && (
-              <SchoolComparisonCard lockInAssessment={lockInAssessment!} />
-            )}
-          </div>
+        {metrics.length > 0 ? (
+          <AssessmentMetricsPanel metrics={metrics} />
+        ) : (
+          <p className="text-muted-foreground py-16 text-center text-sm">
+            No section scores on this result.
+          </p>
         )}
       </div>
 
@@ -227,37 +159,19 @@ export default function PatientResultPage() {
       <Sheet open={showHistory} onOpenChange={setShowHistory}>
         <SheetContent side="right" className="w-full sm:max-w-md">
           <SheetHeader>
-            <SheetTitle>History</SheetTitle>
+            <SheetTitle>Comments</SheetTitle>
           </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
-            <ActionsPanel
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              pendingActions={pendingActions}
-              historyActions={historyActions}
-              isLoading={isActionsLoading}
-              onAddAction={addPatientAction}
-              isAddingAction={isAddingAction}
+          <div className="min-h-0 flex-1 px-4 pb-4">
+            <ResultCommentsPanel
+              comments={comments}
+              isLoading={isCommentsLoading}
+              onAdd={addComment}
+              isAdding={isAddingComment}
+              myAccountId={myAccountId}
             />
           </div>
         </SheetContent>
       </Sheet>
-
-      {/* Confirmation Dialog for Stopping Treatment */}
-      <ConfirmationModal
-        isOpen={showStopConfirm}
-        onClose={() => setShowStopConfirm(false)}
-        onConfirm={() => {
-          handleUpdateActionStatus("NOT_TREATING");
-          setShowStopConfirm(false);
-        }}
-        title="Stop Treating This Patient?"
-        message="Are you sure you want to stop treating this patient? This will mark you as no longer actively involved in their care. You can always resume treatment later."
-        confirmText="Yes, Stop Treating"
-        cancelText="Cancel"
-        variant="danger"
-        isLoading={isUpdating}
-      />
     </div>
   );
 }

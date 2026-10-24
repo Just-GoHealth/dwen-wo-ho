@@ -7,32 +7,21 @@ import { ChevronRight, User } from "lucide-react";
 import { compactTimeAgo } from "@/lib/utils/shared/time-ago";
 import {
   resolveTriageTier,
-  TRIAGE_TIER_LABELS,
+  TRIAGE_TIER_LEVEL,
 } from "@/lib/utils/shared/triage";
 import type { TriageTier } from "@/lib/utils/shared/triage";
 import { deriveTeamCount } from "@/lib/utils/shared/team-stack";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { TriageBadge } from "@just-gohealth/ui";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { patientsService } from "@/services/shared/patients";
+import { resultsApi } from "@/lib/v2/results";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
 import type {
   PatientCardPatient,
   PatientCardProps,
 } from "@/lib/types/components/shared/patient-card";
 import { resolvePatientCardFields } from "./patient-card-accessors";
-
-const TRIAGE_BADGE_VARIANT = {
-  "911": "triage-911",
-  now: "triage-now",
-  asap: "triage-asap",
-} as const;
-const TRIAGE_BADGE_VARIANT_LIT = {
-  "911": "triage-911-lit",
-  now: "triage-now-lit",
-  asap: "triage-asap-lit",
-} as const;
 
 interface PatientGridCardOwnProps {
   /** Which triage tier is currently toggled in the bottom bar, if any —
@@ -169,22 +158,15 @@ export default function PatientGridCard<T extends PatientCardPatient>({
   // nothing to prefetch or open
   const hasResult = fields.id != null;
 
-  // Warm the patient-detail page's cache before it even mounts — same
-  // query keys the detail screen itself uses (see usePatientFullDetails/
-  // usePatientActions in use-patient-result.ts), so its own skeleton
-  // resolves as soon as possible instead of starting the fetch from zero.
+  // Warm the result-detail cache before the page mounts — same query key
+  // the provider detail screen uses (`GET /results/{id}`).
   const prefetchPatientDetails = () => {
     const id = fields.id;
     if (id == null) return;
     queryClient.prefetchQuery({
-      queryKey: [QUERY_KEYS.patientResult, "full-details", String(id)],
-      queryFn: () => patientsService.getFullPatientDetails(id),
-      staleTime: 3 * 60 * 1000,
-    });
-    queryClient.prefetchQuery({
-      queryKey: [QUERY_KEYS.patientResult, "actions", String(id)],
-      queryFn: () => patientsService.getPatientActions(id),
-      staleTime: 2 * 60 * 1000,
+      queryKey: QUERY_KEYS.v2.result(String(id)),
+      queryFn: () => resultsApi.get(String(id)),
+      staleTime: 60 * 1000,
     });
   };
 
@@ -259,16 +241,11 @@ export default function PatientGridCard<T extends PatientCardPatient>({
             </span>
           )}
 
-          <Badge
-            variant={
-              isLit
-                ? TRIAGE_BADGE_VARIANT_LIT[tier]
-                : TRIAGE_BADGE_VARIANT[tier]
-            }
-            className="shrink-0 justify-self-end px-[0.8em] py-[0.42em] text-[9.6px] font-bold tracking-wide transition-transform group-hover:scale-[1.06]"
-          >
-            {TRIAGE_TIER_LABELS[tier]}
-          </Badge>
+          <TriageBadge
+            level={TRIAGE_TIER_LEVEL[tier]}
+            active={isLit}
+            className="shrink-0 justify-self-end px-[0.8em] py-[0.42em] text-[9.6px] font-bold tracking-wide normal-case transition-transform group-hover:scale-[1.06]"
+          />
         </div>
 
         {/* the face */}

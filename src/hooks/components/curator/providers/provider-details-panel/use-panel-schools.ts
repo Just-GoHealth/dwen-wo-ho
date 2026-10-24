@@ -2,14 +2,14 @@
 
 import { useState, useMemo } from "react";
 import { useProvidersQuery } from "@/hooks/queries/use-provider";
-import useSchoolsQuery from "@/hooks/queries/use-schools";
+import { useCampusOptions } from "@/hooks/curator/providers/use-campus-options";
 import { AssociatedSchool } from "@/lib/types/entities/partners";
 import { ProviderDetails } from "@/lib/types/entities/provider";
 import { toast } from "sonner";
 
 export const useProviderPanelSchools = (
   isOpen: boolean,
-  providerEmail: string,
+  providerId: string,
   provider: ProviderDetails | null,
 ) => {
   const {
@@ -20,8 +20,7 @@ export const useProviderPanelSchools = (
   } = useProvidersQuery({
     enabled: false,
   });
-  const { useSchools: useSchoolsListQuery } = useSchoolsQuery();
-  const { data: allSchools = [] } = useSchoolsListQuery({ enabled: isOpen });
+  const { data: allSchools = [] } = useCampusOptions({ enabled: isOpen });
 
   const [schoolSearchQuery, setSchoolSearchQuery] = useState("");
   const [schoolToAdd, setSchoolToAdd] = useState<AssociatedSchool | null>(null);
@@ -29,31 +28,13 @@ export const useProviderPanelSchools = (
     null,
   );
 
-  const associatedSchools: AssociatedSchool[] = useMemo(() => {
-    const providerSchools = provider?.schools || [];
-    return providerSchools.map((s) => ({
-      id: String(s.id),
-      name: s.name,
-      logo: s.logo ?? undefined,
-      isAssociated: true,
-    }));
-  }, [provider?.schools]);
+  // TODO(v2-backend): no "campuses this provider serves" endpoint (v1 returned
+  // them on GET /curator/providers/{id}); only GET /campuses/{id}/providers.
+  const associatedSchools: AssociatedSchool[] = useMemo(() => [], []);
 
-  const availableSchools: AssociatedSchool[] = useMemo(() => {
-    const associatedIds = new Set(associatedSchools.map((s) => s.id));
-    return allSchools.flatMap((s) =>
-      associatedIds.has(String(s.id))
-        ? []
-        : [
-            {
-              id: String(s.id),
-              name: s.name,
-              logo: s.logo,
-              isAssociated: false,
-            },
-          ],
-    );
-  }, [allSchools, associatedSchools]);
+  // Without the associations every campus is offered; adding one the provider
+  // already serves is harmless (the backend re-attaches).
+  const availableSchools: AssociatedSchool[] = allSchools;
 
   const filteredAvailableSchools = useMemo(() => {
     if (!schoolSearchQuery.trim()) return availableSchools;
@@ -64,20 +45,24 @@ export const useProviderPanelSchools = (
   }, [availableSchools, schoolSearchQuery]);
 
   const handleAddSchool = async (school: AssociatedSchool) => {
-    if (provider?.applicationStatus === "REJECTED") {
-      toast.error("Cannot add schools to rejected providers");
+    if (provider?.applicationStatus !== "APPROVED") {
+      // The backend answers 422 PROVIDER_NOT_APPROVED; say it up front.
+      toast.error("Only approved providers can be added to a school");
       setSchoolToAdd(null);
       return;
     }
-
-    const providerId = String(provider?.id || providerEmail);
-    await addSchoolToProvider({ providerId, schoolId: school.id });
+    await addSchoolToProvider({
+      providerId: String(provider?.id || providerId),
+      schoolId: String(school.id),
+    });
     setSchoolToAdd(null);
   };
 
   const handleRemoveSchool = async (school: AssociatedSchool) => {
-    const providerId = String(provider?.id || providerEmail);
-    await removeSchoolFromProvider({ providerId, schoolId: school.id });
+    await removeSchoolFromProvider({
+      providerId: String(provider?.id || providerId),
+      schoolId: String(school.id),
+    });
     setSchoolToRemove(null);
   };
 

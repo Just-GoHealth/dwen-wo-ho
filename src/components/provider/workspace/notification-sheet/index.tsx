@@ -1,74 +1,51 @@
 import NotificationsSheet from "@/components/shared/notification-sheet";
-import { getProviderNotificationRoute } from "@/lib/config/notification-routing";
-import { ProviderNotification } from "@/lib/types/entities/notification";
+import {
+  getProviderNotificationEmoji,
+  getProviderNotificationRoute,
+} from "@/lib/config/provider-notification-route";
 import { isProviderNotificationSheetOpenAtom } from "@/atoms/notification";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
+import type { Notification } from "@/lib/v2/types";
 
-// isMarkingRead/isDeleting/isMarkingAllRead/isClearing are independent,
-// concurrent async states forwarded to NotificationsSheet, not a single status
-// union, so they are intentionally kept as separate flags.
+/** v2 notifications in the shared sheet (read and read-all only). */
 export default function ProviderNotificationsSheet({
   notifications,
   setNotifOpen,
   markAllRead,
   markOneRead,
-  deleteNotification,
-  clearAllNotifications,
   router,
   isMarkingRead,
-  isDeleting,
   isMarkingAllRead,
-  isClearing,
-  getNotificationId,
-  isNotificationUnread,
-  getAvatarUrl,
-  getEmoji,
-  getTitle,
-  getText,
-  getTimestamp,
 }: {
-  notifications: ProviderNotification[];
+  notifications: Notification[];
   setNotifOpen: (open: boolean) => void;
   markAllRead: () => void;
   markOneRead: (id: string | number) => void;
-  deleteNotification: (id: string | number) => void;
-  clearAllNotifications: () => void;
   router: ReturnType<typeof useRouter>;
   isMarkingRead: boolean;
-  isDeleting: boolean;
   isMarkingAllRead: boolean;
-  isClearing: boolean;
-  getNotificationId: (n: ProviderNotification) => string;
-  isNotificationUnread: (n: ProviderNotification) => boolean;
-  getAvatarUrl: (n: ProviderNotification) => string | null | undefined;
-  getEmoji: (n: ProviderNotification) => string | undefined;
-  getTitle: (n: ProviderNotification) => string | undefined;
-  getText: (n: ProviderNotification) => string | undefined;
-  getTimestamp: (n: ProviderNotification) => string | undefined;
 }) {
   return (
-    <NotificationsSheet<ProviderNotification>
+    <NotificationsSheet<Notification>
       notifications={notifications}
       openAtom={isProviderNotificationSheetOpenAtom}
       onOpenChange={setNotifOpen}
       markAllRead={markAllRead}
       markOneRead={markOneRead}
-      deleteOne={deleteNotification}
-      clearAllNotifications={clearAllNotifications}
+      // TODO(v2-backend): no delete or clear-all endpoint; both are hidden.
       onNavigate={(link) => router.push(link as Route)}
       getNotificationActionUrl={(n) => getProviderNotificationRoute(n) ?? "#"}
       isMarkingRead={isMarkingRead}
-      isDeleting={isDeleting}
+      isDeleting={false}
       isMarkingAllRead={isMarkingAllRead}
-      isClearing={isClearing}
-      getNotificationId={getNotificationId}
-      isNotificationUnread={isNotificationUnread}
-      getAvatarUrl={getAvatarUrl}
-      getEmoji={getEmoji}
-      getTitle={getTitle}
-      getText={getText}
-      getTimestamp={getTimestamp}
+      getNotificationId={(n) => n.id}
+      isNotificationUnread={(n) => !n.readAt}
+      getAvatarUrl={() => null}
+      getEmoji={getProviderNotificationEmoji}
+      getTitle={(n) => n.title}
+      getText={(n) => n.body}
+      getTimestamp={(n) => n.createdAt}
     />
   );
 }

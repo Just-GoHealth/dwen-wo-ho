@@ -37,7 +37,10 @@ export function useSchoolDerived({
   }, [patients, appliedSearchQuery]);
 
   const schoolIcons = useMemo(
-    () => (school ? icons.filter((i) => i.schoolId === Number(school.id)) : []),
+    () =>
+      school
+        ? icons.filter((i) => String(i.schoolId) === String(school.id))
+        : [],
     [school, icons],
   );
 

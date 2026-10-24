@@ -8,11 +8,12 @@ import { CHECK_EMAIL_TEXTS } from "@/lib/constants/components/provider/auth/auth
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
+import { ApiErrorNote } from "@/components/shared/api-error-note";
 
-const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
-  const { checkEmailExists, isLoading, form } = useProviderCheckEmail({
-    onEmailSubmit,
-  });
+const CheckEmail = ({ role, onLookup }: CheckEmailProps) => {
+  const { checkEmailExists, isLoading, apiError, form } = useProviderCheckEmail(
+    { role, onLookup },
+  );
   const { register, handleSubmit, errors } = form;
 
   const onSubmit = (values: ProviderEmailFormData) => {
@@ -93,7 +94,7 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                   type="submit"
                   size="icon"
                   loading={isLoading}
-                  disabled={!!errors?.email}
+                  disabled={!!errors?.email || apiError.isRateLimited}
                   className={`absolute top-2 right-2 h-10 w-10 rounded-lg transition-all duration-300 ${
                     !errors?.email && !isLoading
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -120,6 +121,11 @@ const CheckEmail = ({ onEmailSubmit }: CheckEmailProps) => {
                   {errors.email.message as string}
                 </p>
               )}
+              <ApiErrorNote
+                error={apiError.error}
+                secondsLeft={apiError.secondsLeft}
+                className="pl-1"
+              />
             </div>
           </form>
 

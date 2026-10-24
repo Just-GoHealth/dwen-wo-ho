@@ -1,35 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import { useQueryClient } from "@tanstack/react-query";
 import useProviderDashboard from "@/hooks/provider/dashboard/use-dashboard";
+import { useProviderMe } from "@/hooks/queries/use-provider-me";
 import { performLogout } from "@/lib/auth/session";
 import { ROUTES } from "@/lib/constants/infra/routes";
-import useProviderDashboardAuth from "@/hooks/provider/dashboard-auth/use-dashboard-auth";
+import {
+  isProviderApproved,
+  routeForProviderNext,
+} from "@/lib/utils/auth/provider-next-route";
 import { ProviderHomeShell } from "@/components/provider/dashboard/provider-home-shell";
 import ProviderDashboardModals from "@/components/provider/dashboard/dashboard-overlay-host";
 
 export default function ProviderHomePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [mounted, setMounted] = useState(false);
-  const {
-    isApproved,
-    isLoading: isAuthLoading,
-    authProfile,
-  } = useProviderDashboardAuth();
-  const dashboard = useProviderDashboard();
+  const { data: profile, isLoading, isError } = useProviderMe();
+  const isApproved = isProviderApproved(profile?.next);
+  const dashboard = useProviderDashboard(isApproved);
 
+  // Home is for approved providers; everyone else goes where `next` says.
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (isError) router.replace(ROUTES.provider.auth as Route);
+    else if (profile && !isApproved)
+      router.replace(routeForProviderNext(profile.next) as Route);
+  }, [isApproved, isError, profile, router]);
 
   const handleLogout = () => {
-    performLogout(queryClient, ROUTES.provider.auth);
+    void performLogout(queryClient, ROUTES.provider.auth);
   };
 
-  if (!mounted) {
+  if (isLoading || !isApproved) {
     return (
       <div className="bg-app-gradient flex min-h-screen items-center justify-center">
         <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
@@ -42,9 +46,6 @@ export default function ProviderHomePage() {
       <ProviderHomeShell dashboard={dashboard} />
       <ProviderDashboardModals
         dashboard={dashboard}
-        isApproved={isApproved}
-        isAuthLoading={isAuthLoading}
-        authProfile={authProfile}
         onLogout={handleLogout}
         router={router}
       />

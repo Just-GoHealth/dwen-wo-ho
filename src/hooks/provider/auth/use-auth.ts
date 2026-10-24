@@ -1,204 +1,93 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
-import {
-  getUserType,
-  hasValidToken,
-  setUserType,
-} from "@/lib/utils/auth/get-user-type";
-import { ROUTES } from "@/lib/constants/infra/routes";
-import { refreshToken } from "@/lib/auth/session";
-import { clearTokens } from "@/lib/auth/access-token";
-import { authService } from "@/services/shared/auth";
-import { getProviderRedirectInfo } from "@/lib/utils/auth/redirect";
-import {
-  buildProviderSignupResumeUrl,
-  isProviderSignupProfileStepSlug,
-} from "@/lib/utils/provider/signup-resume";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { Route } from "next";
+import { authApi } from "@/lib/v2/auth";
+import { hasValidToken } from "@/lib/utils/auth/get-user-type";
+import { routeForMe } from "@/lib/utils/auth/provider-next-route";
+import { rememberSignedIn } from "@/hooks/queries/use-auth";
+import type { LookupResponse } from "@/lib/v2/types";
 import type { AuthStep } from "@/lib/types/components/auth/base-sign-in";
 
+const STEPS: AuthStep[] = [
+  "check-email",
+  "sign-in",
+  "sign-up",
+  "reset-password",
+  "claim",
+];
+
+/**
+ * Drives the email-first auth workspace. `POST /auth/lookup` decides the
+ * branch: unknown → sign-up, claimed → password, unclaimed (created by a
+ * curator) → claim. A browser that already has a session is sent on by
+ * `GET /auth/me` (the source of truth; the stored user type is only a hint).
+ */
 export function useProviderAuth() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const initialStep = (searchParams.get("step") as AuthStep) || "check-email";
+  const stepParam = searchParams.get("step") as AuthStep | null;
   const initialEmail = searchParams.get("email");
   const passwordResetSuccess = searchParams.get("reset") === "success";
 
   const [step, setStep] = useState<AuthStep>("check-email");
-  const [email, setEmail] = useState<string>(initialEmail || "");
+  const [email, setEmail] = useState<string>(initialEmail ?? "");
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const hasCheckedRef = useRef(false);
-  const hasRedirectedRef = useRef(false);
-  const isCheckingRef = useRef(false);
-
-  const [profileStep, setProfileStep] = useState<number | null>(null);
 
   useEffect(() => {
-    if (hasCheckedRef.current || isCheckingRef.current) return;
+    if (hasCheckedRef.current) return;
     hasCheckedRef.current = true;
-    isCheckingRef.current = true;
 
-    const checkAuthAndRedirect = async () => {
-      if (hasRedirectedRef.current) {
-        return;
-      }
-
-      const clearAuthAndProceed = () => {
-        if (typeof window !== "undefined") {
-          clearTokens();
-          localStorage.removeItem("pendingUser:v1");
-        }
-        setUserType(null);
-        if (!hasRedirectedRef.current) {
-          // Apply URL-derived step/email in the same render as the auth check
-          // completing — a single state transition that avoids a flash of the
-          // wrong step (previously a chained second useEffect handled this).
-          if (initialEmail) {
-            setEmail(decodeURIComponent(initialEmail));
-          }
-
-          const resolvedStep =
-            initialStep === "sign-in" && !initialEmail
-              ? "check-email"
-              : initialStep;
-          setStep(resolvedStep);
-
-          isCheckingRef.current = false;
-          setIsCheckingAuth(false);
-        }
-      };
-
-      const verifyProfileAndRedirect = async () => {
-        try {
-          const profileData = await authService.getProfile();
-
-          if (profileData && !hasRedirectedRef.current) {
-            if (getUserType() === "curator") {
-              hasRedirectedRef.current = true;
-              isCheckingRef.current = false;
-              window.location.href = ROUTES.curator.schools;
-              return true;
-            }
-
-            const redirectInfo = getProviderRedirectInfo(profileData);
-
-            if (redirectInfo.isPending) {
-              localStorage.setItem(
-                "pendingUser:v1",
-                JSON.stringify(profileData),
-              );
-            } else {
-              localStorage.removeItem("pendingUser:v1");
-            }
-
-            hasRedirectedRef.current = true;
-            isCheckingRef.current = false;
-
-            const profileEmail = profileData.email || "";
-            if (
-              redirectInfo.step &&
-              profileEmail &&
-              isProviderSignupProfileStepSlug(redirectInfo.step)
-            ) {
-              window.location.href = buildProviderSignupResumeUrl(
-                profileEmail,
-                redirectInfo.step,
-              );
-            } else {
-              window.location.href = redirectInfo.path;
-            }
-
-            return true;
-          }
-
-          clearAuthAndProceed();
-          return false;
-        } catch {
-          clearAuthAndProceed();
-          return false;
-        }
-      };
-
-      // A session hint means the HttpOnly refresh cookie may still be valid:
-      // try to re-issue the access token from it before showing sign-in.
-      if (hasValidToken()) {
-        const refreshedToken = await refreshToken();
-        if (refreshedToken && !hasRedirectedRef.current) {
-          await verifyProfileAndRedirect();
-          return;
-        }
-        clearAuthAndProceed();
-        return;
-      }
-
-      if (!hasRedirectedRef.current) {
-        // Reached when there's no token and no valid refresh — apply URL params
-        // immediately since no redirect will happen.
-        if (initialEmail) {
-          setEmail(decodeURIComponent(initialEmail));
-        }
-        const resolvedStep =
-          initialStep === "sign-in" && !initialEmail
-            ? "check-email"
-            : initialStep;
-        setStep(resolvedStep);
-        isCheckingRef.current = false;
-        setIsCheckingAuth(false);
-      }
+    const showSteps = () => {
+      const wanted = stepParam && STEPS.includes(stepParam) ? stepParam : null;
+      // A step that needs an email falls back to the email step without one.
+      setStep(
+        wanted && (wanted === "check-email" || initialEmail)
+          ? wanted
+          : "check-email",
+      );
+      setIsCheckingAuth(false);
     };
 
-    checkAuthAndRedirect();
+    if (!hasValidToken()) {
+      showSteps();
+      return;
+    }
 
-    return () => {
-      isCheckingRef.current = false;
-      hasCheckedRef.current = false;
-    };
-  }, [initialEmail, initialStep]);
+    authApi
+      .me()
+      .then((me) => {
+        rememberSignedIn(me);
+        router.replace(routeForMe(me) as Route);
+      })
+      .catch(showSteps);
+  }, [initialEmail, router, stepParam]);
 
-  const handleEmailSubmit = useCallback(
-    (submittedEmail: string, emailExists: boolean) => {
+  const handleLookup = useCallback(
+    (submittedEmail: string, result: LookupResponse) => {
       setEmail(submittedEmail);
-      if (emailExists) {
-        setStep("sign-in");
-      } else {
-        setStep("sign-up");
-      }
+      if (!result.exists) setStep("sign-up");
+      else if (result.claimed) setStep("sign-in");
+      else setStep("claim");
     },
     [],
   );
 
-  const handleBackToEmail = useCallback(() => {
-    setStep("check-email");
-  }, []);
-
-  const handleForgotPassword = useCallback(() => {
-    setStep("reset-password");
-  }, []);
-
-  const handleProfileIncomplete = useCallback((incompleteStep: number) => {
-    setStep("sign-up");
-    setProfileStep(incompleteStep);
-  }, []);
-
-  const handleBackToSignIn = useCallback(() => {
-    setStep("sign-in");
-  }, []);
-
-  const handleBackToCheckEmail = useCallback(() => {
-    setStep("check-email");
-  }, []);
+  const handleBackToEmail = useCallback(() => setStep("check-email"), []);
+  const handleForgotPassword = useCallback(() => setStep("reset-password"), []);
+  const handleBackToSignIn = useCallback(() => setStep("sign-in"), []);
 
   return {
     step,
     email,
     passwordResetSuccess,
     isCheckingAuth,
-    profileStep,
-    handleEmailSubmit,
+    handleLookup,
     handleBackToEmail,
     handleForgotPassword,
-    handleProfileIncomplete,
     handleBackToSignIn,
-    handleBackToCheckEmail,
+    handleBackToCheckEmail: handleBackToEmail,
   };
 }

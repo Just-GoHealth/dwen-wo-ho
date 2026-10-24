@@ -4,18 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { unifiedNotificationsService } from "@/services/shared/unified-notifications";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
-import { getUserType } from "@/lib/utils/auth/get-user-type";
 
-/**
- * Helper to get the correct query key for invalidation based on user role.
- * Curators and providers have separate notification cache keys.
- */
-const getNotificationsQueryKey = () => {
-  const userType = getUserType();
-  return userType === "curator"
-    ? [QUERY_KEYS.curator, "notifications"]
-    : [QUERY_KEYS.providers, "notifications"];
-};
+// TODO(v2-curator): curator-only now; providers use useProviderDashboardNotifications (v2).
+const getNotificationsQueryKey = () => [QUERY_KEYS.curator, "notifications"];
 
 /**
  * Mark a single notification as read.

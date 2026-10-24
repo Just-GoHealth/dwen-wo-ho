@@ -4,6 +4,7 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { ROUTES } from "@/lib/constants/infra/routes";
 import type { School } from "@/lib/types/entities/school";
+import { ApiError } from "@/lib/v2/http";
 
 const toastError = vi.fn();
 
@@ -13,7 +14,10 @@ vi.mock("sonner", () => ({
 
 const { useSchoolActions } = await import("./use-school-actions");
 
-const school = { id: 7, name: "North High" } as unknown as School;
+const school = {
+  id: "c1a2b3c4-0000-4000-8000-000000000007",
+  name: "North High",
+} as unknown as School;
 
 function setup(disableSchool: (id: string) => Promise<unknown>) {
   const router = { push: vi.fn() };
@@ -22,7 +26,7 @@ function setup(disableSchool: (id: string) => Promise<unknown>) {
 
   const { result } = renderHook(() =>
     useSchoolActions(
-      "7",
+      String(school.id),
       school,
       router as never,
       disableSchool,
@@ -54,16 +58,18 @@ describe("useSchoolActions (LOG-04)", () => {
 
   it("shows the error and keeps the modal open on failure", async () => {
     const { result, router, setShowDisableModal } = setup(
-      vi
-        .fn()
-        .mockRejectedValue(
-          new Error(JSON.stringify({ message: "School has active patients" })),
-        ),
+      vi.fn().mockRejectedValue(
+        new ApiError({
+          status: 404,
+          code: "NOT_FOUND",
+          detail: "We couldn't find that campus.",
+        }),
+      ),
     );
 
     await act(() => result.current.handleDisableConfirm());
 
-    expect(toastError).toHaveBeenCalledWith("School has active patients");
+    expect(toastError).toHaveBeenCalledWith("We couldn't find that campus.");
     expect(setShowDisableModal).not.toHaveBeenCalled();
     expect(router.push).not.toHaveBeenCalled();
     expect(result.current.isActionLoading).toBe(false);
@@ -102,6 +108,6 @@ describe("useSchoolActions (LOG-04)", () => {
 
     await act(() => result.current.handleSchoolUpdated());
 
-    expect(invalidateSchool).toHaveBeenCalledWith("7");
+    expect(invalidateSchool).toHaveBeenCalledWith(String(school.id));
   });
 });

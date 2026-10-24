@@ -107,9 +107,7 @@ export function PatientGrid({
         {shownPatients.map((patient, i) => (
           <PatientGridCard
             key={
-              patient.patientId != null && patient.patientId !== 0
-                ? `patient-${patient.patientId}`
-                : `idx-${i}`
+              patient.patientId ? `patient-${patient.patientId}` : `idx-${i}`
             }
             patient={patient}
             index={i}

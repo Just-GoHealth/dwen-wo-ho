@@ -1,7 +1,7 @@
 import { Provider } from "@/lib/types/entities/provider";
 
 export interface ProviderProfile extends Provider {
-  schools?: import("@/lib/types/api/providers").ProviderAssociatedSchool[];
+  schools?: import("@/lib/types/api/provider-dashboard").ProviderCampusSummary[];
   partners?: import("@/lib/types/api/providers").ProviderAssociatedPartner[];
 }
 

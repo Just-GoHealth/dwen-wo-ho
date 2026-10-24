@@ -21,5 +21,6 @@ export function useSelectedValuesFromReactHookForm<T extends FieldValues>(
     watch: form.watch,
     setValue: form.setValue,
     getValues: form.getValues,
+    setError: form.setError,
   } as const;
 }

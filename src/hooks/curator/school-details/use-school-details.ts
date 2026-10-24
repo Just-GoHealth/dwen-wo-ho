@@ -10,15 +10,12 @@ import { useSchoolActions } from "../school/use-school-actions";
 import { useSchoolIcons } from "../school/use-school-icons";
 import { useSchoolDerived } from "../school/use-school-derived";
 import { useSchoolIconHandlers } from "../school/use-school-icon-handlers";
-import { useSchoolSubscription } from "@/hooks/realtime/use-school-subscription";
 import type { SchoolTab } from "@/lib/types/components/curator/school-details/school-details";
 
 export function useCuratorSchoolDetails() {
   const params = useParams();
   const router = useRouter();
   const schoolId = params.schoolId as string;
-
-  useSchoolSubscription(schoolId);
 
   const schoolUI = useSchoolUI();
   const schoolData = useSchoolData(schoolId);
@@ -67,7 +64,7 @@ export function useCuratorSchoolDetails() {
   const { handleIconComplete } = useSchoolIconHandlers({
     addOrUpdateIcon,
     editingIcon,
-    schoolId: school ? Number(school.id) : null,
+    schoolId: school ? String(school.id) : null,
     setShowAddIconWizard,
     setEditingIcon,
   });

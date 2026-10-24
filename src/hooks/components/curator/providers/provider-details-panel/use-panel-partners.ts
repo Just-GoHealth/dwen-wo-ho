@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import usePartnerQuery from "@/hooks/queries/use-partner";
 import { AssociatedPartner, Partner } from "@/lib/types/entities/partners";
 import { ProviderDetails } from "@/lib/types/entities/provider";
 
 export const useProviderPanelPartners = (
   isOpen: boolean,
-  providerEmail: string,
+  providerId: string,
   provider: ProviderDetails | null,
-  invalidateProvider: (email: string) => Promise<void>,
+  invalidateProvider: (providerId: string) => Promise<void>,
 ) => {
   const {
     usePartnersList,
@@ -27,31 +28,20 @@ export const useProviderPanelPartners = (
   const [partnerToRemove, setPartnerToRemove] =
     useState<AssociatedPartner | null>(null);
 
-  const associatedPartners: AssociatedPartner[] = useMemo(() => {
-    const providerPartners = provider?.partners || [];
-    return providerPartners.map((p) => ({
-      id: String(p.id),
-      name: p.name,
-      logo: p.logo,
-      isAssociated: true,
-    }));
-  }, [provider?.partners]);
+  // TODO(v2-backend): no "hosts this provider belongs to" endpoint (v1
+  // GET /providers/{id}/partners); only GET /hosts/{id}/providers per host.
+  const associatedPartners: AssociatedPartner[] = useMemo(() => [], []);
 
-  const availablePartners: AssociatedPartner[] = useMemo(() => {
-    const associatedIds = new Set(associatedPartners.map((p) => p.id));
-    return allPartnersData.flatMap((p: Partner) =>
-      associatedIds.has(String(p.id))
-        ? []
-        : [
-            {
-              id: String(p.id),
-              name: p.name,
-              logo: p.logo,
-              isAssociated: false,
-            },
-          ],
-    );
-  }, [allPartnersData, associatedPartners]);
+  const availablePartners: AssociatedPartner[] = useMemo(
+    () =>
+      allPartnersData.map((p: Partner) => ({
+        id: String(p.id),
+        name: p.name,
+        logo: p.logo,
+        isAssociated: false,
+      })),
+    [allPartnersData],
+  );
 
   const filteredAvailablePartners = useMemo(() => {
     if (!partnerSearchQuery.trim()) return availablePartners;
@@ -61,17 +51,29 @@ export const useProviderPanelPartners = (
     );
   }, [availablePartners, partnerSearchQuery]);
 
+  const targetId = () => String(provider?.id || providerId);
+
   const handleAddPartner = async (partner: AssociatedPartner) => {
-    const providerId = String(provider?.id || providerEmail);
-    await addProvider({ partnerId: String(partner.id), providerId });
-    await invalidateProvider(providerEmail);
+    if (provider?.applicationStatus !== "APPROVED") {
+      // The backend answers 422 PROVIDER_NOT_APPROVED; say it up front.
+      toast.error("Only approved providers can be added to a partner");
+      setPartnerToAdd(null);
+      return;
+    }
+    await addProvider({
+      partnerId: String(partner.id),
+      providerId: targetId(),
+    });
+    await invalidateProvider(targetId());
     setPartnerToAdd(null);
   };
 
   const handleRemovePartner = async (partner: AssociatedPartner) => {
-    const providerId = String(provider?.id || providerEmail);
-    await removeProvider({ partnerId: String(partner.id), providerId });
-    await invalidateProvider(providerEmail);
+    await removeProvider({
+      partnerId: String(partner.id),
+      providerId: targetId(),
+    });
+    await invalidateProvider(targetId());
     setPartnerToRemove(null);
   };
 

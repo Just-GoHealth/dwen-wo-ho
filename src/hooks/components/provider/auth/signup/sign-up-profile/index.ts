@@ -1,32 +1,28 @@
 "use client";
 
-import {
-  SignUpProfileProps,
-  ProviderProfileStep,
-} from "@/lib/types/components/provider/auth";
+import { ProviderProfileStep } from "@/lib/types/components/provider/auth";
 import { isProviderProfileStepValid } from "@/lib/utils/provider/profile-validation";
 import { useProfileData } from "./use-profile-data";
 import { useProfileSteps } from "./use-profile-steps";
 import { useProfileActions } from "./use-profile-actions";
 
-export const useSignUpProfile = ({
-  email,
-  onBack,
-  startStep = 0,
-  password,
-  isResumeLocked,
-}: SignUpProfileProps) => {
+/**
+ * Profile setup, driven by `missing[]` from `GET /providers/me`. There is no
+ * submit call: the save that fills the last required field moves the
+ * provider to PENDING, and we route by the returned `next`.
+ */
+export const useSignUpProfile = ({ enabled }: { enabled: boolean }) => {
+  const { profile, profileData, handleChange, isLoading, resetFrom } =
+    useProfileData(enabled);
+
   const { currentStep, setCurrentStep, handleBack, hideBackAtRoot } =
-    useProfileSteps(startStep, onBack, isResumeLocked);
+    useProfileSteps(profile);
 
-  const { profileData, handleChange } = useProfileData();
-
-  const { isSubmitting, handleNext } = useProfileActions({
-    email,
-    password,
+  const { isSubmitting, handleNext, fieldError } = useProfileActions({
     profileData,
     currentStep,
     setCurrentStep,
+    onStale: resetFrom,
   });
 
   const isCurrentStepValid = isProviderProfileStepValid(
@@ -36,11 +32,13 @@ export const useSignUpProfile = ({
 
   return {
     currentStep,
+    isLoading,
     isSubmitting,
     profileData,
     handleChange,
     handleBack,
     handleNext,
+    fieldError,
     isCurrentStepValid,
     hideBackAtRoot,
   };

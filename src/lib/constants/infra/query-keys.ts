@@ -24,6 +24,29 @@ export const QUERY_KEYS = {
   competitionTeam: "competition-team",
   competitionFixtures: "competition-fixtures",
   competitionAccessCodes: "competition-access-codes",
+  // Backend v2 (provider surface)
+  v2: {
+    me: ["v2", "auth-me"] as const,
+    providerMe: ["v2", "provider-me"] as const,
+    roleCategories: ["v2", "role-categories"] as const,
+    notifications: ["v2", "notifications"] as const,
+    notificationCounts: ["v2", "notification-counts"] as const,
+    myCampuses: ["v2", "my-campuses"] as const,
+    campusDirectory: ["v2", "campus-directory"] as const,
+    campusResults: (campusId: string) =>
+      ["v2", "campus-results", campusId] as const,
+    campusSummary: (campusId: string) =>
+      ["v2", "campus-summary", campusId] as const,
+    results: ["v2", "campus-results"] as const,
+    urgentResults: ["v2", "urgent-results"] as const,
+    result: (id: string) => ["v2", "result", id] as const,
+    resultComments: (id: string) => ["v2", "result-comments", id] as const,
+    benchmarks: (campusId: string) => ["v2", "benchmarks", campusId] as const,
+    careCases: (campusId: string) => ["v2", "care-cases", campusId] as const,
+    clearances: (caseId: string) => ["v2", "clearances", caseId] as const,
+    run: (id: string) => ["v2", "run", id] as const,
+    joinRequests: ["v2", "join-requests"] as const,
+  },
   schoolPatients: (schoolId: string) =>
     [QUERY_KEYS.schoolDetail, "patients", schoolId] as const,
   schoolProviders: (schoolId: string) =>

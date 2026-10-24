@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useCreativeStudiosFlowContext } from "@/hooks/components/curator/create/use-creative-studios-flow-context";
 
 export function useProviderStep1() {
-  const { provider, updateProvider } = useCreativeStudiosFlowContext();
+  const { provider, updateProvider, serverErrors } =
+    useCreativeStudiosFlowContext();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const nickRef = useRef<HTMLInputElement>(null);
 
@@ -47,9 +48,18 @@ export function useProviderStep1() {
     return Object.keys(nextErrors).length === 0;
   };
 
+  // Server field problems from the last create (e.g. NAME_TAKEN on nicknames).
+  const mergedErrors = useMemo(() => {
+    const fromServer: Record<string, string> = {};
+    if (serverErrors.fullName) fromServer.name = serverErrors.fullName;
+    if (serverErrors.nicknames) fromServer.nick = serverErrors.nicknames;
+    if (serverErrors.bio) fromServer.bio = serverErrors.bio;
+    return { ...fromServer, ...errors };
+  }, [errors, serverErrors]);
+
   return {
     provider,
-    errors,
+    errors: mergedErrors,
     nickRef,
     setField,
     addNick,

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useSetAtom } from "jotai";
-import { toast } from "sonner";
 import { Trophy } from "lucide-react";
 import {
   Dialog,
@@ -15,19 +14,17 @@ import { Label } from "@/components/ui/label";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { currentCompetitionCodeAtom } from "@/atoms/competitions";
 import useVersionsQuery from "@/hooks/curator/competitions/use-versions";
-import { versionsService } from "@/services/curator/competitions/versions";
-import { parseApiError } from "@/lib/utils/shared/api-error";
-import type { Team } from "@/lib/types/api/competitions";
+import type { TeamView } from "@/lib/v2/curator/nsmq";
 
 interface JoinCompetitionPillProps {
   schoolId: string | number;
-  onRegistered: (team: Team) => void;
+  onRegistered: (team: TeamView) => void;
 }
 
 /**
  * Shown in place of the Next Contest pill when this school isn't a team in
  * any competition yet — a team is a separate resource from a school (see
- * the curator "Teams & Fixtures" API), so Access Codes/Fixtures have
+ * POST /versions/{code}/teams), so Access Codes/Fixtures have
  * nothing to attach to until one exists. Registers right here instead of
  * requiring a detour through the Competitions area first.
  */
@@ -37,7 +34,6 @@ export function JoinCompetitionPill({
 }: JoinCompetitionPillProps) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
-  const [checkingExisting, setCheckingExisting] = useState(false);
   const setCurrentCode = useSetAtom(currentCompetitionCodeAtom);
   const { registerTeam, isRegisteringTeam } = useVersionsQuery();
 
@@ -45,59 +41,19 @@ export function JoinCompetitionPill({
     const trimmed = code.trim();
     if (!trimmed) return;
 
-    // check first rather than registering blind and recovering from the
-    // 409 - this school may already have a team here (re-entering the
-    // code it was eliminated from, a fresh browser session that never
-    // learned the code, etc.), and the backend has no "register or
-    // return existing" variant of this endpoint.
-    setCheckingExisting(true);
-    const existingTeams = await versionsService
-      .getTeams(trimmed)
-      .catch(() => [])
-      .finally(() => setCheckingExisting(false));
-    const existing = existingTeams.find(
-      (t) => String(t.campusId) === String(schoolId),
-    );
-    if (existing) {
-      setCurrentCode(trimmed);
-      onRegistered(existing);
-      setOpen(false);
-      return;
-    }
-
+    // Tagging is idempotent in v2: a campus that's already a team comes back
+    // as skipped and registerTeam resolves the existing team instead, so
+    // re-entering the code it was eliminated from just lands on that team.
     try {
       const team = await registerTeam({
         code: trimmed,
-        data: { campusId: schoolId },
+        campusId: String(schoolId),
       });
       setCurrentCode(trimmed);
       onRegistered(team);
       setOpen(false);
-    } catch (error) {
-      // the check above is best-effort (a concurrent registration could
-      // still land between it and this call) - fall back to the same
-      // existing-team recovery for that race.
-      const { code: errorCode } = parseApiError(error);
-      if (errorCode !== "TEAM_ALREADY_EXISTS") {
-        // Any other failure already got its toast from the mutation's own
-        // onError — nothing more to do here.
-        return;
-      }
-
-      const teams = await versionsService.getTeams(trimmed).catch(() => []);
-      const raceWinner = teams.find(
-        (t) => String(t.campusId) === String(schoolId),
-      );
-      if (!raceWinner) {
-        toast.error(
-          "This school already has a team here, but it couldn't be found — try again.",
-        );
-        return;
-      }
-
-      setCurrentCode(trimmed);
-      onRegistered(raceWinner);
-      setOpen(false);
+    } catch {
+      // The mutation's onError already showed the problem's detail.
     }
   };
 
@@ -133,7 +89,7 @@ export function JoinCompetitionPill({
             </div>
             <LoadingButton
               onClick={handleJoin}
-              loading={checkingExisting || isRegisteringTeam}
+              loading={isRegisteringTeam}
               loadingText="Joining..."
               disabled={!code.trim()}
               className="w-full"

@@ -69,7 +69,8 @@ export function AssessmentMetricsPanel({
       <div className="grid w-full max-w-[1600px] grid-cols-1 items-start gap-6 px-4 sm:grid-cols-3 sm:gap-8 sm:px-10">
         {metrics.map((category, idx) => {
           const isOpen = openIndex === idx;
-          const order = openIndex === null ? idx : DOME_ORDER[openIndex][idx];
+          const order =
+            openIndex === null ? idx : (DOME_ORDER[openIndex]?.[idx] ?? idx);
           return (
             <AssessmentDomeTile
               key={category.name}

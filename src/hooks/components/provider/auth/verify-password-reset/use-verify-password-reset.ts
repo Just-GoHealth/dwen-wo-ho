@@ -4,114 +4,118 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/constants/infra/routes";
-import { setAccessToken, setRecoveryToken } from "@/lib/auth/access-token";
 import useGetSearchParams from "@/hooks/shared/use-get-search-params";
 import { VerifyPasswordResetProps } from "@/lib/types/components/provider/auth";
 import { useAuthQuery } from "@/hooks/queries/use-auth";
-import { getCleanErrorMessage } from "@/lib/utils/auth/error";
-import { VERIFY_PASSWORD_RESET_TEXTS } from "@/lib/constants/components/provider/auth/auth-copy";
+import { useApiError } from "@/hooks/shared/use-api-error";
+import { holdGrant } from "@/lib/auth/grant";
+import {
+  CLAIM_TEXTS,
+  CODE_SENT_TEXT,
+} from "@/lib/constants/components/provider/auth/auth-copy";
 import { OTP_INPUT_FOCUS_DELAY_MS } from "@/lib/constants/components/provider/auth/signup";
 
+const RESEND_SECONDS = 60;
+
+/**
+ * The code screen for RECOVERY (forgot password) and CLAIM (an account a
+ * curator created). For CLAIM it first sends `POST /auth/claim`; a verified
+ * code yields a one-time `grant` that the new-password screen spends on
+ * `POST /auth/password`.
+ */
 export const useVerifyPasswordReset = ({
   email: propEmail,
+  role,
+  purpose,
   onBack,
 }: VerifyPasswordResetProps) => {
-  const [isRunning, setIsRunning] = useState(true);
-  const [seconds, setSeconds] = useState(60);
+  const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const otpInputRef = useRef<HTMLInputElement>(null);
   const searchParamEmail = useGetSearchParams("email");
-  const email = propEmail || searchParamEmail;
+  const email = (propEmail || searchParamEmail || "").trim();
   const router = useRouter();
-  const {
-    resendPasswordResetVerificationMutation,
-    submitRecoveryCodeMutation,
-  } = useAuthQuery();
+  const { verifyMutation, sendCodeMutation, claimMutation } = useAuthQuery();
+  const apiError = useApiError();
+  const claimSentRef = useRef(false);
+
+  // CLAIM starts here: ask for the first code once.
+  useEffect(() => {
+    if (purpose !== "CLAIM" || claimSentRef.current || !email) return;
+    claimSentRef.current = true;
+    claimMutation
+      .mutateAsync({ email, role })
+      .then(() => toast.success(CODE_SENT_TEXT))
+      .catch((error) => {
+        const described = apiError.capture(error);
+        if (described.code === "ALREADY_CLAIMED") {
+          toast.info(CLAIM_TEXTS.alreadyClaimed);
+          router.replace(
+            `${ROUTES.provider.signIn}&email=${encodeURIComponent(email)}`,
+          );
+        }
+      });
+  }, [apiError, claimMutation, email, purpose, role, router]);
 
   useEffect(() => {
-    if (submitRecoveryCodeMutation.isPending) return;
-
-    const timer = setTimeout(() => {
-      otpInputRef.current?.focus();
-    }, OTP_INPUT_FOCUS_DELAY_MS);
-
+    if (verifyMutation.isPending) return;
+    const timer = setTimeout(
+      () => otpInputRef.current?.focus(),
+      OTP_INPUT_FOCUS_DELAY_MS,
+    );
     return () => clearTimeout(timer);
-  }, [submitRecoveryCodeMutation.isPending]);
+  }, [verifyMutation.isPending]);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    if (isRunning && seconds > 0) {
-      intervalId = setInterval(() => {
-        setSeconds((prev) => prev - 1);
-      }, 1000);
-    } else if (seconds === 0) {
-      setIsRunning(false);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [isRunning, seconds]);
+    if (seconds <= 0) return;
+    const id = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [seconds]);
 
   const handleOTPComplete = async (code: string) => {
-    if (!email) {
-      toast.error(VERIFY_PASSWORD_RESET_TEXTS.errors.missingEmail);
-      return;
-    }
-
+    apiError.clear();
     try {
-      const response = await submitRecoveryCodeMutation.mutateAsync({
+      const res = await verifyMutation.mutateAsync({
+        contact: email,
+        role,
+        purpose,
         code,
-        email,
       });
-
-      if (response?.token) {
-        // Recovery token kept in memory only (SEC-01). It survives the
-        // client-side navigation to the new-password screen; a hard reload
-        // drops it and the user re-requests a code.
-        setRecoveryToken(response.token);
-        setAccessToken(null);
-        toast.success(VERIFY_PASSWORD_RESET_TEXTS.toasts.success);
-        router.push(
-          `${ROUTES.provider.newPassword}?email=${encodeURIComponent(email)}`,
-        );
-      } else {
-        toast.error(VERIFY_PASSWORD_RESET_TEXTS.errors.invalidCode);
-      }
-    } catch (error: unknown) {
-      const errorMsg =
-        getCleanErrorMessage(error) ||
-        VERIFY_PASSWORD_RESET_TEXTS.errors.verifyFailed;
-      toast.error(errorMsg);
+      if (!res.grant) return;
+      holdGrant({ grant: res.grant, email, role, purpose });
+      router.push(
+        `${ROUTES.provider.newPassword}?email=${encodeURIComponent(email)}`,
+      );
+    } catch (error) {
+      apiError.capture(error);
     }
   };
 
   const handlePasswordResetResendCode = async () => {
+    apiError.clear();
     try {
-      await resendPasswordResetVerificationMutation.mutateAsync({ email });
-      setSeconds(60);
-      setIsRunning(true);
-    } catch (error: unknown) {
-      const errorMsg =
-        getCleanErrorMessage(error) ||
-        VERIFY_PASSWORD_RESET_TEXTS.errors.resendFailed;
-      toast.error(errorMsg);
+      await sendCodeMutation.mutateAsync({ contact: email, role, purpose });
+      toast.success(CODE_SENT_TEXT);
+      setSeconds(RESEND_SECONDS);
+    } catch (error) {
+      const described = apiError.capture(error);
+      if (described.code === "RATE_LIMITED") {
+        setSeconds(Math.max(1, described.retryAfter ?? RESEND_SECONDS));
+      }
     }
   };
 
   const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      router.back();
-    }
+    if (onBack) onBack();
+    else router.back();
   };
 
   return {
-    isRunning,
     seconds,
     email,
     otpInputRef,
-    submitRecoveryCodeMutation,
-    resendPasswordResetVerificationMutation,
+    isVerifying: verifyMutation.isPending,
+    isResending: sendCodeMutation.isPending || claimMutation.isPending,
+    apiError: apiError.error,
     handleOTPComplete,
     handlePasswordResetResendCode,
     handleBack,

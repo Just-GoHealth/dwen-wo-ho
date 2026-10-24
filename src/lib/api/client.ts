@@ -1,24 +1,25 @@
 import { toast } from "sonner";
-import { PUBLIC_ENDPOINTS } from "@/lib/constants/infra/endpoints";
 import { API_BASE_URL } from "@/configs/config";
-import { getAccessToken } from "@/lib/auth/access-token";
-import { getStoredUserType } from "@/lib/utils/auth/get-user-type";
+import {
+  ApiError,
+  ensureCsrf,
+  readCookie,
+  refreshSession,
+  type Problem,
+} from "@/lib/v2/http";
+import { handleSessionExpired } from "@/lib/auth/session";
 
-// In the browser, requests go same-origin: the auth route handlers in
-// src/app/api/v1/auth/** manage the HttpOnly refresh cookie, and every other
-// /api path is proxied to the backend by the rewrite in next.config.ts.
+/**
+ * TODO(v2-curator): legacy envelope client (`{success, message, data}`) kept
+ * only for curator screens that still call /api/v1 paths. Provider code uses
+ * `@/lib/v2/*`. There are no tokens here any more: the backend's HttpOnly
+ * cookies carry the session, unsafe calls echo XSRF-TOKEN, and a 401 runs
+ * the shared single-flight `refreshSession()` once before giving up.
+ */
 const getBaseUrl = (): string =>
   typeof window === "undefined" ? API_BASE_URL : "";
 
-const loadSession = () => import("@/lib/auth/session");
-
-// Only 401 (Unauthorized) is an auth error that requires token refresh.
-// 403 (Forbidden) means the user is authenticated but lacks permission.
-const isAuthError = (status: number): boolean => status === 401;
-
-const isPublicEndpoint = (endpoint: string): boolean => {
-  return PUBLIC_ENDPOINTS.some((path) => endpoint.includes(path));
-};
+const UNSAFE = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 const prepareRequestBody = (body: unknown): BodyInit | undefined => {
   if (!body) return undefined;
@@ -30,52 +31,41 @@ const prepareRequestBody = (body: unknown): BodyInit | undefined => {
 };
 
 const prepareHeaders = (
-  endpoint: string,
+  method: string,
   options: RequestInit,
 ): Record<string, string> => {
-  const token = getAccessToken();
   const headers: Record<string, string> = {
     Accept: "*/*",
     ...(options.headers as Record<string, string>),
   };
-
   if (!(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
-
-  if (!headers.Authorization && !isPublicEndpoint(endpoint) && token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
+  const csrf = readCookie("XSRF-TOKEN");
+  if (UNSAFE.has(method) && csrf) headers["X-XSRF-TOKEN"] = csrf;
   return headers;
 };
 
-// After a hard reload the in-memory access token is gone; if this browser
-// has a session (userType hint), re-issue it from the HttpOnly cookie before
-// the first authenticated request instead of sending it unauthenticated.
-const ensureAccessToken = async (endpoint: string): Promise<void> => {
-  if (
-    typeof window === "undefined" ||
-    isPublicEndpoint(endpoint) ||
-    getAccessToken() ||
-    !getStoredUserType()
-  ) {
-    return;
-  }
-  const { refreshToken } = await loadSession();
-  await refreshToken();
-};
-
-const extractErrorFromResponse = async (response: Response): Promise<Error> => {
-  const responseText = await response.text();
+/** Error responses become `ApiError` (RFC 9457 `code`/`detail`/`fields`). */
+const toApiError = async (response: Response): Promise<ApiError> => {
+  let problem: Problem = { status: response.status };
   try {
-    const errorData = JSON.parse(responseText);
-    return new Error(JSON.stringify(errorData));
+    const body = (await response.json()) as Partial<Problem> & {
+      message?: string;
+    };
+    problem = {
+      ...body,
+      detail: body.detail ?? body.message,
+      status: body.status ?? response.status,
+    };
   } catch {
-    return new Error(
-      responseText || `API request failed with status ${response.status}`,
-    );
+    // Non-JSON error body.
   }
+  const retryAfter = Number(response.headers.get("Retry-After"));
+  return new ApiError(
+    problem,
+    Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
+  );
 };
 
 const parseSuccessResponse = async (response: Response) => {
@@ -103,52 +93,28 @@ export async function api(
   options: RequestInit = {},
   isRetryAfterRefresh = false,
 ): ReturnType<typeof parseSuccessResponse> {
-  await ensureAccessToken(endpoint);
+  const method = (options.method || "GET").toUpperCase();
+  if (UNSAFE.has(method) && typeof window !== "undefined") await ensureCsrf();
   const body = prepareRequestBody(options.body);
-  const headers = prepareHeaders(endpoint, { ...options, body });
+  const headers = prepareHeaders(method, { ...options, body });
 
-  try {
-    const response = await fetch(`${getBaseUrl()}${endpoint}`, {
-      ...options,
-      headers,
-      body,
-    });
+  const response = await fetch(`${getBaseUrl()}${endpoint}`, {
+    ...options,
+    credentials: "include",
+    headers,
+    body,
+  });
 
-    if (!response.ok) {
-      if (response.status === 403) {
-        const method = (options.method || "GET").toUpperCase();
-        if (method !== "GET") {
-          toast.error("You don't have permission to perform this action.");
-        }
-      }
-      if (
-        isAuthError(response.status) &&
-        !isPublicEndpoint(endpoint) &&
-        typeof window !== "undefined"
-      ) {
-        // Lazy import avoids circular dependency with lib/auth/session.
-        const { refreshToken, handleTokenExpiration } = await loadSession();
-        // The access token may simply have expired: refresh once from the
-        // HttpOnly cookie and retry before treating this as a sign-out.
-        // Skipped when the caller set its own Authorization header (e.g. the
-        // password-reset recovery token), which a refresh can't fix.
-        const hadCallerAuth = !!(
-          options.headers as Record<string, string> | undefined
-        )?.Authorization;
-        if (!isRetryAfterRefresh && !hadCallerAuth && (await refreshToken())) {
-          return api(endpoint, options, true);
-        }
-        toast.error("Your session has expired. Please log in again.");
-        void handleTokenExpiration();
-      }
-      throw await extractErrorFromResponse(response);
+  if (response.ok) return parseSuccessResponse(response);
+
+  if (response.status === 401 && typeof window !== "undefined") {
+    if (!isRetryAfterRefresh && (await refreshSession())) {
+      return api(endpoint, options, true);
     }
-
-    return await parseSuccessResponse(response);
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("Network error");
+    handleSessionExpired();
+  } else if (response.status === 403 && method !== "GET") {
+    toast.error("You don't have permission to perform this action.");
   }
+
+  throw await toApiError(response);
 }

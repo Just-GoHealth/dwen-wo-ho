@@ -1,46 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import useUserQuery from "@/hooks/queries/use-user-profile";
-import { useProviderDashboardInit } from "@/hooks/queries/use-provider-dashboard";
-import {
-  ProviderProfile,
+import { useProviderMe } from "@/hooks/queries/use-provider-me";
+import { useProviderHome } from "@/hooks/queries/use-provider-dashboard";
+import { isProviderApproved } from "@/lib/utils/auth/provider-next-route";
+import type {
+  ProviderProfile as ProviderProfileView,
   ProviderStats,
 } from "@/lib/types/components/provider/profile";
+import type { ProviderProfile } from "@/lib/v2/types";
+
+/** `GET /providers/me` in the shape the profile card and glass bar read. */
+export const toProviderProfileView = (
+  profile: ProviderProfile,
+): ProviderProfileView => ({
+  id: profile.id,
+  email: profile.email ?? "",
+  providerName: profile.fullName,
+  providerTitle: profile.title,
+  specialty: profile.roleGroups[0]?.name ?? null,
+  officePhoneNumber: profile.phone,
+  applicationStatus: profile.status === "DRAFT" ? undefined : profile.status,
+  applicationDate: profile.submittedAt ?? undefined,
+  profilePhotoURL: profile.photo?.url ?? null,
+  status: profile.slogan,
+  bio: profile.bio,
+});
 
 export function useProviderProfile() {
-  const { getProfileQuery } = useUserQuery();
-  // Same cached query the dashboard uses (same query key) — real patient
-  // counts for the stats grid instead of hardcoded zeros.
-  const { data: dashboardInit } = useProviderDashboardInit();
-  const [stats, setStats] = useState<ProviderStats>({
-    schools: 0,
+  const { data: profile, isLoading } = useProviderMe();
+  const { data: home } = useProviderHome(isProviderApproved(profile?.next));
+
+  const patients = home?.patients ?? [];
+  const schools = home?.schools ?? [];
+  const stats: ProviderStats = {
+    schools: schools.length,
+    // Hosts a provider serves aren't listed to providers in v2.
     partners: 0,
-    totalStudents: 0,
-    pendingStudents: 0,
-  });
-
-  useEffect(() => {
-    if (getProfileQuery.data) {
-      const data = getProfileQuery.data as ProviderProfile;
-      const schools = data.schools || [];
-      const partners = data.partners || [];
-      const patients = dashboardInit?.patients ?? [];
-
-      setStats({
-        schools: Array.isArray(schools) ? schools.length : 0,
-        partners: Array.isArray(partners) ? partners.length : 0,
-        totalStudents: patients.length,
-        pendingStudents: patients.filter(
-          (p) => p.status?.toLowerCase() === "new",
-        ).length,
-      });
-    }
-  }, [getProfileQuery.data, dashboardInit?.patients]);
+    totalStudents: patients.length,
+    pendingStudents: patients.filter((p) => p.status === "new").length,
+  };
 
   return {
-    provider: getProfileQuery.data as ProviderProfile | undefined,
-    isLoading: getProfileQuery.isLoading,
+    provider: profile
+      ? { ...toProviderProfileView(profile), schools }
+      : undefined,
+    isLoading,
     stats,
   };
 }

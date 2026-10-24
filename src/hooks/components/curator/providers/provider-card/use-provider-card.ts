@@ -8,30 +8,29 @@ export const useProviderCard = ({
   onShowRejectModal,
   isModerating,
   currentAction,
-  moderatingProviderEmail,
+  moderatingProviderId,
 }: ProviderCardProps) => {
   const handleApproveClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onShowApproveModal(provider.email);
+    onShowApproveModal(provider.id);
   };
 
   const handleRejectClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onShowRejectModal(provider.email);
+    onShowRejectModal(provider.id);
   };
 
   const handleViewDetails = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    onViewDetails(provider.email);
+    onViewDetails(provider.id);
   };
 
   const isApproving =
-    currentAction === "approving" && moderatingProviderEmail === provider.email;
+    currentAction === "approving" && moderatingProviderId === provider.id;
   const isRejecting =
-    currentAction === "rejecting" && moderatingProviderEmail === provider.email;
+    currentAction === "rejecting" && moderatingProviderId === provider.id;
 
-  const isActionDisabled =
-    isModerating && moderatingProviderEmail === provider.email;
+  const isActionDisabled = isModerating && moderatingProviderId === provider.id;
 
   return {
     handleApproveClick,

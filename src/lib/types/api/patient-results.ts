@@ -24,21 +24,26 @@ export interface UrgentPatientListResponse {
   urgentPatientsCount: number;
 }
 
+/** A result on the provider's roll, mapped from a v2 `ResultItem`. */
 export interface PatientCase {
-  patientId: number;
-  // confirmed real field on this schema (api-docs.json) but was missing
-  // from this frontend type entirely — needed to cross-reference a list
-  // entry back to a specific /patients/[resultId] detail page
-  patientResultId: number;
+  /** The v2 result id (there's no separate patient id on the wire). */
+  patientId: string;
+  patientResultId: string;
   patientName: string;
+  /** Locked-In score (Quick Screen only; 0 for NSMQ runs). */
   score: number;
+  /** "new" until a provider opens it, then "seen". */
   status: string;
-  schoolId: number;
+  schoolId: string;
   schoolName: string;
   time: string;
   preview: string;
   avatarUrl: string | null;
   schoolNickname: string;
+  /** Tier from `urgent` / `attention`: 911, NOW, else ASAP. */
+  nsmqTag: "911" | "NOW" | "ASAP";
+  respondBy: string | null;
+  overdue: boolean;
 }
 
 export interface BoardRowResponse {

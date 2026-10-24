@@ -2,20 +2,41 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useCreativeStudiosFlowContext } from "@/hooks/components/curator/create/use-creative-studios-flow-context";
 import { useCreativeStudiosNavigation } from "@/hooks/components/curator/create/use-creative-studios-navigation";
-import {
-  CAMPUS_LOCATION_OPTIONS,
-  CAMPUS_TYPE_OPTIONS,
-} from "@/lib/constants/components/curator/create/creative-studios";
+import { catalogueCurator } from "@/lib/v2/curator/catalogue";
 import {
   campusStep1Schema,
   type CampusStep1FormValues,
 } from "@/lib/schemas/creative-studios/campus-step-1";
 
+// Campus types and locations come from the backend (GET /campus-types, /locations).
+const CAMPUS_TYPES_KEY = ["curator", "campus-types"] as const;
+const LOCATIONS_KEY = ["curator", "locations"] as const;
+
 export function useCampusStep1() {
-  const { campus, updateCampus } = useCreativeStudiosFlowContext();
+  const { campus, updateCampus, serverErrors, clearServerError } =
+    useCreativeStudiosFlowContext();
+  const { data: campusTypes } = useQuery({
+    queryKey: CAMPUS_TYPES_KEY,
+    queryFn: catalogueCurator.campusTypes,
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: locations } = useQuery({
+    queryKey: LOCATIONS_KEY,
+    queryFn: catalogueCurator.locations,
+    staleTime: 10 * 60 * 1000,
+  });
+  const typeOptions = useMemo(
+    () => (campusTypes ?? []).map((t) => t.label),
+    [campusTypes],
+  );
+  const locationOptions = useMemo(
+    () => (locations ?? []).map((l) => l.name),
+    [locations],
+  );
   const { goNext } = useCreativeStudiosNavigation("campus");
   const [nickError, setNickError] = useState("");
   const nickRef = useRef<HTMLInputElement>(null);
@@ -67,7 +88,8 @@ export function useCampusStep1() {
     updateCampus({ nicks: [...campus.nicks, val] });
     if (nickRef.current) nickRef.current.value = "";
     setNickError("");
-  }, [campus.nicks, updateCampus]);
+    clearServerError("nicknames");
+  }, [campus.nicks, updateCampus, clearServerError]);
 
   const rmNick = useCallback(
     (index: number) => {
@@ -77,6 +99,7 @@ export function useCampusStep1() {
   );
 
   const onSubmit = handleSubmit((values) => {
+    clearServerError("fullName");
     updateCampus({
       name: values.name.trim(),
       motto: values.motto,
@@ -90,13 +113,20 @@ export function useCampusStep1() {
     control,
     register,
     errors: formState.errors,
-    nickError,
+    nickError: nickError || serverErrors.nicknames || "",
+    // Server field problems from the last create (e.g. NAME_TAKEN on fullName).
+    serverErrors: {
+      name: serverErrors.fullName,
+      motto: serverErrors.motto,
+      type: serverErrors.type,
+      location: serverErrors.locationId,
+    } as Partial<Record<"name" | "motto" | "type" | "location", string>>,
     nickRef,
     addNick,
     rmNick,
     nicks: campus.nicks,
     onSubmit,
-    typeOptions: CAMPUS_TYPE_OPTIONS,
-    locationOptions: CAMPUS_LOCATION_OPTIONS,
+    typeOptions,
+    locationOptions,
   };
 }

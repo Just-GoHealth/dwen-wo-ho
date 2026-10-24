@@ -5,7 +5,7 @@ import { BrainCircuit, Pencil } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SectionLabel, InfoCard } from "./profile-helpers";
-import type { ProviderAssociatedSchool } from "@/lib/types/api/providers";
+import type { ProviderCampusSummary } from "@/lib/types/api/provider-dashboard";
 import ProfileFieldsColumn from "./profile-fields-column";
 import type { ProviderProfileData } from "@/lib/types/api/provider-dashboard";
 
@@ -40,7 +40,7 @@ export function ProfileTabs({
   onEdit,
 }: {
   profileData: Partial<ProviderProfileData>;
-  schools: ProviderAssociatedSchool[];
+  schools: ProviderCampusSummary[];
   onEdit: (key: string, label: string, current: string) => void;
 }) {
   return (

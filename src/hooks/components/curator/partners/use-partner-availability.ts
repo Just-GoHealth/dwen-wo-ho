@@ -5,11 +5,10 @@ import {
   AssociatedSchool,
   AssociatedProvider,
 } from "@/lib/types/entities/partners";
-import { School } from "@/lib/types/entities/school";
 import { Provider } from "@/lib/types/entities/provider";
 
 interface UsePartnerAvailabilityProps {
-  allSchools: School[];
+  allSchools: AssociatedSchool[];
   providersList: Provider[];
   associatedSchools: AssociatedSchool[];
   associatedProviders: AssociatedProvider[];
@@ -33,17 +32,15 @@ export const usePartnerAvailability = ({
   }, [allSchools, associatedSchools]);
 
   const availableProviders = useMemo(() => {
-    const associatedProviderIds = new Set(
-      associatedProviders.map((p) => p.email),
-    );
+    const associatedProviderIds = new Set(associatedProviders.map((p) => p.id));
     return providersList.flatMap((p) =>
-      associatedProviderIds.has(p.email)
+      associatedProviderIds.has(p.id)
         ? []
         : [
             {
-              id: p.email,
+              id: p.id,
               email: p.email,
-              providerName: p.providerName ?? p.email,
+              providerName: p.providerName ?? "",
               providerTitle: p.providerTitle ?? undefined,
               specialty: p.specialty ?? undefined,
               profilePhotoURL: p.profilePhotoURL ?? undefined,

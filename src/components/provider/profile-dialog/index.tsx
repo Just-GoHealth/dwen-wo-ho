@@ -6,7 +6,7 @@ import { ProfileHero } from "./profile-hero";
 import { ProfileTabs } from "./profile-tabs";
 import { ProfileFooter } from "./profile-footer";
 import type { ProviderDashboardState } from "@/hooks/provider/dashboard/use-dashboard";
-import type { ProviderAssociatedSchool } from "@/lib/types/api/providers";
+import type { ProviderCampusSummary } from "@/lib/types/api/provider-dashboard";
 /**
  * Profile dialog with Overview / Schools / Partners tabs.
  *
@@ -15,7 +15,7 @@ import type { ProviderAssociatedSchool } from "@/lib/types/api/providers";
  *   onOpenChange: (v: boolean) => void,
  *   profileData:  Record<string, string>,
  *   onEdit:       (key: string, label: string, current: string) => void,
- *   schools:      ProviderAssociatedSchool[]
+ *   schools:      ProviderCampusSummary[]
  * }} props
  */
 export default function ProviderProfileDialog({
@@ -29,7 +29,7 @@ export default function ProviderProfileDialog({
   setProfileOpen: ProviderDashboardState["setProfileOpen"];
   profileData: ProviderDashboardState["profileData"];
   openEdit: ProviderDashboardState["openEdit"];
-  schools: ProviderAssociatedSchool[];
+  schools: ProviderCampusSummary[];
 }) {
   return (
     <Dialog open={profileOpen} onOpenChange={setProfileOpen} modal>

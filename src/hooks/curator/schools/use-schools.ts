@@ -6,6 +6,7 @@ import { useAtom } from "jotai";
 import { curatorSchoolsAtom, SchoolWithExtras } from "@/atoms/curator-schools";
 import { FilterType } from "@/lib/types/components/shared/school-filter";
 import { School } from "@/lib/types/entities/school";
+import type { CuratorSchool } from "@/lib/types/components/curator/schools/campus";
 import { parseCampuses } from "@/lib/utils/curator/schools/parse-campuses";
 import { SCHOOLS_LIST_SEARCH_QUICK_FILTERS } from "@/lib/constants/components/curator/schools/schools-list-search";
 import { useLocalActiveFilters } from "@/hooks/components/shared/filters/use-local-active-filters";
@@ -15,6 +16,17 @@ import { filterSchoolsBySearchQuery } from "@/lib/utils/shared/search-query";
 export function getFirstCampus(campuses: School["campuses"]): string {
   const parsed = parseCampuses(campuses);
   return parsed.length > 0 ? parsed[0] : "";
+}
+
+// v2 campus types: JHS, SHS, and the college-card types (NMTC, COLLEGE,
+// UNIVERSITY), which the "College" tab groups together.
+function matchesTypeFilter(
+  school: School & Pick<Partial<CuratorSchool>, "card">,
+  filter: FilterType,
+) {
+  if (filter === "all") return true;
+  if (filter === "COLLEGE") return school.card === "COLLEGE";
+  return school.type === filter;
 }
 
 export function useCuratorSchools() {
@@ -46,9 +58,10 @@ export function useCuratorSchools() {
   const filterCounts = useMemo(
     () => ({
       all: mergedSchools.length,
-      JHS: mergedSchools.filter((s) => s.type === "JHS").length,
-      SHS: mergedSchools.filter((s) => s.type === "SHS").length,
-      COLLEGE: mergedSchools.filter((s) => s.type === "COLLEGE").length,
+      JHS: mergedSchools.filter((s) => matchesTypeFilter(s, "JHS")).length,
+      SHS: mergedSchools.filter((s) => matchesTypeFilter(s, "SHS")).length,
+      COLLEGE: mergedSchools.filter((s) => matchesTypeFilter(s, "COLLEGE"))
+        .length,
     }),
     [mergedSchools],
   );
@@ -93,10 +106,9 @@ export function useCuratorSchools() {
   }, [allSchools, setSchoolsState]);
 
   const schoolsList = useMemo(() => {
-    let filtered =
-      activeFilter === "all"
-        ? mergedSchools
-        : mergedSchools.filter((school) => school.type === activeFilter);
+    let filtered = mergedSchools.filter((school) =>
+      matchesTypeFilter(school, activeFilter),
+    );
 
     if (appliedSearchQuery.trim()) {
       filtered = filterSchoolsBySearchQuery(filtered, appliedSearchQuery);

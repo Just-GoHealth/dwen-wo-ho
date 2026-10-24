@@ -2,18 +2,16 @@
 
 import ProviderProfileDialog from "@/components/provider/profile-dialog";
 import EditFieldDialog from "@/components/provider/workspace/edit-field-dialog";
-import { PendingApprovalModal } from "@/components/provider/pending-approval-modal/index";
-import { toPendingApprovalUserInfo } from "@/lib/utils/provider/pending-approval";
 import ProviderNotificationsSheet from "@/components/provider/workspace/notification-sheet/index";
 import type { ProviderDashboardOverlayHostProps } from "@/lib/types/components/provider/dashboard/dashboard";
 import type { ProviderDashboardState } from "@/hooks/provider/dashboard/use-dashboard";
 
+/**
+ * Overlays on the provider home. The pending/rejected application has its
+ * own page now (/provider/application), routed by `next`.
+ */
 export default function ProviderDashboardModals({
   dashboard,
-  isApproved,
-  isAuthLoading,
-  authProfile,
-  onLogout,
   router,
 }: ProviderDashboardOverlayHostProps<ProviderDashboardState>) {
   const {
@@ -21,12 +19,8 @@ export default function ProviderDashboardModals({
     setNotifOpen,
     markAllRead,
     markOneRead,
-    deleteNotification,
-    clearAllNotifications,
     isMarkingRead,
-    isDeleting,
     isMarkingAllRead,
-    isClearing,
     profileOpen,
     setProfileOpen,
     profileData,
@@ -42,7 +36,7 @@ export default function ProviderDashboardModals({
     uploadAvatar,
     isUploadingAvatar,
     isSaving,
-    isUpdatingPhoneNumber,
+    specialtyItems,
   } = dashboard;
 
   return (
@@ -52,20 +46,9 @@ export default function ProviderDashboardModals({
         setNotifOpen={setNotifOpen}
         markAllRead={markAllRead}
         markOneRead={markOneRead}
-        deleteNotification={deleteNotification}
-        clearAllNotifications={clearAllNotifications}
         router={router}
         isMarkingRead={isMarkingRead}
-        isDeleting={isDeleting}
         isMarkingAllRead={isMarkingAllRead}
-        isClearing={isClearing}
-        getNotificationId={(n) => n.notificationId}
-        isNotificationUnread={(n) => n.unread}
-        getAvatarUrl={(n) => n.avatarUrl}
-        getEmoji={(n) => n.emoji}
-        getTitle={(n) => n.targetName}
-        getText={(n) => n.text}
-        getTimestamp={(n) => n.timestamp}
       />
       <ProviderProfileDialog
         profileOpen={profileOpen}
@@ -84,17 +67,10 @@ export default function ProviderDashboardModals({
         saveEdit={saveEdit}
         uploadAvatar={uploadAvatar}
         isUploadingAvatar={isUploadingAvatar}
-        isSaving={isSaving || isUpdatingPhoneNumber}
+        isSaving={isSaving}
         profileData={profileData}
+        specialtyItems={specialtyItems}
       />
-      {!isApproved && !isAuthLoading && (
-        <PendingApprovalModal
-          userInfo={toPendingApprovalUserInfo(
-            Object.keys(profileData).length > 0 ? profileData : authProfile,
-          )}
-          onLogout={onLogout}
-        />
-      )}
     </>
   );
 }

@@ -66,41 +66,19 @@ const ProviderCard = (props: ProviderCardProps) => {
 
         {/* Status Badge or Action Buttons */}
         <div className="flex w-full justify-center gap-2 px-1">
+          {/* v2 decides only PENDING applications (Just In). A rejected provider
+              resubmits; an approved one can't be rejected from here.
+              TODO(v2-backend): no endpoint to revoke an approval or re-approve a rejection. */}
           {provider.applicationStatus === "APPROVED" ? (
-            <>
-              <div className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
-                <FiCheck className="h-4 w-4" />
-                Approved
-              </div>
-
-              <LoadingButton
-                onClick={handleRejectClick}
-                loading={isRejecting}
-                loadingText="Rejecting..."
-                disabled={isActionDisabled && !isRejecting}
-                className="border-destructive/40 bg-destructive/20 text-destructive hover:bg-destructive/30 z-20 flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <FiX className="h-4 w-4" />
-                Reject
-              </LoadingButton>
-            </>
+            <div className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-green-200 bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
+              <FiCheck className="h-4 w-4" />
+              Approved
+            </div>
           ) : provider.applicationStatus === "REJECTED" ? (
-            <>
-              <LoadingButton
-                onClick={handleApproveClick}
-                loading={isApproving}
-                loadingText="Approving..."
-                disabled={isActionDisabled && !isApproving}
-                className="border-success/40 bg-success/20 text-success hover:bg-success/30 z-20 flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <FiCheck className="h-4 w-4" />
-                Approve
-              </LoadingButton>
-              <div className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-100 px-4 py-2 text-sm font-semibold text-red-700">
-                <FiX className="h-4 w-4" />
-                Rejected
-              </div>
-            </>
+            <div className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-100 px-4 py-2 text-sm font-semibold text-red-700">
+              <FiX className="h-4 w-4" />
+              Rejected
+            </div>
           ) : (
             <>
               <LoadingButton

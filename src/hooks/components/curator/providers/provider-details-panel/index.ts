@@ -14,32 +14,32 @@ import { useProviderPanelState } from "./use-panel-state";
 
 export const useProviderDetails = ({
   isOpen,
-  providerEmail,
+  providerId,
   providerProp,
   onShowApproveModal,
   onShowRejectModal,
 }: {
   isOpen: boolean;
-  providerEmail: string;
+  providerId: string;
   providerProp: ProviderDetails | undefined;
-  onShowApproveModal?: (email: string) => void;
-  onShowRejectModal?: (email: string) => void;
+  onShowApproveModal?: (providerId: string) => void;
+  onShowRejectModal?: (providerId: string) => void;
 }) => {
   const pathname = usePathname();
 
   const { provider, isQueryLoading, invalidateProvider } = useProviderPanelData(
-    providerEmail,
+    providerId,
     providerProp,
   );
-  const schools = useProviderPanelSchools(isOpen, providerEmail, provider);
+  const schools = useProviderPanelSchools(isOpen, providerId, provider);
   const partners = useProviderPanelPartners(
     isOpen,
-    providerEmail,
+    providerId,
     provider,
     invalidateProvider,
   );
   const modals = useProviderPanelState(
-    providerEmail,
+    providerId,
     onShowApproveModal,
     onShowRejectModal,
   );

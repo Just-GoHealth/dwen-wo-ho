@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Shared JustGo design tokens and component styles (@just-gohealth/ui).
+   Imported before this app's own theme so the app's values win until its
+   screens move onto the shared components. */
+@import "@just-gohealth/ui/styles.css";
 
 @custom-variant dark (&:is(.dark *));
 /* Tailwind v4 gates hover behind @media (hover: hover), which fails on many

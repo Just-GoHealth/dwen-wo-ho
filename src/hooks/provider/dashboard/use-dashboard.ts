@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useAtom, useSetAtom } from "jotai";
 import {
@@ -13,12 +12,11 @@ import {
 import { isProviderNotificationSheetOpenAtom } from "@/atoms/notification";
 import { PROVIDER_SEARCH_QUICK_FILTERS } from "@/lib/constants/components/provider/workspace/search";
 import {
-  useProviderDashboardInit,
-  useUploadAvatarMutation,
-  useProviderUrgentPatients,
+  useProviderHome,
+  useProviderUrgentResults,
 } from "@/hooks/queries/use-provider-dashboard";
 import type { PatientCase } from "@/lib/types/api/patient-results";
-import type { ProviderAssociatedSchool } from "@/lib/types/api/providers";
+import type { ProviderCampusSummary } from "@/lib/types/api/provider-dashboard";
 import { useLocalActiveFilters } from "@/hooks/components/shared/filters/use-local-active-filters";
 import {
   filterProviderDashboardPatients,
@@ -31,17 +29,20 @@ import { useProviderDashboardProfileEdit } from "../dashboard-profile-edit/use-d
 
 export type ProviderDashboardState = ReturnType<typeof useProviderDashboard>;
 
-export default function useProviderDashboard() {
+/**
+ * Provider home. `enabled` is false until `GET /providers/me` says the
+ * provider is approved (`next: HOME`) — before that, campus results 404.
+ */
+export default function useProviderDashboard(enabled = true) {
   const {
-    data: dashboardInit,
+    data: home,
     isLoading: isInitLoading,
     isError: isInitError,
     error: initError,
-  } = useProviderDashboardInit();
-  const uploadAvatarMutation = useUploadAvatarMutation();
+  } = useProviderHome(enabled);
 
-  const apiPatients: PatientCase[] = dashboardInit?.patients ?? [];
-  const apiSchools: ProviderAssociatedSchool[] = dashboardInit?.schools ?? [];
+  const apiPatients: PatientCase[] = home?.patients ?? [];
+  const apiSchools: ProviderCampusSummary[] = home?.schools ?? [];
 
   const [activeSchool, setActiveSchool] = useAtom(activeSchoolAtom);
   const [activeStatus, setActiveStatus] = useAtom(activeStatusAtom);
@@ -57,7 +58,6 @@ export default function useProviderDashboard() {
 
   const {
     profileData,
-    setProfileData,
     editOpen,
     setEditOpen,
     editFieldKey,
@@ -69,29 +69,19 @@ export default function useProviderDashboard() {
     openEdit,
     saveEdit,
     isSaving,
-    isUpdatingPhoneNumber,
-    updatePhoneNumber,
+    uploadAvatar,
+    isUploadingAvatar,
+    specialtyItems,
   } = useProviderDashboardProfileEdit();
-
-  useEffect(() => {
-    if (dashboardInit?.profile) {
-      setProfileData((prev) => ({ ...prev, ...dashboardInit.profile }));
-    }
-  }, [dashboardInit?.profile, setProfileData]);
 
   const {
     notifications,
-    setNotifications,
     unreadCount,
     markAllRead,
     markOneRead,
-    clearAllNotifications,
-    deleteNotification,
     isMarkingRead,
     isMarkingAllRead,
-    isDeleting,
-    isClearing,
-  } = useProviderDashboardNotifications();
+  } = useProviderDashboardNotifications(enabled);
 
   const handleSelectSchool = (id: string | number) => {
     setActiveSchool(String(id));
@@ -159,7 +149,7 @@ export default function useProviderDashboard() {
     panelTransition,
   } = useProviderDashboardMobile(setProfileOpen);
 
-  const { data: urgentData } = useProviderUrgentPatients();
+  const { data: urgentData } = useProviderUrgentResults(enabled);
 
   return {
     activeSchool,
@@ -176,18 +166,12 @@ export default function useProviderDashboard() {
     editOpen,
     setEditOpen,
     profileData,
-    setProfileData,
     notifications,
-    setNotifications,
     unreadCount,
     markAllRead,
     markOneRead,
-    clearAllNotifications,
-    deleteNotification,
     isMarkingRead,
     isMarkingAllRead,
-    isDeleting,
-    isClearing,
     editFieldKey,
     setEditFieldKey,
     editFieldLabel,
@@ -210,10 +194,9 @@ export default function useProviderDashboard() {
     isInitError,
     initError,
     isSaving,
-    isUploadingAvatar: uploadAvatarMutation.isPending,
-    uploadAvatar: uploadAvatarMutation.mutateAsync,
-    isUpdatingPhoneNumber,
-    updatePhoneNumber,
+    isUploadingAvatar,
+    uploadAvatar,
+    specialtyItems,
     localActiveFilters,
     toggleFilter,
     removeFilter,

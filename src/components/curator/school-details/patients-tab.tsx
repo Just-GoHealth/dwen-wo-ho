@@ -1,67 +1,22 @@
 "use client";
 
-import { Trash, Users } from "lucide-react";
+import { CheckCheck, Users } from "lucide-react";
 import PatientGridCard from "@/components/shared/patient-card/patient-grid-card";
 import { PatientsTabProps } from "@/lib/types/components/curator/school-details/school-details";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
 import { LoadingButton } from "@/components/ui/loading-button";
-import { ConfirmationModal } from "@/components/ui/confirmation-modal";
-import { useDeleteBulkPatientRecords } from "@/hooks/curator/delete-patient-records/use-delete-patient-records";
 
 export function PatientsTab({
   patients,
   isLoading,
   onViewPatient,
   searchQuery = "",
-  schoolId,
+  awaitingCount = 0,
+  onAcceptAll,
+  isAcceptingAll = false,
 }: PatientsTabProps & { searchQuery?: string; schoolId: string }) {
-  const { bulkDeletePending, deleteBulkPatients } =
-    useDeleteBulkPatientRecords(schoolId);
-  const [selectedPatients, setSelectedPatients] = useState<
-    Set<number | string>
-  >(new Set([]));
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-
-  const handleBulkDeleteConfirm = () => {
-    deleteBulkPatients(selectedPatients, () => {
-      setSelectedPatients(new Set());
-      setShowBulkDeleteModal(false);
-    });
-  };
-
-  // only rows with a submitted result are selectable at all
-  const selectablePatients = patients.filter((p) => p.id != null);
-  const selectAll =
-    selectablePatients.length > 0 &&
-    selectedPatients.size === selectablePatients.length;
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      // only rows with a submitted result can be bulk-deleted
-      setSelectedPatients(
-        new Set(
-          patients
-            .filter(
-              (p): p is typeof p & { id: number | string } => p.id != null,
-            )
-            .map((p) => p.id),
-        ),
-      );
-    } else {
-      setSelectedPatients(new Set());
-    }
-  };
-
-  const handleSelectPatient = (id: string | number, checked: boolean) => {
-    const newSelected = new Set(selectedPatients);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
-    setSelectedPatients(newSelected);
-  };
+  // TODO(v2-backend): no endpoint deletes result records (v1 DELETE
+  // /patient-results/bulk and /patient-results/{id}); bulk select and delete
+  // are hidden until one exists. Results can be set inactive instead.
 
   if (isLoading) {
     return (
@@ -89,7 +44,7 @@ export function PatientsTab({
         </div>
         <p className="text-foreground font-medium">No patients found</p>
         <p className="text-muted-foreground text-sm">
-          Try adjusting your search or add a new patient.
+          Try adjusting your search.
         </p>
       </div>
     );
@@ -97,28 +52,28 @@ export function PatientsTab({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <p>Select all</p>
-          <Checkbox
-            id="select-all-checkbox"
-            name="select-all-checkbox"
-            checked={selectAll}
-            onCheckedChange={handleSelectAll}
-            className="bg-background border-primary"
-          />
+      {awaitingCount > 0 && onAcceptAll && (
+        <div className="bg-card/60 border-border flex flex-col gap-2 rounded-lg border px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-foreground text-sm font-medium">
+            {awaitingCount === 1
+              ? "1 result is waiting for you to accept it."
+              : `${awaitingCount} results are waiting for you to accept them.`}{" "}
+            <span className="text-muted-foreground">
+              Providers see a result once it&apos;s accepted.
+            </span>
+          </p>
+          <LoadingButton
+            size="sm"
+            loading={isAcceptingAll}
+            onClick={onAcceptAll}
+            className="shrink-0"
+          >
+            <span className="flex items-center gap-2">
+              Accept all <CheckCheck className="size-4" />
+            </span>
+          </LoadingButton>
         </div>
-        <LoadingButton
-          variant="destructive"
-          loading={bulkDeletePending}
-          disabled={selectedPatients.size < 1}
-          onClick={() => setShowBulkDeleteModal(true)}
-        >
-          <div className="flex items-center justify-center gap-2">
-            Delete <Trash className="size-4 text-white" />
-          </div>
-        </LoadingButton>
-      </div>
+      )}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {filteredPatients.map((patient, index) => (
           <PatientGridCard
@@ -126,23 +81,10 @@ export function PatientsTab({
             index={index}
             patient={patient}
             onActionClick={onViewPatient}
-            showCheckbox
-            selected={patient.id != null && selectedPatients.has(patient.id)}
-            onToggleSelect={handleSelectPatient}
+            showCheckbox={false}
           />
         ))}
       </div>
-
-      <ConfirmationModal
-        isOpen={showBulkDeleteModal}
-        onClose={() => setShowBulkDeleteModal(false)}
-        onConfirm={handleBulkDeleteConfirm}
-        title="Delete Patient Records"
-        message={`This will permanently delete ${selectedPatients.size} patient record${selectedPatients.size > 1 ? "s" : ""}. This action cannot be undone.`}
-        confirmText="Delete"
-        variant="danger"
-        isLoading={bulkDeletePending}
-      />
     </div>
   );
 }

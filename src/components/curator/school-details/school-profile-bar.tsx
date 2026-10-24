@@ -1,11 +1,10 @@
 "use client";
 
 import { Logo } from "@/components/shared/logo";
-import { Badge } from "@/components/ui/badge";
+import { TriageBadge } from "@just-gohealth/ui";
 import {
   TRIAGE_TIER_LABELS,
-  TRIAGE_CHIP_VARIANT,
-  TRIAGE_CHIP_VARIANT_LIT,
+  TRIAGE_TIER_LEVEL,
   type TriageTier,
 } from "@/lib/utils/shared/triage";
 
@@ -46,16 +45,11 @@ export function SchoolProfileBar({
               onClick={() => onTriageFilterChange(isOn ? "all" : tier)}
               className="transition-transform hover:-translate-y-0.5"
             >
-              <Badge
-                variant={
-                  isOn
-                    ? TRIAGE_CHIP_VARIANT_LIT[tier]
-                    : TRIAGE_CHIP_VARIANT[tier]
-                }
-                className="cursor-pointer px-3 py-1 text-xs font-bold tracking-[.08em]"
-              >
-                {TRIAGE_TIER_LABELS[tier]}
-              </Badge>
+              <TriageBadge
+                level={TRIAGE_TIER_LEVEL[tier]}
+                active={isOn}
+                className="cursor-pointer px-3 py-1 text-xs font-bold tracking-[.08em] normal-case"
+              />
             </button>
           );
         })}

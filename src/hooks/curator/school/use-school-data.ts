@@ -1,64 +1,55 @@
 "use client";
 
-import { useMemo } from "react";
-
-import { School } from "@/lib/types/entities/school";
-
-import { SchoolPatientRecord } from "@/lib/types/components/curator/school-details/school-details";
-
 import useSchoolsQuery from "@/hooks/queries/use-schools";
 
 import useSchoolDetailsQuery from "@/hooks/queries/use-school-details";
 
-import { parseCampuses } from "@/lib/utils/curator/schools/parse-campuses";
+import { curatorErrorMessage } from "@/lib/v2/curator/errors";
 
 export function useSchoolData(schoolId: string) {
   const { useSchool, invalidateSchool, disableSchool } = useSchoolsQuery();
+
+  const schoolQuery = useSchool(schoolId);
+
+  const school = schoolQuery.data ?? null;
 
   const {
     patientsOverviewData,
     patientsOverviewLoading,
     providersData,
     providersLoading,
+    hubCounts,
     invalidateSchoolProviders,
-  } = useSchoolDetailsQuery(schoolId);
+    acceptAllResults,
+    isAcceptingAll,
+  } = useSchoolDetailsQuery(schoolId, {
+    name: school?.name,
+    nickname: school?.nickname,
+  });
 
-  const schoolQuery = useSchool(schoolId);
-
-  const rawSchool = schoolQuery.data as
-    (School & { campuses?: unknown }) | undefined;
-
-  const school = useMemo(() => {
-    if (!rawSchool) return null;
-
-    const s = { ...rawSchool } as School;
-
-    if (rawSchool.campuses) {
-      s.campuses = parseCampuses(rawSchool.campuses as string[]);
-    }
-
-    return s;
-  }, [rawSchool]);
-
-  const overviewData = patientsOverviewData;
-
-  const patients = (overviewData?.patients as SchoolPatientRecord[]) ?? [];
+  const patients = patientsOverviewData?.patients ?? [];
 
   const providers = providersData ?? [];
 
-  const urgentCare = overviewData?.urgentCare ?? {
+  const urgentCare = patientsOverviewData?.urgentCare ?? {
     totalUrgentCarePatients: 0,
 
     patients: [],
   };
 
+  const awaitingCount =
+    hubCounts?.awaitingResults ?? patientsOverviewData?.awaitingCount ?? 0;
+
   const isLoading = schoolQuery.isLoading;
 
   const error = schoolQuery.error
-    ? ((schoolQuery.error as Error).message ?? "Failed to load school details")
+    ? curatorErrorMessage(schoolQuery.error, "Failed to load school details")
     : null;
 
-  const campusLabel = school ? parseCampuses(school.campuses)[0] : null;
+  // The campus's location, else its first site (v1's first "campus").
+  const campusLabel = school
+    ? (school.locationName ?? school.campuses?.[0] ?? null)
+    : null;
 
   return {
     school,
@@ -68,6 +59,10 @@ export function useSchoolData(schoolId: string) {
     providers,
 
     urgentCare,
+
+    awaitingCount,
+
+    hubCounts,
 
     isLoading,
 
@@ -86,5 +81,9 @@ export function useSchoolData(schoolId: string) {
     disableSchool,
 
     invalidateSchoolProviders,
+
+    acceptAllResults,
+
+    isAcceptingAll,
   };
 }

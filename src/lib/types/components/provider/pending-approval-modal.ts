@@ -1,23 +1,11 @@
-import type { ProviderProfileResponse } from "@/lib/types/api/auth";
-import type { ProviderProfileData } from "@/lib/types/api/provider-dashboard";
+import type { ProviderProfile } from "@/lib/v2/types";
 
 export type PendingApprovalProfileInput = Partial<
   Pick<
-    ProviderProfileData,
-    "title" | "name" | "specialty" | "avatarUrl" | "memberSince"
+    ProviderProfile,
+    "title" | "fullName" | "roleGroups" | "photo" | "submittedAt"
   >
-> &
-  Partial<
-    Pick<
-      ProviderProfileResponse,
-      | "title"
-      | "providerName"
-      | "professionalTitle"
-      | "specialty"
-      | "profilePhotoURL"
-      | "applicationDate"
-    >
-  >;
+>;
 
 export interface PendingApprovalUserInfo {
   name: string;
@@ -30,4 +18,9 @@ export interface PendingApprovalUserInfo {
 export interface PendingApprovalModalProps {
   userInfo: PendingApprovalUserInfo;
   onLogout: () => void;
+  /** REJECTED shows "not accepted" with Edit and Resubmit. */
+  status?: "PENDING" | "REJECTED";
+  onEdit?: () => void;
+  onResubmit?: () => void;
+  isResubmitting?: boolean;
 }

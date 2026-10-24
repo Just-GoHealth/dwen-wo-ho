@@ -1,20 +1,26 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { mockBrowserStorage } from "@/lib/utils/shared/mock-browser-storage.test-helper";
 
-const refreshToken = vi.fn();
-const handleTokenExpiration = vi.fn();
+const refreshSession = vi.fn();
+const handleSessionExpired = vi.fn();
 
-vi.mock("@/lib/auth/session", () => ({
-  refreshToken,
-  handleTokenExpiration,
-}));
+vi.mock("@/lib/v2/http", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/v2/http")>();
+  return {
+    ...actual,
+    refreshSession,
+    ensureCsrf: vi.fn().mockResolvedValue(undefined),
+    readCookie: (name: string) =>
+      name === "XSRF-TOKEN" ? "csrf-1" : undefined,
+  };
+});
+
+vi.mock("@/lib/auth/session", () => ({ handleSessionExpired }));
 
 vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn(), info: vi.fn() },
 }));
 
 type ClientModule = typeof import("@/lib/api/client");
-type TokenModule = typeof import("@/lib/auth/access-token");
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -23,150 +29,82 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-describe("api client", () => {
-  let storage: Map<string, string>;
+describe("legacy api client (cookie session, no tokens)", () => {
   const fetchMock = vi.fn();
   let client: ClientModule;
-  let tokens: TokenModule;
 
   beforeEach(async () => {
     vi.resetModules();
-    storage = mockBrowserStorage();
     fetchMock.mockReset();
-    refreshToken.mockReset();
-    handleTokenExpiration.mockReset();
+    refreshSession.mockReset();
+    handleSessionExpired.mockReset();
     vi.stubGlobal("fetch", fetchMock);
-    tokens = await import("@/lib/auth/access-token");
+    vi.stubGlobal("window", {});
     client = await import("@/lib/api/client");
   });
 
   afterEach(() => {
-    tokens.clearTokens();
     vi.unstubAllGlobals();
   });
 
-  it("calls same-origin in the browser and sends the in-memory token", async () => {
-    tokens.setAccessToken("access-1");
-    storage.set("userType", "provider");
+  it("calls same-origin with credentials and no Authorization header", async () => {
     fetchMock.mockResolvedValue(jsonResponse({ data: { ok: true } }));
 
     const res = await client.api("/api/v1/schools");
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/v1/schools");
-    expect(init.headers.Authorization).toBe("Bearer access-1");
+    expect(init.credentials).toBe("include");
+    expect(init.headers.Authorization).toBeUndefined();
     expect(res.data).toEqual({ ok: true });
   });
 
-  it("never sends a token read from localStorage", async () => {
-    storage.set("token", "legacy-token");
-    storage.set("refreshToken", "legacy-refresh");
-    fetchMock.mockResolvedValue(jsonResponse({ data: {} }));
+  it("echoes XSRF-TOKEN on unsafe methods only", async () => {
+    // A fresh Response per call: a body can only be read once.
+    fetchMock.mockImplementation(async () => jsonResponse({ data: {} }));
 
+    await client.api("/api/v1/schools", { method: "POST", body: "{}" });
     await client.api("/api/v1/schools");
 
-    const [, init] = fetchMock.mock.calls[0];
-    expect(init.headers.Authorization).toBeUndefined();
+    expect(fetchMock.mock.calls[0][1].headers["X-XSRF-TOKEN"]).toBe("csrf-1");
+    expect(fetchMock.mock.calls[1][1].headers["X-XSRF-TOKEN"]).toBeUndefined();
   });
 
-  it("does not attach the token to public endpoints", async () => {
-    tokens.setAccessToken("access-1");
-    fetchMock.mockResolvedValue(jsonResponse({ data: {} }));
-
-    await client.api("/api/v1/auth/check-email", { method: "POST" });
-
-    const [, init] = fetchMock.mock.calls[0];
-    expect(init.headers.Authorization).toBeUndefined();
-  });
-
-  it("re-issues the access token after a reload before the first call", async () => {
-    storage.set("userType", "provider");
-    refreshToken.mockImplementation(async () => {
-      tokens.setAccessToken("access-from-cookie");
-      return "access-from-cookie";
-    });
-    fetchMock.mockResolvedValue(jsonResponse({ data: {} }));
-
-    await client.api("/api/v1/schools");
-
-    expect(refreshToken).toHaveBeenCalledTimes(1);
-    const [, init] = fetchMock.mock.calls[0];
-    expect(init.headers.Authorization).toBe("Bearer access-from-cookie");
-  });
-
-  it("does not try to refresh without a session hint", async () => {
-    fetchMock.mockResolvedValue(jsonResponse({ data: {} }));
-
-    await client.api("/api/v1/schools");
-
-    expect(refreshToken).not.toHaveBeenCalled();
-  });
-
-  it("refreshes once on 401 and retries with the new token", async () => {
-    tokens.setAccessToken("expired");
-    storage.set("userType", "provider");
-    refreshToken.mockImplementation(async () => {
-      tokens.setAccessToken("fresh");
-      return "fresh";
-    });
+  it("refreshes once on 401 and retries", async () => {
+    refreshSession.mockResolvedValue(true);
     fetchMock
-      .mockResolvedValueOnce(jsonResponse({ message: "expired" }, 401))
+      .mockResolvedValueOnce(jsonResponse({ code: "NOT_SIGNED_IN" }, 401))
       .mockResolvedValueOnce(jsonResponse({ data: { ok: true } }));
 
     const res = await client.api("/api/v1/schools");
 
-    expect(refreshToken).toHaveBeenCalledTimes(1);
+    expect(refreshSession).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[1][1].headers.Authorization).toBe(
-      "Bearer fresh",
-    );
     expect(res.data).toEqual({ ok: true });
-    expect(handleTokenExpiration).not.toHaveBeenCalled();
+    expect(handleSessionExpired).not.toHaveBeenCalled();
   });
 
-  it("logs out when the refresh fails", async () => {
-    tokens.setAccessToken("expired");
-    refreshToken.mockResolvedValue(null);
-    fetchMock.mockResolvedValue(jsonResponse({ message: "expired" }, 401));
+  it("ends the session when the retry is also 401", async () => {
+    refreshSession.mockResolvedValue(true);
+    fetchMock.mockResolvedValue(jsonResponse({ code: "NOT_SIGNED_IN" }, 401));
 
-    await expect(client.api("/api/v1/schools")).rejects.toThrow();
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(handleTokenExpiration).toHaveBeenCalledTimes(1);
+    await expect(client.api("/api/v1/schools")).rejects.toMatchObject({
+      code: "NOT_SIGNED_IN",
+    });
+    expect(refreshSession).toHaveBeenCalledTimes(1);
+    expect(handleSessionExpired).toHaveBeenCalledTimes(1);
   });
 
-  it("logs out instead of looping when the retry is also 401", async () => {
-    tokens.setAccessToken("expired");
-    refreshToken.mockResolvedValue("fresh");
-    fetchMock.mockResolvedValue(jsonResponse({ message: "expired" }, 401));
+  it("throws an ApiError carrying the problem detail", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ status: 409, code: "STALE", detail: "Reload" }, 409),
+    );
 
-    await expect(client.api("/api/v1/schools")).rejects.toThrow();
-
-    expect(refreshToken).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(handleTokenExpiration).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not refresh when the caller sent its own Authorization header", async () => {
-    fetchMock.mockResolvedValue(jsonResponse({ message: "bad token" }, 401));
-
-    await expect(
-      client.api("/api/v1/schools", {
-        headers: { Authorization: "Bearer recovery-token" },
-      }),
-    ).rejects.toThrow();
-
-    expect(refreshToken).not.toHaveBeenCalled();
-  });
-
-  it("does not refresh on 403", async () => {
-    tokens.setAccessToken("access-1");
-    fetchMock.mockResolvedValue(jsonResponse({ message: "forbidden" }, 403));
-
-    await expect(client.api("/api/v1/schools")).rejects.toThrow();
-
-    expect(refreshToken).not.toHaveBeenCalled();
-    expect(handleTokenExpiration).not.toHaveBeenCalled();
+    await expect(client.api("/api/v1/schools")).rejects.toMatchObject({
+      code: "STALE",
+      message: "Reload",
+    });
+    expect(refreshSession).not.toHaveBeenCalled();
   });
 
   it("returns text payloads for CSV responses", async () => {

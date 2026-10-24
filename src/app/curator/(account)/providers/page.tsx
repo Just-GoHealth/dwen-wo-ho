@@ -6,6 +6,7 @@ import { MdHealthAndSafety } from "react-icons/md";
 import WidthConstraint from "@/components/ui/width-constraint";
 import ProviderDetailsPanel from "@/components/curator/providers/provider-details-panel";
 import ProviderCard from "@/components/curator/providers/provider-card/index";
+import JustInQueue from "@/components/curator/providers/just-in-queue";
 import { ProviderCardSkeletonGrid } from "@/components/curator/providers/provider-card/skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
@@ -25,13 +26,13 @@ function ProvidersPageContent() {
     setFilter,
     showProviderModal,
     setShowProviderModal,
-    selectedProviderEmail,
+    selectedProviderId,
     showApproveModal,
     setShowApproveModal,
     showRejectModal,
     setShowRejectModal,
-    modalProviderEmail,
-    setModalProviderEmail,
+    modalProviderId,
+    setModalProviderId,
     currentAction,
     handleProviderSelect,
     handleShowApproveModal,
@@ -43,14 +44,15 @@ function ProvidersPageContent() {
 
   // Auto-open provider modal from notification query param
   useEffect(() => {
-    const providerModalEmail = searchParams.get("providerModal");
-    if (providerModalEmail && !isLoading && providersList.length > 0) {
+    // `providerModal` carries the provider id (notification links).
+    const providerModalId = searchParams.get("providerModal");
+    if (providerModalId && !isLoading && providersList.length > 0) {
       // Check if provider exists in list before opening
       const providerExists = providersList.some(
-        (p) => p.email === providerModalEmail,
+        (p) => p.id === providerModalId,
       );
       if (providerExists) {
-        handleProviderSelect(providerModalEmail);
+        handleProviderSelect(providerModalId);
         // Clean up URL by removing query param
         const newUrl = window.location.pathname;
         window.history.replaceState({}, "", newUrl);
@@ -137,6 +139,8 @@ function ProvidersPageContent() {
             </div>
           </div>
 
+          <JustInQueue />
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {filteredProviders.length === 0 ? (
               <div className="col-span-full py-12 text-center">
@@ -151,14 +155,14 @@ function ProvidersPageContent() {
             ) : (
               filteredProviders.map((provider) => (
                 <ProviderCard
-                  key={provider.email}
+                  key={provider.id}
                   provider={provider}
                   onViewDetails={handleProviderSelect}
                   onShowApproveModal={handleShowApproveModal}
                   onShowRejectModal={handleShowRejectModal}
                   isModerating={currentAction !== null}
                   currentAction={currentAction}
-                  moderatingProviderEmail={modalProviderEmail}
+                  moderatingProviderId={modalProviderId}
                 />
               ))
             )}
@@ -168,13 +172,13 @@ function ProvidersPageContent() {
           <ProviderDetailsPanel
             isOpen={showProviderModal}
             onClose={() => setShowProviderModal(false)}
-            providerEmail={selectedProviderEmail}
+            providerId={selectedProviderId}
             provider={selectedProvider}
             onShowApproveModal={handleShowApproveModal}
             onShowRejectModal={handleShowRejectModal}
             isModerating={currentAction !== null}
             currentAction={currentAction}
-            moderatingProviderEmail={modalProviderEmail}
+            moderatingProviderId={modalProviderId}
           />
 
           {/* Approve Confirmation Modal */}
@@ -182,11 +186,11 @@ function ProvidersPageContent() {
             isOpen={showApproveModal}
             onClose={() => {
               setShowApproveModal(false);
-              setModalProviderEmail("");
+              setModalProviderId("");
             }}
             onConfirm={handleApproveConfirm}
             title="Approve Provider Confirmation"
-            message={`Are you sure you want to approve ${getProviderName(modalProviderEmail)} as a provider?`}
+            message={`Are you sure you want to approve ${getProviderName(modalProviderId)} as a provider?`}
             confirmText="Yes, Approve"
             variant="success"
             isLoading={currentAction === "approving"}
@@ -197,11 +201,11 @@ function ProvidersPageContent() {
             isOpen={showRejectModal}
             onClose={() => {
               setShowRejectModal(false);
-              setModalProviderEmail("");
+              setModalProviderId("");
             }}
             onConfirm={handleRejectConfirm}
             title="Reject Provider Confirmation"
-            message={`Are you sure you want to reject ${getProviderName(modalProviderEmail)}'s provider application?`}
+            message={`Are you sure you want to reject ${getProviderName(modalProviderId)}'s provider application?`}
             confirmText="Yes, Reject"
             variant="danger"
             isLoading={currentAction === "rejecting"}

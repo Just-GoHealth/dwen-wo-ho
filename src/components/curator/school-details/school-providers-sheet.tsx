@@ -49,7 +49,8 @@ function ProviderAvatar({
  * place, to a detail view on click (no separate route/modal). The mock's
  * detail view shows fabricated stat chips (patients/911/load%) with no
  * backing data on `SchoolProvider` — this shows only real fields instead
- * (specialty, email, phone, application status). Adding a provider stays
+ * (role group, phone, application status; v2 campus providers carry no
+ * email). Adding a provider stays
  * on its existing Creative Studios flow rather than the mock's in-sheet
  * add-mode, since that flow has real backend wiring this doesn't.
  */
@@ -98,7 +99,7 @@ export function SchoolProvidersSheet({
               ) : (
                 providers.map((provider) => (
                   <button
-                    key={provider.email}
+                    key={provider.id}
                     type="button"
                     onClick={() => setSelected(provider)}
                     className="group hover:bg-foreground/5 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors"
@@ -151,14 +152,6 @@ export function SchoolProvidersSheet({
               </p>
 
               <div className="mt-2 grid w-full grid-cols-1 gap-2 text-left">
-                {selected.email && (
-                  <div className="bg-muted/40 rounded-lg px-3 py-2">
-                    <p className="text-muted-foreground text-[10px] font-bold tracking-wide uppercase">
-                      Email
-                    </p>
-                    <p className="text-foreground text-sm">{selected.email}</p>
-                  </div>
-                )}
                 {selected.officePhoneNumber && (
                   <div className="bg-muted/40 rounded-lg px-3 py-2">
                     <p className="text-muted-foreground text-[10px] font-bold tracking-wide uppercase">

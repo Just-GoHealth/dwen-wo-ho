@@ -3,12 +3,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { creativeStudiosService } from "@/services/curator/creative-studios";
-import { specialtiesService } from "@/services/shared/specialties";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
+import { toastCuratorError } from "@/lib/v2/curator/errors";
 import type {
   CreateCampusInput,
   CreateProgrammeInput,
-  CreateSpecialtyInput,
+  CreateStudioProviderInput,
   CreateTagInput,
 } from "@/lib/types/api/creative-studios";
 
@@ -21,17 +21,19 @@ export default function useCreativeStudiosQuery() {
     });
   };
 
+  // Field problems (NAME_TAKEN on fullName/nicknames/title, VALIDATION) are shown
+  // beside the fields by the flow; the toast carries the server's `detail`.
   const createCampusMutation = useMutation({
     mutationFn: (input: CreateCampusInput) =>
       creativeStudiosService.createCampus(input),
     onSuccess: () => {
       invalidateCreativeStudiosSummary();
       void queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.campuses] });
+      void queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.schools] });
       toast.success("Campus created successfully");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create campus");
-    },
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to create campus" }),
   });
 
   const createProgrammeMutation = useMutation({
@@ -42,9 +44,8 @@ export default function useCreativeStudiosQuery() {
       void queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.programmes] });
       toast.success("Programme created successfully");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create programme");
-    },
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to create programme" }),
   });
 
   const createTagMutation = useMutation({
@@ -55,34 +56,30 @@ export default function useCreativeStudiosQuery() {
       void queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tags] });
       toast.success("Tag created successfully");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create tag");
-    },
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to create tag" }),
   });
 
-  const createSpecialtyMutation = useMutation({
-    mutationFn: (input: CreateSpecialtyInput) =>
-      specialtiesService.createSpecialty(input),
+  const createProviderMutation = useMutation({
+    mutationFn: (input: CreateStudioProviderInput) =>
+      creativeStudiosService.createProvider(input),
     onSuccess: () => {
       invalidateCreativeStudiosSummary();
-      void queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.specialties],
-      });
+      void queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.providers] });
       toast.success("Provider created successfully");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create provider");
-    },
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to create provider" }),
   });
 
   return {
     createCampus: createCampusMutation.mutateAsync,
     createProgramme: createProgrammeMutation.mutateAsync,
     createTag: createTagMutation.mutateAsync,
-    createSpecialty: createSpecialtyMutation.mutateAsync,
+    createProvider: createProviderMutation.mutateAsync,
     isCreatingCampus: createCampusMutation.isPending,
     isCreatingProgramme: createProgrammeMutation.isPending,
     isCreatingTag: createTagMutation.isPending,
-    isCreatingSpecialty: createSpecialtyMutation.isPending,
+    isCreatingProvider: createProviderMutation.isPending,
   };
 }

@@ -6,6 +6,9 @@ import type { Route } from "next";
 import { Trophy, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import useVersionsQuery from "@/hooks/curator/competitions/use-versions";
 import { DYNAMIC_ROUTES } from "@/lib/constants/infra/routes";
 
 const RECENT_KEY = "recent-competition-codes";
@@ -27,15 +30,15 @@ function saveRecentCode(code: string) {
 }
 
 /**
- * Competitions entry screen — there's no endpoint that lists/creates
- * versions, only ones scoped by a version code the curator already knows,
- * so this is a code input + a locally-remembered "recent codes" list
- * rather than a real browsable index.
+ * Competitions entry screen: every version from GET /versions, plus a code
+ * input and a locally-remembered "recent codes" list for quick jumps.
  */
 export default function CompetitionsEntryPage() {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
+  const { useVersions } = useVersionsQuery();
+  const { data: versions, isLoading: versionsLoading } = useVersions();
 
   useEffect(() => {
     setRecent(loadRecentCodes());
@@ -81,6 +84,38 @@ export default function CompetitionsEntryPage() {
             <ArrowRight className="size-4" />
           </Button>
         </form>
+
+        <div className="mt-8">
+          <p className="text-muted-foreground mb-2 text-xs font-bold tracking-[.1em] uppercase">
+            All competitions
+          </p>
+          {versionsLoading && <Skeleton className="h-14 w-full rounded-xl" />}
+          {!versionsLoading && (versions ?? []).length === 0 && (
+            <p className="text-muted-foreground text-sm">
+              No competitions yet.
+            </p>
+          )}
+          <div className="flex flex-col gap-2">
+            {(versions ?? []).map((v) => (
+              <button
+                key={v.code}
+                type="button"
+                onClick={() => goToVersion(v.code)}
+                className="border-border bg-card/40 hover:border-primary/50 flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition-colors"
+              >
+                <span className="min-w-0">
+                  <span className="text-foreground block truncate font-extrabold">
+                    {v.label}
+                  </span>
+                  <span className="text-muted-foreground text-xs">
+                    {v.code}
+                  </span>
+                </span>
+                <Badge variant="secondary">{v.status}</Badge>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {recent.length > 0 && (
           <div className="mt-8">

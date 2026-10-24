@@ -9,6 +9,7 @@ import { BaseSignInFormProps } from "@/lib/types/components/auth/base-sign-in";
 import { useTheme } from "next-themes";
 import { useHydrated } from "@/hooks/shared/use-hydrated";
 import type { AuthAudience } from "@/lib/types/components/auth/base-sign-in";
+import { ApiErrorNote } from "@/components/shared/api-error-note";
 
 const AUDIENCE_LABELS: Record<AuthAudience, string> = {
   provider: "Providers",
@@ -26,6 +27,8 @@ export const BaseSignInForm = ({
   isLoading,
   isRecovering,
   successMessage,
+  apiError,
+  secondsLeft = 0,
 }: BaseSignInFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const { theme } = useTheme();
@@ -115,13 +118,22 @@ export const BaseSignInForm = ({
           </div>
         </div>
 
+        {apiError?.code !== "INCORRECT_PASSWORD" && (
+          <ApiErrorNote error={apiError ?? null} secondsLeft={secondsLeft} />
+        )}
+        {apiError?.code === "INCORRECT_PASSWORD" && secondsLeft > 0 && (
+          <ApiErrorNote error={apiError} secondsLeft={secondsLeft} />
+        )}
+
         <div className="pt-2">
           <LoadingButton
             form="login-form"
             type="submit"
             loading={isLoading}
             loadingText="Signing In..."
-            disabled={!email || Object.keys(errors).length > 0}
+            disabled={
+              !email || Object.keys(errors).length > 0 || secondsLeft > 0
+            }
             className="h-12 w-full rounded-lg text-lg font-bold shadow-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
           >
             Sign In

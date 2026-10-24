@@ -51,14 +51,9 @@ export const TRIAGE_TIER_LABELS: Record<TriageTier, string> = {
   asap: "ASAP",
 };
 
-export const TRIAGE_CHIP_VARIANT = {
-  "911": "triage-911",
-  now: "triage-now",
-  asap: "triage-asap",
-} as const;
-
-export const TRIAGE_CHIP_VARIANT_LIT = {
-  "911": "triage-911-lit",
-  now: "triage-now-lit",
-  asap: "triage-asap-lit",
-} as const;
+/** Maps the app's tier keys to `@just-gohealth/ui`'s `TriageBadge` levels. */
+export const TRIAGE_TIER_LEVEL = {
+  "911": "911",
+  now: "NOW",
+  asap: "ASAP",
+} as const satisfies Record<TriageTier, "911" | "NOW" | "ASAP">;

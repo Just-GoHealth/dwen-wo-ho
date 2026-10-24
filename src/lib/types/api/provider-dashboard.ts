@@ -1,11 +1,12 @@
-import { ProviderNotification } from "../entities/notification";
-import type { PatientCase } from "./patient-results";
-import type { ProviderAssociatedSchool } from "./providers";
+import type { ProviderProfile } from "@/lib/v2/types";
 
+/** What the profile dialog and glass bar show, derived from `GET /providers/me`. */
 export interface ProviderProfileData {
   title: string;
   name: string;
+  /** First role group's name. */
   specialty: string;
+  /** The slogan. */
   status: string;
   phone: string;
   avatarUrl: string;
@@ -15,29 +16,27 @@ export interface ProviderProfileData {
   ranking?: string; // frontend-only computed field
 }
 
-export interface ProviderDashboardInitResponse {
-  profile: ProviderProfileData;
-  schools: ProviderAssociatedSchool[];
-  patients: PatientCase[];
-  notifications: {
-    items: ProviderNotification[];
-    unreadCount: number;
-  };
-}
+export const toProviderProfileData = (
+  profile: ProviderProfile,
+): ProviderProfileData => ({
+  title: profile.title ?? "",
+  name: profile.fullName,
+  specialty: profile.roleGroups[0]?.name ?? "",
+  status: profile.slogan ?? "",
+  phone: profile.phone ?? "",
+  avatarUrl: profile.photo?.url ?? "",
+  email: profile.email ?? "",
+  memberSince: profile.decidedAt ?? profile.submittedAt ?? "",
+  lastUpdated: null,
+});
 
-export interface ProviderUpdateProfileRequest {
-  fieldKey: "title" | "name" | "specialty" | "status" | "phone";
-  value: string;
-}
-
-export interface ProviderUpdatePatientStatusRequest {
-  status: string;
-}
-
-export interface ProviderPatientsParams {
-  schoolId?: string;
-  status?: string;
-  search?: string;
-  page?: number;
-  limit?: number;
+/** A campus the provider serves, as the ring row and profile tabs show it. */
+export interface ProviderCampusSummary {
+  schoolId: string;
+  schoolName: string;
+  /** Results currently visible at this campus. */
+  count: number;
+  hasNotif: boolean;
+  avatarUrl: string | null;
+  primaryColor: string | null;
 }

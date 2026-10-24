@@ -1,6 +1,9 @@
 import { FieldErrors, UseFormRegister } from "react-hook-form";
+import type { DescribedApiError } from "@/lib/utils/shared/api-error";
 
-export type AuthStep = "check-email" | "sign-in" | "sign-up" | "reset-password";
+/** `claim` is for an account a curator created: claim → code → password. */
+export type AuthStep =
+  "check-email" | "sign-in" | "sign-up" | "reset-password" | "claim";
 
 export type AuthAudience = "provider" | "curator";
 
@@ -17,4 +20,7 @@ export interface BaseSignInFormProps {
   isLoading: boolean;
   isRecovering?: boolean;
   successMessage?: string;
+  apiError?: DescribedApiError | null;
+  /** RATE_LIMITED countdown; the submit button stays disabled while > 0. */
+  secondsLeft?: number;
 }

@@ -16,7 +16,8 @@ export interface NotificationsSheetProps<N> {
   markAllRead: () => void;
   markOneRead: (id: string | number) => void;
   deleteOne?: (id: string | number) => void;
-  clearAllNotifications: () => void;
+  /** Omit to hide "Clear all" (v2 has no clear-all endpoint). */
+  clearAllNotifications?: () => void;
   onNavigate?: (link: string) => void;
   isLoading?: boolean;
   isMarkingRead?: boolean;
@@ -49,7 +50,8 @@ export interface NotificationFilterTabsProps {
   unreadCountForActions: number;
   hasNotifications: boolean;
   markAllRead: () => void;
-  clearAllNotifications: () => void;
+  /** Omit to hide "Clear all" (v2 has no clear-all endpoint). */
+  clearAllNotifications?: () => void;
   isMarkingAllRead: boolean;
   isClearing: boolean;
 }

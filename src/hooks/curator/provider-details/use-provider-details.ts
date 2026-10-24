@@ -8,17 +8,17 @@ import { useCuratorProviderApproval } from "@/hooks/curator/provider-approval/us
 
 export function useCuratorProviderDetails() {
   const params = useParams();
-  const email = decodeURIComponent(params.email as string);
+  const providerId = decodeURIComponent(params.providerId as string);
 
   const { isAuthenticated, router } = useCuratorAuth();
 
-  const { provider, isLoading } = useCuratorProviderList(
-    email,
+  const { provider, isLoading, refetch } = useCuratorProviderList(
+    providerId,
     isAuthenticated,
   );
 
   const { isActionLoading, successMessage, handleApprove, handleReject } =
-    useCuratorProviderApproval(email);
+    useCuratorProviderApproval(providerId, () => void refetch());
 
   return {
     provider,

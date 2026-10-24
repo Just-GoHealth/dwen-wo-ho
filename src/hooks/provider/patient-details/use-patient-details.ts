@@ -1,56 +1,27 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import useUserQuery from "@/hooks/queries/use-user-profile";
-import usePatientResultQuery from "@/hooks/queries/use-patient-result";
-import { getColorHex } from "@/lib/utils/shared/color-hex";
-import { mapBoardToMetricCategories } from "@/lib/utils/shared/map-board-to-assessment";
-import { PatientActionResponseDTO } from "@/lib/types/api/patient-results";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { resultsApi } from "@/lib/v2/results";
+import { ApiError } from "@/lib/v2/http";
+import { useProviderMe } from "@/hooks/queries/use-provider-me";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
+import { describeApiError } from "@/lib/utils/shared/api-error";
+import {
+  mapOutcomesToMetricCategories,
+  triageTagOf,
+} from "@/lib/utils/provider/result-metrics";
+import type { CareStatus, ResultDetail } from "@/lib/v2/types";
 
-const EMPTY_HISTORY_ACTIONS: PatientActionResponseDTO[] = [];
-
-/** Shown in place of real categories when a patient has no lock-in
- * assessment yet (`lockinId: null` from the backend) — the dome tiles
- * should still render so the screen isn't blank, just with a "no data"
- * placeholder instead of a real score/description. */
-const NO_DATA_METRICS: MetricCategory[] = [
-  {
-    name: "General Mental Health",
-    description: "No data yet",
-    score: "—",
-    color: "var(--sw-red-deep)",
-    items: [],
-  },
-  {
-    name: "Exam Anxiety",
-    description: "No data yet",
-    score: "—",
-    color: "var(--sw-red-deep)",
-    items: [],
-  },
-  {
-    name: "Exam Prep",
-    description: "No data yet",
-    score: "—",
-    color: "var(--sw-red-deep)",
-    items: [],
-  },
-];
-
-export type ActionTab = "pending" | "history";
+const V2 = QUERY_KEYS.v2;
 
 export interface MetricItem {
   name: string;
   description: string;
   value: string;
   color: string;
-  // only known for the newer screening-board shape (see
-  // mapBoardToMetricCategories) - the older lockin-assessment items only
-  // ever had a resolved color, no raw severity, so this stays undefined
-  // there and AssessmentDomeTile just shows a plain swatch for them
   severity?: "mild" | "mod" | "sev";
 }
 
@@ -62,231 +33,104 @@ export interface MetricCategory {
   items: MetricItem[];
 }
 
+/**
+ * One result: `GET /results/{id}` (opening it records the view), Active /
+ * Inactive, care (TREATING), and comments. A 404 means the result isn't
+ * available to this provider (not attached, or not yet accepted) — shown as
+ * such, never as a crash.
+ */
 export function useProviderPatientDetails() {
   const params = useParams();
   const router = useRouter();
   const resultId = params.resultId as string;
   const queryClient = useQueryClient();
+  const { data: me } = useProviderMe();
 
-  const { getProfileQuery } = useUserQuery();
-  const providerId = getProfileQuery.data?.id || getProfileQuery.data?.email;
+  const detailQuery = useQuery({
+    queryKey: V2.result(resultId),
+    queryFn: () => resultsApi.get(resultId),
+    enabled: !!resultId,
+    staleTime: 60 * 1000,
+    retry: (count, error) =>
+      !(error instanceof ApiError && error.status < 500) && count < 2,
+  });
+  const detail = detailQuery.data ?? null;
+  const notAvailable =
+    detailQuery.error instanceof ApiError &&
+    (detailQuery.error.code === "NOT_FOUND" ||
+      detailQuery.error.code === "FORBIDDEN");
 
-  const [activeTab, setActiveTab] = useState<ActionTab>("pending");
-  const [isAddActionOpen, setIsAddActionOpen] = useState(false);
+  const commentsQuery = useQuery({
+    queryKey: V2.resultComments(resultId),
+    queryFn: () => resultsApi.comments(resultId),
+    enabled: !!detail,
+    staleTime: 30 * 1000,
+  });
 
-  // Shared hooks (also used by the generic patient-result query layer) so
-  // this screen and any other caller of the same resultId hit the same
-  // React Query cache entry instead of two disjoint ones under different
-  // keys, and so the actions fetch runs in parallel with patient details
-  // rather than artificially waiting on it — it doesn't use patientData's
-  // value, only resultId, so there's no real dependency between them.
-  const {
-    usePatientFullDetails,
-    usePatientActions,
-    addPatientAction: addPatientActionMutate,
-    isAddingAction,
-    updateActionStatus,
-    isUpdating,
-  } = usePatientResultQuery();
+  const onDetail = (updated: ResultDetail) => {
+    queryClient.setQueryData(V2.result(resultId), updated);
+    void queryClient.invalidateQueries({ queryKey: V2.myCampuses });
+    void queryClient.invalidateQueries({ queryKey: V2.urgentResults });
+  };
+  const onError = (error: unknown) =>
+    toast.error(describeApiError(error).message);
 
-  const { data: patientData, isLoading: isPatientLoading } =
-    usePatientFullDetails(resultId, {
-      enabled: !!resultId && !!getProfileQuery.data,
-    });
-
-  const patientResult = patientData?.patientResult ?? null;
-  const lockInAssessment = patientData?.lockInAssessment ?? null;
-  const board = patientData?.board ?? null;
-
-  const { data: allActions = [], isLoading: isActionsLoading } =
-    usePatientActions(resultId, { enabled: !!resultId });
-
-  // Filter actions for provider's own actions only
-  const actions = useMemo(() => {
-    if (!providerId) return [];
-    return allActions.filter(
-      (action: PatientActionResponseDTO) =>
-        action.providerId === providerId || action.createdBy === providerId,
-    );
-  }, [allActions, providerId]);
-
-  // For now, all actions are shown as pending (type doesn't have status field)
-  const pendingActions = actions;
-  const historyActions = EMPTY_HISTORY_ACTIONS;
-
-  const addPatientAction = useCallback(
-    async (data: { title: string; type: string; notes?: string }) => {
-      const result = await addPatientActionMutate({ resultId, data });
-      setIsAddActionOpen(false);
-      return result;
+  const careMutation = useMutation({
+    mutationFn: (status: CareStatus) =>
+      resultsApi.setCare(resultId, { status }),
+    onSuccess: (updated) => {
+      onDetail(updated);
+      toast.success("You're now treating this student.");
     },
-    [addPatientActionMutate, resultId],
+    onError,
+  });
+
+  const activeMutation = useMutation({
+    mutationFn: (active: boolean) => resultsApi.setActive(resultId, active),
+    onSuccess: onDetail,
+    onError,
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: (body: string) => resultsApi.addComment(resultId, body),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: V2.resultComments(resultId) }),
+  });
+
+  const metrics = useMemo<MetricCategory[]>(
+    () => (detail ? mapOutcomesToMetricCategories(detail.outcomes) : []),
+    [detail],
   );
 
-  // Compute metrics categories (same as curator) - prefer the real
-  // screening board (matches what the patient's own app shows) when this
-  // patient has one; fall back to the older lockin-assessment shape for
-  // patients who haven't gone through the newer screening system yet.
-  const metrics = useMemo<MetricCategory[]>(() => {
-    const boardMetrics = mapBoardToMetricCategories(board);
-    if (boardMetrics) return boardMetrics;
-    if (!lockInAssessment) return NO_DATA_METRICS;
-    return [
-      {
-        name: "General Mental Health",
-        description: lockInAssessment.generalMentalHealth,
-        score: lockInAssessment.generalMentalHealthScore,
-        color: getColorHex(lockInAssessment.generalMentalHealthColor),
-        items: [
-          {
-            name: "Depression",
-            description: lockInAssessment.possibleDepressionDescription,
-            value: lockInAssessment.possibleDepressionScore,
-            color: getColorHex(lockInAssessment.possibleDepressionColor),
-          },
-          {
-            name: "Loneliness",
-            description: lockInAssessment.lonelinessScoreDescription,
-            value: lockInAssessment.lonelinessScore,
-            color: getColorHex(lockInAssessment.lonelinessColor),
-          },
-          {
-            name: "Suicidal Risk",
-            description: lockInAssessment.suicidalRiskScoreDescription,
-            value: lockInAssessment.suicidalRiskScore,
-            color: getColorHex(lockInAssessment.suicidalRiskColor),
-          },
-        ],
-      },
-      {
-        name: "Exam Anxiety",
-        description: lockInAssessment.examAnxiety,
-        score: lockInAssessment.examAnxietyScore,
-        color: getColorHex(lockInAssessment.examAnxietyColor),
-        items: [
-          {
-            name: "Physical Distress",
-            description: lockInAssessment.physicalDistressScoreDescription,
-            value: lockInAssessment.physicalDistressScore,
-            color: getColorHex(lockInAssessment.physicalDistressColor),
-          },
-          {
-            name: "Core Anxiety",
-            description: lockInAssessment.coreAnxietyScoreDescription,
-            value: lockInAssessment.coreAnxietyScore,
-            color: getColorHex(lockInAssessment.coreAnxietyColor),
-          },
-        ],
-      },
-      {
-        name: "Exam Prep",
-        description: lockInAssessment.examPrep,
-        score: lockInAssessment.examPrepScore,
-        color: getColorHex(lockInAssessment.examPrepColor),
-        items: [
-          {
-            name: "Motivation",
-            description: lockInAssessment.motivationScoreDescription,
-            value: lockInAssessment.motivationScore,
-            color: getColorHex(lockInAssessment.motivationColor),
-          },
-          {
-            name: "Procrastination",
-            description: lockInAssessment.procrastinationScoreDescription,
-            value: lockInAssessment.procrastinationScore,
-            color: getColorHex(lockInAssessment.procrastinationColor),
-          },
-          {
-            name: "Study Skills",
-            description: lockInAssessment.studySkillsScoreDescription,
-            value: lockInAssessment.studySkillsScore,
-            color: getColorHex(lockInAssessment.studySkillsColor),
-          },
-        ],
-      },
-    ];
-  }, [board, lockInAssessment]);
+  // A provider's id is their account id.
+  const myId = me?.id;
+  const myCare = detail?.care.find((c) => c.providerId === myId) ?? null;
+  const otherCare = detail?.care.filter((c) => c.providerId !== myId) ?? [];
 
-  // Check if provider is treating this patient
-  const isTreating = useMemo(() => {
-    if (!patientResult || !providerId) return false;
-    return patientResult.treatingProviders.some(
-      (p: { id: string | number }) =>
-        String(p.id) === String(providerId) || p.id === providerId,
-    );
-  }, [patientResult, providerId]);
-
-  // Check if another provider is already treating (exclusive mode)
-  const isAnotherProviderTreating = useMemo(() => {
-    if (!patientResult || !providerId) return false;
-    return patientResult.treatingProviders.some(
-      (p: { id: string | number }) =>
-        String(p.id) !== String(providerId) && p.id !== providerId,
-    );
-  }, [patientResult, providerId]);
-
-  // Get the treating provider name (if another is treating)
-  const treatingProviderName = useMemo(() => {
-    if (!patientResult || !providerId) return null;
-    const otherProvider = patientResult.treatingProviders.find(
-      (p: { id: string | number; fullName?: string }) =>
-        String(p.id) !== String(providerId) && p.id !== providerId,
-    );
-    return otherProvider?.fullName || null;
-  }, [patientResult, providerId]);
-
-  const handleUpdateActionStatus = useCallback(
-    async (actionStatus: "TREATING" | "NOT_TREATING") => {
-      if (!patientResult || !providerId) return;
-      await updateActionStatus({
-        resultId,
-        data: { providerId, actionStatus },
-      });
-    },
-    [patientResult, providerId, resultId, updateActionStatus],
-  );
-
-  // Refresh data helper
-  const refreshData = useCallback(() => {
-    queryClient.invalidateQueries({
-      queryKey: [QUERY_KEYS.patientResult, "full-details", resultId],
-    });
-    queryClient.invalidateQueries({
-      queryKey: [QUERY_KEYS.patientResult, "actions", String(resultId)],
-    });
-  }, [queryClient, resultId]);
+  const startTreating = useCallback(() => {
+    if (myCare?.status === "TREATING") return;
+    careMutation.mutate("TREATING");
+  }, [careMutation, myCare?.status]);
 
   return {
-    // Navigation
     router,
     resultId,
-
-    // Patient data
-    patientResult,
-    lockInAssessment,
-    isLoading: isPatientLoading,
-    refreshData,
-
-    // Metrics
+    detail,
+    tag: detail ? triageTagOf(detail) : null,
+    isLoading: detailQuery.isLoading,
+    notAvailable,
+    loadError: detailQuery.error && !notAvailable ? detailQuery.error : null,
     metrics,
-
-    // Actions
-    activeTab,
-    setActiveTab,
-    pendingActions,
-    historyActions,
-    isActionsLoading,
-    addPatientAction,
-    isAddingAction,
-    isAddActionOpen,
-    setIsAddActionOpen,
-
-    // Treatment status
-    isTreating,
-    isAnotherProviderTreating,
-    treatingProviderName,
-    handleUpdateActionStatus,
-    isUpdating,
-    providerId,
+    isTreating: myCare?.status === "TREATING",
+    otherCare,
+    startTreating,
+    isUpdatingCare: careMutation.isPending,
+    setActive: activeMutation.mutate,
+    isUpdatingActive: activeMutation.isPending,
+    comments: commentsQuery.data ?? [],
+    isCommentsLoading: commentsQuery.isLoading,
+    addComment: commentMutation.mutateAsync,
+    isAddingComment: commentMutation.isPending,
+    myAccountId: myId,
   };
 }

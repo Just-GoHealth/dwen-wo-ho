@@ -15,27 +15,31 @@ import { LoadingButton } from "@/components/ui/loading-button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import useAccessCodesQuery from "@/hooks/curator/competitions/use-access-codes";
-import type { AccessCodeStatus } from "@/lib/types/api/competitions";
+import { MAX_CODES_PER_BATCH, type CodeStatus } from "@/lib/v2/curator/nsmq";
+import type { UUID } from "@/lib/v2/curator/types";
+import { fieldMessage, toastCuratorError } from "@/lib/v2/curator/errors";
 import { cn } from "@/lib/utils";
 
 interface SchoolAccessCodesSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  teamId: number | null;
+  teamId: UUID | null;
   teamName: string;
 }
 
-const STATUS_TABS: { key: AccessCodeStatus | "ALL"; label: string }[] = [
+const STATUS_TABS: { key: CodeStatus | "ALL"; label: string }[] = [
   { key: "ALL", label: "All" },
   { key: "ISSUED", label: "Issued" },
   { key: "REDEEMED", label: "Redeemed" },
   { key: "REVOKED", label: "Revoked" },
+  { key: "EXPIRED", label: "Expired" },
 ];
 
-const STATUS_BADGE_CLASS: Record<AccessCodeStatus, string> = {
+const STATUS_BADGE_CLASS: Record<CodeStatus, string> = {
   ISSUED: "bg-primary/15 text-primary border-primary/30",
   REDEEMED: "bg-success/15 text-success border-success/30",
   REVOKED: "bg-destructive/15 text-destructive border-destructive/30",
+  EXPIRED: "bg-muted text-muted-foreground border-border",
 };
 
 function downloadCsv(csv: string, filename: string) {
@@ -53,8 +57,8 @@ function downloadCsv(csv: string, filename: string) {
 /**
  * Access codes management for a team — matches the mock's two-pane
  * "Standing codes"/"Generated" split (guide/Bronze Fury A_33.html `.ac`),
- * updated for the real API's three-state lifecycle (ISSUED/REDEEMED/
- * REVOKED) instead of the mock's simple used/unused binary. Shared between
+ * updated for the real API's lifecycle (ISSUED/REDEEMED/REVOKED/
+ * EXPIRED) instead of the mock's simple used/unused binary. Shared between
  * the school-detail page (this call site) and the Competitions team-detail
  * page — same teamId, same data.
  */
@@ -64,11 +68,12 @@ export function SchoolAccessCodesSheet({
   teamId,
   teamName,
 }: SchoolAccessCodesSheetProps) {
-  const [statusTab, setStatusTab] = useState<AccessCodeStatus | "ALL">("ALL");
+  const [statusTab, setStatusTab] = useState<CodeStatus | "ALL">("ALL");
   const [showGenerate, setShowGenerate] = useState(false);
   const [count, setCount] = useState(5);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [revokeReason, setRevokeReason] = useState("");
+  const [mintError, setMintError] = useState<string | undefined>();
 
   const {
     useAccessCodes,
@@ -91,30 +96,47 @@ export function SchoolAccessCodesSheet({
 
   const handleGenerate = async () => {
     if (!teamId) return;
-    await mintAccessCodes({
-      teamId,
-      data: {
-        count,
-        seatLabels: Array.from({ length: count }, (_, i) => `Seat ${i + 1}`),
-      },
-    });
-    setShowGenerate(false);
+    setMintError(undefined);
+    try {
+      await mintAccessCodes({
+        teamId,
+        data: {
+          count,
+          seatLabels: Array.from({ length: count }, (_, i) => `Seat ${i + 1}`),
+        },
+      });
+      setShowGenerate(false);
+    } catch (error) {
+      // 422 CAPACITY_REACHED is toasted by the hook; `count` errors sit by the field.
+      setMintError(fieldMessage(error, "count"));
+    }
   };
 
   const handleRevoke = async () => {
     if (!teamId || !revokingId) return;
-    await revokeAccessCode({
-      teamId,
-      codeId: revokingId,
-      reason: revokeReason || "Revoked by curator",
-    });
+    try {
+      await revokeAccessCode({
+        teamId,
+        codeId: revokingId,
+        reason: revokeReason || "Revoked by curator",
+      });
+    } catch {
+      // Toasted by the hook; the list was refreshed.
+    }
     setRevokingId(null);
     setRevokeReason("");
   };
 
   const handleExport = async () => {
     if (!teamId) return;
-    const csv = await exportAccessCodes(teamId);
+    // TODO(v2-backend): v1 exported one batch (batchId); v2 exports every unused code.
+    let csv: string;
+    try {
+      csv = await exportAccessCodes(teamId);
+    } catch (error) {
+      toastCuratorError(error, { fallback: "Failed to export access codes" });
+      return;
+    }
     downloadCsv(csv, `${teamName || "team"}-access-codes.csv`);
   };
 
@@ -163,10 +185,16 @@ export function SchoolAccessCodesSheet({
                       id="ac-count"
                       type="number"
                       min={1}
-                      max={50}
+                      max={MAX_CODES_PER_BATCH}
                       value={count}
                       onChange={(e) => setCount(Number(e.target.value) || 1)}
+                      aria-invalid={!!mintError}
                     />
+                    {mintError && (
+                      <p className="text-destructive mt-1 text-xs">
+                        {mintError}
+                      </p>
+                    )}
                   </div>
                   <LoadingButton
                     onClick={handleGenerate}
@@ -228,13 +256,14 @@ export function SchoolAccessCodesSheet({
                         </Badge>
                       </div>
                       <p className="text-muted-foreground truncate text-xs">
-                        {c.seatLabel}
+                        {/* TODO(v2-backend): CodeView has no redeemer nickname or revoke reason. */}
+                        {c.seatLabel ?? "No seat"}
                         {c.status === "REDEEMED" &&
-                          c.redeemedByNickname &&
-                          ` · redeemed by ${c.redeemedByNickname}`}
-                        {c.status === "REVOKED" &&
-                          c.revokeReason &&
-                          ` · ${c.revokeReason}`}
+                          c.redeemedAt &&
+                          ` · redeemed ${new Date(c.redeemedAt).toLocaleDateString()}`}
+                        {c.status === "ISSUED" &&
+                          c.expiresAt &&
+                          ` · expires ${new Date(c.expiresAt).toLocaleDateString()}`}
                       </p>
                     </div>
                     <button

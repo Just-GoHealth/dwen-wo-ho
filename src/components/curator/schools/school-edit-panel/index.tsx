@@ -7,6 +7,7 @@ import { AnimatedModalShell } from "@/components/overlays/shared/animated-modal-
 import { SchoolEditHeader } from "./header";
 import { SchoolEditForm } from "./form";
 import { SchoolEditFooter } from "./footer";
+import type { CuratorSchool } from "@/lib/types/components/curator/schools/campus";
 
 const SchoolEditPanel = ({
   isOpen,
@@ -15,19 +16,29 @@ const SchoolEditPanel = ({
   onSchoolUpdated,
   onDisableSchool,
 }: SchoolEditPanelProps) => {
+  // The school screens load v2 campuses (useSchool → CuratorSchool).
+  const campus = school as CuratorSchool;
   const {
     showCampusDropdown,
     setShowCampusDropdown,
-    selectedCampuses,
     formData,
+    campusTypes,
+    locations,
+    selectedLocationName,
     updateSchoolMutation,
     campusDropdownRef,
     hasChanges,
+    fieldError,
     handleInputChange,
-    handleCampusToggle,
+    handleLocationSelect,
     handleSubmit,
     handleDisable,
-  } = useSchoolEdit({ school, onClose, onSchoolUpdated, onDisableSchool });
+  } = useSchoolEdit({
+    school: campus,
+    onClose,
+    onSchoolUpdated,
+    onDisableSchool,
+  });
 
   useClickOutside(campusDropdownRef, () => {
     setShowCampusDropdown(false);
@@ -42,17 +53,20 @@ const SchoolEditPanel = ({
     >
       <SchoolEditHeader onClose={onClose} />
 
-      <div className="no-scrollbar flex-1 overflow-y-auto p-8">
+      <div className="no-scrollbar flex-1 overflow-y-auto p-4 sm:p-8">
         <SchoolEditForm
           formData={formData}
           handleInputChange={handleInputChange}
+          campusTypes={campusTypes}
+          locations={locations}
+          selectedLocationName={selectedLocationName}
           showCampusDropdown={showCampusDropdown}
           setShowCampusDropdown={setShowCampusDropdown}
-          selectedCampuses={selectedCampuses}
-          handleCampusToggle={handleCampusToggle}
+          handleLocationSelect={handleLocationSelect}
           campusDropdownRef={campusDropdownRef}
           handleSubmit={handleSubmit}
-          school={school}
+          fieldError={fieldError}
+          school={campus}
         />
       </div>
 

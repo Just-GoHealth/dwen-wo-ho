@@ -14,6 +14,7 @@ export const SchoolsTab = ({
   handleSchoolClick,
   setSchoolToRemove,
   setSchoolToAdd,
+  associationsAvailable = true,
 }: SchoolsTabProps) => {
   return (
     <div className="space-y-6">
@@ -28,7 +29,11 @@ export const SchoolsTab = ({
         ) : associatedSchools.length === 0 ? (
           <div className="py-8 text-center text-gray-500">
             <MdSchool className="mx-auto mb-2 h-12 w-12 text-gray-300" />
-            <p>No schools associated yet</p>
+            <p>
+              {associationsAvailable
+                ? "No schools associated yet"
+                : "This partner's schools can't be listed yet."}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">

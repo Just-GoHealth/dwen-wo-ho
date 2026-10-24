@@ -1,26 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { SpecialtyStepProps } from "@/lib/types/components/provider/auth";
-import { useSpecialties } from "@/hooks/queries/use-specialties";
+import { useRoleCategories } from "@/hooks/queries/use-provider-me";
 
+/** Role groups come from `GET /role-categories`; the value is the category id. */
 export const useSpecialtyStep = ({
   specialty,
   onChange,
 }: SpecialtyStepProps) => {
-  const [selectedSpecialty, setSelectedSpecialty] = useState(specialty);
-  const { specialties, isLoading: isLoadingSpecialties } = useSpecialties();
+  const { data: categories = [], isLoading } = useRoleCategories();
 
-  const handleSpecialtySelect = (specialty: string) => {
-    const newSelection = selectedSpecialty === specialty ? "" : specialty;
-    setSelectedSpecialty(newSelection);
-    onChange("specialty", newSelection);
+  const handleSpecialtySelect = (categoryId: string) => {
+    onChange("specialty", specialty === categoryId ? "" : categoryId);
   };
 
   return {
-    selectedSpecialty,
+    selectedSpecialty: specialty,
     handleSpecialtySelect,
-    specialties,
-    isLoadingSpecialties,
+    specialties: categories,
+    isLoadingSpecialties: isLoading,
   };
 };

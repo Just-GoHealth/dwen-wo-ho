@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/constants/infra/routes";
 import { School } from "@/lib/types/entities/school";
-import { getCleanErrorMessage } from "@/lib/utils/auth/error";
+import { curatorErrorMessage } from "@/lib/v2/curator/errors";
 
 const DISABLE_SCHOOL_FAILED_MESSAGE =
-  "Failed to disable school. Please try again.";
+  "Failed to archive school. Please try again.";
 
 export function useSchoolActions(
   schoolId: string,
@@ -24,6 +24,7 @@ export function useSchoolActions(
     await invalidateSchool(schoolId);
   }, [invalidateSchool, schoolId]);
 
+  // "Disable" archives the campus (POST /campuses/{id}/archive).
   const handleDisableConfirm = useCallback(async () => {
     if (!school) return;
     setIsActionLoading(true);
@@ -33,7 +34,7 @@ export function useSchoolActions(
       router.push(ROUTES.curator.schools);
     } catch (err: unknown) {
       // Keep the confirmation modal open so the curator can retry or cancel.
-      toast.error(getCleanErrorMessage(err) || DISABLE_SCHOOL_FAILED_MESSAGE);
+      toast.error(curatorErrorMessage(err, DISABLE_SCHOOL_FAILED_MESSAGE));
     } finally {
       setIsActionLoading(false);
     }

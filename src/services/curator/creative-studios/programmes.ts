@@ -1,42 +1,31 @@
-import { api } from "@/lib/api";
-import { STATIC_ENDPOINTS } from "@/lib/constants/infra/endpoints";
-import type {
-  CreateProgrammeInput,
-  ProgrammeResponse,
-} from "@/lib/types/api/creative-studios";
-import {
-  appendFormDataArray,
-  appendFormDataFile,
-  appendFormDataScalar,
-} from "@/lib/utils/shared/append-form-data";
-import { requireSuccessData } from "@/lib/utils/shared/api-result";
-
-function buildProgrammeFormData(input: CreateProgrammeInput): FormData {
-  const formData = new FormData();
-  appendFormDataScalar(formData, "fullName", input.fullName);
-  appendFormDataArray(formData, "nicknames", input.nicknames);
-  appendFormDataScalar(formData, "bio", input.bio ?? "");
-  appendFormDataScalar(
-    formData,
-    "durationFrom",
-    String(input.durationFromYear),
-  );
-  appendFormDataScalar(formData, "durationTo", String(input.durationToYear));
-  appendFormDataFile(formData, "coverPhoto", input.coverPhoto);
-  return formData;
-}
+import { catalogueCurator } from "@/lib/v2/curator/catalogue";
+import type { CatalogueProgramme } from "@/lib/v2/curator/campuses";
+import type { CreateProgrammeInput } from "@/lib/types/api/creative-studios";
 
 export const programmesService = {
+  /**
+   * POST /programmes, then the cover upload. v2 keeps one `defaultYears` per programme;
+   * the year range (yearsFrom/yearsTo) is set per campus when a campus offers it.
+   */
   createProgramme: async (
     input: CreateProgrammeInput,
-  ): Promise<ProgrammeResponse> => {
-    const result = await api(STATIC_ENDPOINTS.PROGRAMMES, {
-      method: "POST",
-      body: buildProgrammeFormData(input),
-    });
-    return requireSuccessData<ProgrammeResponse>(
-      result,
-      "Failed to create programme",
+  ): Promise<CatalogueProgramme> => {
+    const defaultYears = Math.max(
+      1,
+      input.durationToYear - input.durationFromYear + 1,
     );
+    let programme = await catalogueCurator.createProgramme({
+      fullName: input.fullName,
+      nicknames: input.nicknames,
+      bio: input.bio?.trim() ? input.bio : null,
+      defaultYears,
+    });
+    if (input.coverPhoto) {
+      programme = await catalogueCurator.uploadProgrammeCover(
+        programme.id,
+        input.coverPhoto,
+      );
+    }
+    return programme;
   },
 };

@@ -13,11 +13,11 @@ interface UseSchoolIconHandlersParams {
       lockIns: string[];
     },
     editingIcon: SchoolIcon | null,
-    schoolId: number | null,
+    schoolId: string | null,
     onComplete: () => void,
   ) => void;
   editingIcon: SchoolIcon | null;
-  schoolId: number | null;
+  schoolId: string | null;
   setShowAddIconWizard: (open: boolean) => void;
   setEditingIcon: (icon: SchoolIcon | null) => void;
 }

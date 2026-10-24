@@ -5,7 +5,17 @@ import { useHydrated } from "@/hooks/shared/use-hydrated";
 import { m } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoadingButton } from "@/components/ui/loading-button";
-import { Clock, LogOut, Phone, Mail, Check, Circle } from "lucide-react";
+import {
+  Clock,
+  LogOut,
+  Phone,
+  Mail,
+  Check,
+  Circle,
+  Pencil,
+  RotateCcw,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PENDING_APPROVAL_TEXTS } from "@/lib/constants/components/provider/pending-approval-modal/content";
 import { Logo } from "@/components/shared/logo";
@@ -15,7 +25,12 @@ import { useTheme } from "next-themes";
 export function PendingApprovalModal({
   userInfo,
   onLogout,
+  status = "PENDING",
+  onEdit,
+  onResubmit,
+  isResubmitting = false,
 }: PendingApprovalModalProps) {
+  const isRejected = status === "REJECTED";
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const role = userInfo.title || userInfo.specialty;
   const initials = userInfo.name
@@ -46,7 +61,14 @@ export function PendingApprovalModal({
               className="h-auto w-30 sm:w-auto"
             />
           </div>
-          <span className="rounded-md bg-yellow-500/10 px-3 py-1.5 text-xs font-semibold text-yellow-600 dark:text-yellow-500">
+          <span
+            className={cn(
+              "rounded-md px-3 py-1.5 text-xs font-semibold",
+              isRejected
+                ? "bg-destructive/10 text-destructive"
+                : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-500",
+            )}
+          >
             {PENDING_APPROVAL_TEXTS.headerLabel}
           </span>
         </div>
@@ -122,10 +144,48 @@ export function PendingApprovalModal({
               </div>
             </div>
             <span className="text-foreground text-base font-semibold whitespace-nowrap">
-              {PENDING_APPROVAL_TEXTS.status}
+              {isRejected
+                ? PENDING_APPROVAL_TEXTS.rejectedStatus
+                : PENDING_APPROVAL_TEXTS.status}
             </span>
           </div>
         </div>
+
+        {isRejected && (
+          <div className="border-border/20 space-y-3 border-b px-3 py-4 sm:px-6">
+            <p className="text-sm font-semibold">
+              {PENDING_APPROVAL_TEXTS.rejectedTitle}
+            </p>
+            <p className="text-muted-foreground text-sm text-pretty">
+              {PENDING_APPROVAL_TEXTS.rejectedMessage}
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {onEdit && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onEdit}
+                  className="w-full sm:w-auto"
+                >
+                  <Pencil className="size-4" aria-hidden />
+                  {PENDING_APPROVAL_TEXTS.edit}
+                </Button>
+              )}
+              {onResubmit && (
+                <LoadingButton
+                  type="button"
+                  onClick={onResubmit}
+                  loading={isResubmitting}
+                  loadingText={PENDING_APPROVAL_TEXTS.resubmitting}
+                  className="w-full sm:w-auto"
+                >
+                  <RotateCcw className="size-4" aria-hidden />
+                  {PENDING_APPROVAL_TEXTS.resubmit}
+                </LoadingButton>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Timeline */}
         <div className="border-border/20 border-b px-3 py-4 sm:px-6">
@@ -160,7 +220,9 @@ export function PendingApprovalModal({
                 />
               </div>
               <p className="text-sm font-semibold">Decision</p>
-              <p className="text-muted-foreground mt-0.5 text-xs">Awaiting</p>
+              <p className="text-muted-foreground mt-0.5 text-xs">
+                {isRejected ? "Not accepted" : "Awaiting"}
+              </p>
             </div>
           </div>
         </div>

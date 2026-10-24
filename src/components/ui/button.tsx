@@ -1,29 +1,48 @@
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
-import { type VariantProps } from "class-variance-authority";
+import {
+  Button as UiButton,
+  type ButtonProps as UiButtonProps,
+} from "@just-gohealth/ui";
 
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "./button-variants";
+import {
+  BUTTON_SIZE_MAP,
+  BUTTON_VARIANT_MAP,
+  type AppButtonSize,
+  type AppButtonVariant,
+} from "./button-variants";
 
+export type ButtonProps = React.ComponentProps<"button"> & {
+  variant?: AppButtonVariant | null;
+  size?: AppButtonSize | null;
+  asChild?: boolean;
+  /** Shows a spinner, disables the button and sets `aria-busy`. */
+  loading?: boolean;
+  /** Text shown while loading. Defaults to the button's children. */
+  loadingText?: React.ReactNode;
+};
+
+/**
+ * App-level Button — a thin wrapper over `@just-gohealth/ui`'s Button that
+ * keeps the app's original variant/size names.
+ */
 function Button({
-  className,
   variant,
   size,
+  type,
   asChild = false,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  }) {
-  const Comp = asChild ? Slot : "button";
+}: ButtonProps) {
+  const uiProps = {
+    ...props,
+    asChild,
+    variant: BUTTON_VARIANT_MAP[variant ?? "default"],
+    size: BUTTON_SIZE_MAP[size ?? "default"],
+    // The package defaults to type="button"; native <button> (and this app's
+    // previous Button) defaults to "submit", which forms rely on.
+    type: asChild ? type : (type ?? "submit"),
+  } as UiButtonProps;
 
-  return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size }), className)}
-      {...props}
-    />
-  );
+  return <UiButton {...uiProps} />;
 }
 
 export { Button };

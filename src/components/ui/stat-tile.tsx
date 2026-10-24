@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import { StatTile as UiStatTile } from "@just-gohealth/ui";
 import { cn } from "@/lib/utils";
 
 export interface StatTileProps {
@@ -13,6 +14,10 @@ export interface StatTileProps {
   className?: string;
 }
 
+/**
+ * Backed by `@just-gohealth/ui`'s StatTile. The package's icon chip is made
+ * transparent so the caller's per-stat chip colour still shows.
+ */
 export function StatTile({
   icon: Icon,
   value,
@@ -22,24 +27,20 @@ export function StatTile({
   className,
 }: StatTileProps) {
   return (
-    <div
-      className={cn(
-        "bg-card border-border rounded-xl border p-4 shadow-sm",
-        className,
-      )}
-    >
-      <div className="mb-2.5 flex items-center justify-between">
-        <div
+    <UiStatTile
+      value={value}
+      label={label}
+      icon={
+        <span
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-lg",
+            "flex size-full items-center justify-center rounded-lg",
             iconWrapperClassName,
           )}
         >
-          <Icon className={cn("h-4 w-4", iconClassName)} />
-        </div>
-      </div>
-      <h3 className="text-foreground mb-0.5 text-xl font-bold">{value}</h3>
-      <p className="text-muted-foreground text-xs">{label}</p>
-    </div>
+          <Icon className={iconClassName} />
+        </span>
+      }
+      className={cn("shadow-sm [&>div:first-child]:bg-transparent", className)}
+    />
   );
 }

@@ -36,6 +36,7 @@ export default function EditFieldDialog({
   isUploadingAvatar,
   isSaving = false,
   profileData,
+  specialtyItems,
 }: EditFieldDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -45,7 +46,12 @@ export default function EditFieldDialog({
   const isSpecialtyField = editFieldKey === "specialty";
   const isStatusField = editFieldKey === "status";
   const isSelectField = isTitleField || isSpecialtyField;
-  const selectItems = isTitleField ? PROVIDER_TITLES : PROVIDER_SPECIALTIES;
+  // Specialties are the backend's role categories when we have them.
+  const selectItems = isTitleField
+    ? PROVIDER_TITLES
+    : specialtyItems?.length
+      ? specialtyItems
+      : PROVIDER_SPECIALTIES;
 
   const hint = isPhotoField
     ? "Upload a new profile photo"
@@ -66,9 +72,14 @@ export default function EditFieldDialog({
 
   const handleUpload = async () => {
     if (isPhotoField && selectedFile && uploadAvatar) {
-      await uploadAvatar(selectedFile);
-      setSelectedFile(null);
-      setEditOpen(false);
+      if (selectedFile.size > 5 * 1024 * 1024) return;
+      try {
+        await uploadAvatar(selectedFile);
+        setSelectedFile(null);
+        setEditOpen(false);
+      } catch {
+        // The upload hook already showed the error; keep the dialog open.
+      }
     } else {
       saveEdit();
     }

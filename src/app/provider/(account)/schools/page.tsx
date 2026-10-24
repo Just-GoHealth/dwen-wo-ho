@@ -8,6 +8,7 @@ import {
   ProviderSchoolsFilter,
   ProviderSchoolsList,
 } from "@/components/provider/schools";
+import { JoinCampusPanel } from "@/components/provider/schools/join-campus-panel";
 
 export default function ProviderSchoolsPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function ProviderSchoolsPage() {
     searchQuery,
     setSearchQuery,
     isLoadingProfile,
+    isApproved,
   } = useProviderSchools();
 
   const handleSchoolClick = (schoolId: string | number) => {
@@ -31,7 +33,7 @@ export default function ProviderSchoolsPage() {
 
   return (
     <WidthConstraint>
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <ProviderSchoolsHeader />
 
         <ProviderSchoolsFilter
@@ -47,6 +49,12 @@ export default function ProviderSchoolsPage() {
           activeFilter={activeFilter}
           onSchoolClick={handleSchoolClick}
         />
+
+        {isApproved && (
+          <JoinCampusPanel
+            joinedIds={new Set(cachedSchools.map((s) => String(s.id)))}
+          />
+        )}
       </div>
     </WidthConstraint>
   );

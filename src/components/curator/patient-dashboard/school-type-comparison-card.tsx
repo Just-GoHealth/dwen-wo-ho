@@ -1,14 +1,22 @@
 import { TrendingUp } from "lucide-react";
 
-import { PATIENT_COMPARISON_METRICS } from "@/lib/constants/components/curator/patient-dashboard/comparison-metrics";
 import type { SchoolTypeComparisonCardProps } from "@/lib/types/components/curator/patient-dashboard";
+import { TRIAGE_SECTION } from "@/lib/utils/curator/patient-dashboard/outcome-metrics";
 
 export default function SchoolTypeComparisonCard({
-  lockInAssessment,
+  outcomes,
+  benchmarks,
 }: SchoolTypeComparisonCardProps) {
-  const averages = lockInAssessment.schoolTypeAverages;
+  const typeAverages = benchmarks?.campusType;
+  if (!typeAverages) return null;
 
-  if (!averages) return null;
+  const rows = outcomes.filter(
+    (o) =>
+      o.sectionCode !== TRIAGE_SECTION &&
+      o.score != null &&
+      typeAverages.averages[o.sectionCode]?.average != null,
+  );
+  if (rows.length === 0) return null;
 
   return (
     <div className="bg-card border-border overflow-hidden rounded-3xl border shadow-sm">
@@ -21,29 +29,32 @@ export default function SchoolTypeComparisonCard({
             School Type Comparison
           </h3>
           <p className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
-            {lockInAssessment.schoolType} Averages (n={averages.sampleSize})
+            {typeAverages.type} averages
           </p>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
-        {PATIENT_COMPARISON_METRICS.map((metric) => (
-          <div
-            key={metric.label}
-            className="bg-muted/30 flex flex-col gap-1 rounded-lg p-3"
-          >
-            <span className="text-muted-foreground text-xs font-bold uppercase">
-              {metric.label}
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-foreground text-lg font-bold">
-                {metric.getScore(lockInAssessment)}
+        {rows.map((row) => {
+          const avg = typeAverages.averages[row.sectionCode]!;
+          return (
+            <div
+              key={row.sectionCode}
+              className="bg-muted/30 flex flex-col gap-1 rounded-lg p-3"
+            >
+              <span className="text-muted-foreground text-xs font-bold uppercase">
+                {row.sectionTitle}
               </span>
-              <span className="text-muted-foreground text-xs">
-                avg: {metric.getAverage(averages).toFixed(2)}
-              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-foreground text-lg font-bold">
+                  {row.score}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  avg: {avg.average!.toFixed(2)} (n={avg.count})
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

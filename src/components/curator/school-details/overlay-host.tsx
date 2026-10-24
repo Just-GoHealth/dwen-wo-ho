@@ -48,9 +48,9 @@ export default function SchoolDetailsModals({
             isOpen={showDisableModal}
             onClose={() => setShowDisableModal(false)}
             onConfirm={handleDisableConfirm}
-            title="Disable School"
-            message={`Are you sure you want to disable ${school.name}? This cannot be undone.`}
-            confirmText="Yes, Disable"
+            title="Archive School"
+            message={`Archive ${school.name}? It leaves pickers and lists; its results and provider access stay, and it can be restored.`}
+            confirmText="Yes, Archive"
             variant="danger"
             isLoading={isActionLoading}
           />
@@ -63,6 +63,8 @@ export default function SchoolDetailsModals({
           setShowProviderModal(false);
           loadProviders();
         }}
+        // v2 campus providers carry no email; this is the provider id
+        // (see campusProviderToSchoolProvider).
         providerEmail={selectedProviderEmail}
         provider={selectedProvider}
       />

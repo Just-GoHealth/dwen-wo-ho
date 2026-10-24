@@ -34,6 +34,8 @@ export interface SchoolsTabProps {
   setSchoolToRemove: (school: AssociatedSchool) => void;
   setSchoolToAdd: (school: AssociatedSchool) => void;
   applicationStatus: string | undefined;
+  /** False while v2 can't list a provider's campuses (associated list hidden). */
+  associationsAvailable?: boolean;
 }
 
 export interface PartnersTabProps {
@@ -44,6 +46,8 @@ export interface PartnersTabProps {
   filteredAvailablePartners: AssociatedPartner[];
   setPartnerToRemove: (partner: AssociatedPartner) => void;
   setPartnerToAdd: (partner: AssociatedPartner) => void;
+  /** False while v2 can't list a provider's hosts (associated list hidden). */
+  associationsAvailable?: boolean;
 }
 
 export interface ProviderFooterProps {
@@ -51,8 +55,8 @@ export interface ProviderFooterProps {
   handleApproveClick: () => void;
   handleRejectClick: () => void;
   isModerating: boolean;
-  moderatingProviderEmail: string | null;
-  providerEmail: string;
+  moderatingProviderId: string | null;
+  providerId: string;
   currentAction: "approving" | "rejecting" | null;
   onClose: () => void;
 }

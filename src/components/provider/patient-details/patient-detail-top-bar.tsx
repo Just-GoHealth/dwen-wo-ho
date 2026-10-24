@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import { ChevronLeft, History, Heart } from "lucide-react";
-import { PatientResult } from "@/lib/types/entities/patient";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface PatientDetailTopBarProps {
-  patientResult: PatientResult;
+  patientResult: {
+    patientName: string;
+    schoolName: string;
+    profilePhotoURL?: string | null;
+  };
+  /** True once this provider is treating: the button reads "Treating". */
+  isTreating?: boolean;
+  isGivingCare?: boolean;
   onBack: () => void;
   onHistory: () => void;
   onGiveCare: () => void;
@@ -23,6 +29,8 @@ export function PatientDetailTopBar({
   onBack,
   onHistory,
   onGiveCare,
+  isTreating = false,
+  isGivingCare = false,
 }: PatientDetailTopBarProps) {
   const initials = (patientResult?.patientName || "?").charAt(0).toUpperCase();
   const [photoFailed, setPhotoFailed] = useState(false);
@@ -31,9 +39,11 @@ export function PatientDetailTopBar({
     <button
       type="button"
       onClick={onGiveCare}
-      className="animate-care-beat inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-[var(--gold-deep)] bg-white px-4 py-2 text-xs font-extrabold text-[var(--gold-lo)] shadow-[0_12px_30px_rgba(0,0,0,.36)] transition-transform hover:scale-105 sm:px-5 sm:py-2 sm:text-sm"
+      disabled={isTreating || isGivingCare}
+      aria-busy={isGivingCare}
+      className="animate-care-beat inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-[var(--gold-deep)] bg-white px-4 py-2 text-xs font-extrabold text-[var(--gold-lo)] shadow-[0_12px_30px_rgba(0,0,0,.36)] transition-transform hover:scale-105 disabled:animate-none disabled:opacity-80 sm:px-5 sm:py-2 sm:text-sm"
     >
-      Give Care{" "}
+      {isTreating ? "Treating" : isGivingCare ? "Starting…" : "Give Care"}{" "}
       <Heart
         className="size-3.5 sm:size-4"
         fill="var(--gold-lo)"

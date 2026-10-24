@@ -9,13 +9,13 @@ import { PatientDetailsPageContent } from "@/components/curator/patient-dashboar
 
 export default function PatientDetailsPage() {
   const details = useCuratorPatientDetails();
-  const { router, patientResult, lockInAssessment, isLoading } = details;
+  const { router, detail, isLoading } = details;
 
   if (isLoading) {
     return <PatientDetailsLoadingView />;
   }
 
-  if (!patientResult || !lockInAssessment) {
+  if (!detail) {
     return <PatientDetailsErrorView onBack={() => router.back()} />;
   }
 

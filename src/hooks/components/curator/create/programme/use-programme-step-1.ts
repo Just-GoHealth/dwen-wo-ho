@@ -21,7 +21,8 @@ function clearDurationError(
 }
 
 export function useProgrammeStep1() {
-  const { programme, updateProgramme } = useCreativeStudiosFlowContext();
+  const { programme, updateProgramme, serverErrors } =
+    useCreativeStudiosFlowContext();
   const { goNext } = useCreativeStudiosNavigation("programme");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const nickRef = useRef<HTMLInputElement>(null);
@@ -113,9 +114,19 @@ export function useProgrammeStep1() {
     goNext();
   }, [goNext, validate]);
 
+  // Server field problems from the last create (NAME_TAKEN, VALIDATION) show
+  // beside the matching inputs until the form's own validation replaces them.
+  const mergedErrors = useMemo(() => {
+    const fromServer: Record<string, string> = {};
+    if (serverErrors.fullName) fromServer.name = serverErrors.fullName;
+    if (serverErrors.nicknames) fromServer.nick = serverErrors.nicknames;
+    if (serverErrors.defaultYears) fromServer.dur = serverErrors.defaultYears;
+    return { ...fromServer, ...errors };
+  }, [errors, serverErrors]);
+
   return {
     programme,
-    errors,
+    errors: mergedErrors,
     nickRef,
     setField,
     setYearFrom,

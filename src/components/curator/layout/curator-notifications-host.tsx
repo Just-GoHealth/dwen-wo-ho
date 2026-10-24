@@ -16,12 +16,8 @@ export function CuratorNotificationsHost() {
     setIsOpen,
     markAsRead,
     markAllAsRead,
-    clearNotifications,
-    deleteNotification,
     isMarkingRead,
-    isDeleting,
     isMarkingAllRead,
-    isClearing,
   } = useCuratorNotification();
 
   return (
@@ -31,14 +27,14 @@ export function CuratorNotificationsHost() {
       onOpenChange={setIsOpen}
       markAllRead={markAllAsRead}
       markOneRead={markAsRead}
-      deleteOne={deleteNotification}
-      clearAllNotifications={clearNotifications}
+      // TODO(v2-backend): no v2 delete-one or clear-all endpoint, so both
+      // actions are hidden (clearAllNotifications omitted).
       isMarkingRead={isMarkingRead}
-      isDeleting={isDeleting}
       isMarkingAllRead={isMarkingAllRead}
-      isClearing={isClearing}
       onNavigate={(link) => router.push(link as Route)}
-      getNotificationActionUrl={(n) => getCuratorNotificationRoute(n) ?? "#"}
+      getNotificationActionUrl={(n) =>
+        n.link ?? getCuratorNotificationRoute(n) ?? "#"
+      }
       getNotificationId={(n) => n.id}
       isNotificationUnread={(n) => !n.read}
       getAvatarUrl={() => undefined}

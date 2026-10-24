@@ -13,6 +13,7 @@ export const PartnersTab = ({
   filteredAvailablePartners,
   setPartnerToRemove,
   setPartnerToAdd,
+  associationsAvailable = false,
 }: PartnersTabProps) => {
   return (
     <div className="space-y-6">
@@ -27,7 +28,11 @@ export const PartnersTab = ({
         ) : associatedPartners.length === 0 ? (
           <div className="text-muted-foreground py-8 text-center">
             <FiUsers className="text-muted-foreground mx-auto mb-2 h-12 w-12" />
-            <p>No partners associated yet</p>
+            <p>
+              {associationsAvailable
+                ? "No partners associated yet"
+                : "This provider's partners can't be listed yet."}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">

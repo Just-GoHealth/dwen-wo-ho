@@ -1,253 +1,158 @@
-import { api } from "@/lib/api";
-import {
-  STATIC_ENDPOINTS,
-  DYNAMIC_ENDPOINTS,
-} from "@/lib/constants/infra/endpoints";
-import {
-  ICreateSchool,
-  IUpdateSchool,
-  School,
-} from "@/lib/types/entities/school";
+import { campusesCurator } from "@/lib/v2/curator/campuses";
+import type { CampusCreateRequest, CampusHub } from "@/lib/v2/curator/campuses";
+import { networkCurator } from "@/lib/v2/curator/network";
+import type { ReachView } from "@/lib/v2/curator/network";
+import { resultsCurator } from "@/lib/v2/curator/results";
+import type { CampusCardItem, ResultItem } from "@/lib/v2/curator/types";
+import type { CuratorSchool } from "@/lib/types/components/curator/schools/campus";
+import type { SchoolPatientRecord } from "@/lib/types/components/curator/school-details/school-details";
 import { SchoolProvider } from "@/lib/types/entities/provider";
-import { patientsService } from "../shared/patients";
-import { lockinsService } from "../shared/lock-ins";
-import { LockInStudent } from "@/lib/types/entities/lockin";
 import type { UrgentPatient } from "@/lib/types/entities/patient";
-import { PatientResult } from "@/lib/types/entities/patient";
 import {
-  extractArrayData,
-  extractSuccessData,
-  requireSuccessData,
-} from "@/lib/utils/shared/api-result";
+  campusCardToSchool,
+  campusDetailToSchool,
+  campusProviderToSchoolProvider,
+  resultItemToPatientRecord,
+  resultItemToUrgentPatient,
+} from "@/lib/utils/curator/schools/v2-adapters";
 
-const UPDATE_FIELDS = [
-  "name",
-  "nickname",
-  "type",
-  "baseline",
-  "motto",
-  "campuses",
-] as const satisfies ReadonlyArray<keyof IUpdateSchool>;
+// The v2 list pages at 100 at most; the curator's lists want every campus.
+const PAGE_SIZE = 100;
 
-function buildSchoolUpdateBody(data: IUpdateSchool): Record<string, unknown> {
-  const body: Record<string, unknown> = {};
-  for (const field of UPDATE_FIELDS) {
-    if (data[field] !== undefined) {
-      body[field] = data[field];
-    }
+/** Studios "create campus": the record first, then its images. */
+export interface CreateSchoolInput extends CampusCreateRequest {
+  logo?: File | null;
+  banner?: File | null;
+}
+
+/** Only the fields being changed, plus the `version` the form was loaded at. */
+export interface UpdateSchoolInput {
+  id: string;
+  version: number;
+  fullName?: string;
+  nicknames?: string[];
+  motto?: string;
+  type?: string;
+  locationId?: string;
+  /** The whole ordered list of site names; sent with PUT /campuses/{id}/sites. */
+  sites?: string[];
+}
+
+export interface SchoolPatientsOverview {
+  patients: SchoolPatientRecord[];
+  /** Results still awaiting the curator's acceptance (C19). */
+  awaitingCount: number;
+  urgentCare: {
+    totalUrgentCarePatients: number;
+    patients: UrgentPatient[];
+  };
+}
+
+async function listAllCampuses(archived: boolean): Promise<CampusCardItem[]> {
+  const items: CampusCardItem[] = [];
+  for (let page = 0; ; page++) {
+    const res = await campusesCurator.list({ archived, page, size: PAGE_SIZE });
+    items.push(...res.items);
+    if (res.items.length < PAGE_SIZE || items.length >= res.total) break;
   }
-  return body;
+  return items;
 }
 
-function appendSchoolCreateFormFields(
-  formData: FormData,
-  data: ICreateSchool,
-): void {
-  formData.append("name", data.name);
-  formData.append("nickname", data.nickname || "");
-  formData.append("type", data.type);
-  formData.append("baseline", data.baseline || "");
-  formData.append("motto", data.motto || "");
-  formData.append("campuses", data.campuses.join(","));
-}
-
-function appendSchoolLogo(
-  formData: FormData,
-  logo: ICreateSchool["logo"],
-): void {
-  if (!logo) return;
-  formData.append("logo", logo);
-}
-
-function mergeStudentsWithResults(
-  students: LockInStudent[],
-  results: PatientResult[],
-): LockInStudent[] {
-  const resultMap = new Map<string, PatientResult>();
-  for (const result of results) {
-    resultMap.set(result.patientName, result);
+async function listAllResults(campusId: string): Promise<ResultItem[]> {
+  const items: ResultItem[] = [];
+  for (let page = 0; ; page++) {
+    const res = await resultsCurator.list(campusId, { page, size: PAGE_SIZE });
+    items.push(...res.items);
+    if (res.items.length < PAGE_SIZE || items.length >= res.total) break;
   }
-
-  return students.map((student) => {
-    const result = resultMap.get(student.studentName);
-    if (!result) return student;
-
-    return {
-      ...student,
-      lockinId: result.lockinId,
-      createdAt: result.createdAt,
-      patientResultId: result.id,
-      visibilityStatus: result.visibilityStatus,
-    };
-  });
-}
-
-function studentRecencyScore(student: LockInStudent): number {
-  if (!student.createdAt) return Number.NEGATIVE_INFINITY;
-  return new Date(student.createdAt).getTime();
-}
-
-function compareStudentRecency(
-  left: LockInStudent,
-  right: LockInStudent,
-): number {
-  const recencyDelta = studentRecencyScore(right) - studentRecencyScore(left);
-  if (recencyDelta !== 0) return recencyDelta;
-  return left.studentName.localeCompare(right.studentName);
-}
-
-function sortStudentsByRecency(students: LockInStudent[]): LockInStudent[] {
-  return students.toSorted(compareStudentRecency);
-}
-
-function parseSchoolProviders(response: unknown): SchoolProvider[] {
-  const data = extractSuccessData<{ providers?: SchoolProvider[] }>(response);
-  if (data?.providers) return data.providers;
-
-  const direct = response as { providers?: SchoolProvider[] };
-  return direct.providers ?? [];
-}
-
-async function loadStudentsWithResults(
-  schoolId: string,
-  students: LockInStudent[],
-): Promise<LockInStudent[]> {
-  try {
-    const results = await patientsService.getSchoolResults(schoolId);
-    if (!Array.isArray(results) || results.length === 0) {
-      return students;
-    }
-    return mergeStudentsWithResults(students, results);
-  } catch {
-    return students;
-  }
+  return items;
 }
 
 export const schoolsService = {
-  getSchools: async (): Promise<School[]> => {
-    const result = await api(STATIC_ENDPOINTS.SCHOOLS);
-    return extractArrayData<School>(result);
+  /** Every active campus (or every archived one), alphabetical. */
+  getSchools: async (
+    options: { archived?: boolean } = {},
+  ): Promise<CuratorSchool[]> => {
+    const cards = await listAllCampuses(options.archived ?? false);
+    return cards.map(campusCardToSchool);
   },
 
-  getSchool: async (schoolId: string): Promise<School> => {
-    const result = await api(DYNAMIC_ENDPOINTS.SCHOOLS.GET(schoolId));
-    return requireSuccessData<School>(result, "Failed to fetch school");
+  getSchool: async (schoolId: string): Promise<CuratorSchool> =>
+    campusDetailToSchool(await campusesCurator.detail(schoolId)),
+
+  /** Identity plus a count per card (programmes, providers, hosts, patients, justIn, awaitingResults). */
+  getSchoolHub: (schoolId: string): Promise<CampusHub> =>
+    campusesCurator.hub(schoolId),
+
+  /** v1 "disable" is v2 archive: hidden from pickers and lists; results and access stay. */
+  archiveSchool: async (schoolId: string): Promise<CuratorSchool> =>
+    campusDetailToSchool(await campusesCurator.archive(schoolId)),
+
+  restoreSchool: async (schoolId: string): Promise<CuratorSchool> =>
+    campusDetailToSchool(await campusesCurator.restore(schoolId)),
+
+  createSchool: async ({
+    logo,
+    banner,
+    ...body
+  }: CreateSchoolInput): Promise<CuratorSchool> => {
+    let detail = await campusesCurator.create(body);
+    if (logo) detail = await campusesCurator.uploadLogo(detail.id, logo);
+    if (banner) detail = await campusesCurator.uploadBanner(detail.id, banner);
+    return campusDetailToSchool(detail);
   },
 
-  disableSchool: async (schoolId: string): Promise<School> => {
-    const result = await api(DYNAMIC_ENDPOINTS.SCHOOLS.DISABLE(schoolId), {
-      method: "PUT",
-    });
-    return requireSuccessData<School>(result, "Failed to disable school");
-  },
-
-  createSchool: async (data: ICreateSchool): Promise<School> => {
-    const formData = new FormData();
-    appendSchoolCreateFormFields(formData, data);
-    appendSchoolLogo(formData, data.logo);
-
-    const response = await api(STATIC_ENDPOINTS.SCHOOLS, {
-      method: "POST",
-      body: formData,
-    });
-    return requireSuccessData<School>(response, "Failed to create school");
-  },
-
-  updateSchool: async (data: IUpdateSchool): Promise<School> => {
-    const result = await api(DYNAMIC_ENDPOINTS.SCHOOLS.UPDATE(data.id), {
-      method: "PUT",
-      body: JSON.stringify(buildSchoolUpdateBody(data)),
-    });
-    return requireSuccessData<School>(result, "Failed to update school");
+  /** 409 STALE when `version` is behind; 409 NAME_TAKEN on fullName/nicknames. */
+  updateSchool: async ({
+    id,
+    sites,
+    ...patch
+  }: UpdateSchoolInput): Promise<CuratorSchool> => {
+    let detail = await campusesCurator.update(id, patch);
+    if (sites) detail = await campusesCurator.setSites(id, sites);
+    return campusDetailToSchool(detail);
   },
 
   getSchoolProviders: async (schoolId: string): Promise<SchoolProvider[]> => {
-    const response = await api(DYNAMIC_ENDPOINTS.SCHOOLS.PROVIDERS(schoolId));
-    return parseSchoolProviders(response);
+    const providers = await campusesCurator.providers(schoolId);
+    return providers.map(campusProviderToSchoolProvider);
   },
 
-  getPatientsOverview: async (schoolId: string | number) => {
-    const response = await api(
-      DYNAMIC_ENDPOINTS.SCHOOLS.PATIENTS_OVERVIEW(schoolId),
-    );
-    const data = extractSuccessData<{
-      patients: unknown[];
-      urgentCare: {
-        totalUrgentCarePatients: number;
-        patients: UrgentPatient[];
-      };
-    }>(response);
-
-    return (
-      data ?? {
-        patients: [],
-        urgentCare: { totalUrgentCarePatients: 0, patients: [] },
-      }
-    );
-  },
-
-  getSchoolStudents: async (schoolId: string): Promise<LockInStudent[]> => {
-    let lockInData;
-    try {
-      lockInData = await lockinsService.getSchoolLockIn(schoolId);
-    } catch {
-      return [];
-    }
-
-    if (!lockInData) return [];
-
-    const students = await loadStudentsWithResults(
+  /** Each provider is emailed; 422 PROVIDER_NOT_APPROVED for one not approved. */
+  addProvidersToSchool: (schoolId: string, providerIds: string[]) =>
+    networkCurator.addCampusProviders(
       schoolId,
-      lockInData.students || [],
-    );
-    return sortStudentsByRecency(students);
+      providerIds.map((providerId) => ({ providerId })),
+    ),
+
+  removeProviderFromSchool: (schoolId: string, providerId: string) =>
+    campusesCurator.removeProvider(schoolId, providerId),
+
+  /** The roll (every result at the campus, newest first) and the urgent-care list. */
+  getPatientsOverview: async (
+    schoolId: string,
+    school: { name?: string; nickname?: string } = {},
+  ): Promise<SchoolPatientsOverview> => {
+    const [results, urgent] = await Promise.all([
+      listAllResults(schoolId),
+      resultsCurator.urgent(schoolId),
+    ]);
+    return {
+      patients: results.map((r) => resultItemToPatientRecord(r, school)),
+      awaitingCount: results.filter((r) => r.awaitingAcceptance).length,
+      urgentCare: {
+        totalUrgentCarePatients: urgent.length,
+        patients: urgent.map((r) => resultItemToUrgentPatient(r, school)),
+      },
+    };
   },
 
-  batchCreateSchools: async (schools: ICreateSchool[]): Promise<School[]> => {
-    const result = await api(STATIC_ENDPOINTS.SCHOOLS_BATCH, {
-      method: "POST",
-      body: JSON.stringify({ data: schools }),
-    });
-    const created = extractArrayData<School>(result);
-    if (created.length > 0) return created;
-    throw new Error("Failed to batch create schools");
-  },
+  /** Accept every result awaiting acceptance so the campus's providers see it. */
+  acceptAllResults: (schoolId: string) => resultsCurator.acceptAll(schoolId),
 
-  addProviderToSchool: async (
-    schoolId: string | number,
-    providerEmail: string,
-  ): Promise<void> => {
-    const result = await api(
-      DYNAMIC_ENDPOINTS.SCHOOLS.ADD_PROVIDER(schoolId, providerEmail),
-      { method: "POST" },
-    );
-    if (!extractSuccessData(result)) {
-      throw new Error("Failed to add provider to school");
-    }
-  },
+  getSchoolReach: (schoolId: string): Promise<ReachView> =>
+    networkCurator.reach({ campusId: schoolId }),
 
-  removeProviderFromSchool: async (
-    schoolId: string | number,
-    providerEmail: string,
-  ): Promise<void> => {
-    const result = await api(
-      DYNAMIC_ENDPOINTS.SCHOOLS.REMOVE_PROVIDER(schoolId, providerEmail),
-      { method: "POST" },
-    );
-    if (!extractSuccessData(result)) {
-      throw new Error("Failed to remove provider from school");
-    }
-  },
-
-  getSchoolReach: async (
-    schoolId: string | number,
-  ): Promise<{ schoolName: string; reach: number }> => {
-    const result = await api(`${STATIC_ENDPOINTS.SCHOOLS}/${schoolId}/reach`);
-    return (
-      extractSuccessData<{ schoolName: string; reach: number }>(result) ?? {
-        schoolName: "",
-        reach: 0,
-      }
-    );
-  },
+  setSchoolReachBaseline: (schoolId: string, value: number) =>
+    networkCurator.setReachBaseline(value, schoolId),
 };

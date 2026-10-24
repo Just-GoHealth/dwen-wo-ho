@@ -18,9 +18,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import useTeamsQuery from "@/hooks/curator/competitions/use-teams";
-import useFixturesQuery from "@/hooks/curator/competitions/use-fixtures";
+import useFixturesQuery, {
+  DEFAULT_FIXTURE_TIMEZONE,
+  formatKickoff,
+} from "@/hooks/curator/competitions/use-fixtures";
 import { SchoolAccessCodesSheet } from "@/components/curator/school-details";
-import type { AddFixtureRequest, Fixture } from "@/lib/types/api/competitions";
+import type { FixtureOutcome, FixtureView } from "@/lib/v2/curator/nsmq";
+import { fieldMessage } from "@/lib/v2/curator/errors";
 
 const TEAM_STATUS_BADGE: Record<
   string,
@@ -32,34 +36,56 @@ const TEAM_STATUS_BADGE: Record<
   CHAMPION: "default",
 };
 
-// Display-only (renders whenLabel, e.g. "Today · 3pm") — not the curator's
-// own browser timezone, which could be anywhere. Every school here is in
-// Ghana.
-const EMPTY_FIXTURE_FORM = {
-  roundName: "",
-  scheduledAt: "",
-  timezone: "Africa/Accra",
-  venue: "",
-  ordinal: 0,
+type FixtureForm = {
+  roundName: string;
+  kickoffAt: string;
+  timezone: string;
+  venue: string;
+  position: number;
 };
+
+// The fixture's display zone, not the curator's own browser timezone, which
+// could be anywhere. Every school here is in Ghana.
+const EMPTY_FIXTURE_FORM: FixtureForm = {
+  roundName: "",
+  kickoffAt: "",
+  timezone: DEFAULT_FIXTURE_TIMEZONE,
+  venue: "",
+  position: 0,
+};
+
+const FIXTURE_FIELDS = ["roundName", "kickoffAt", "venue", "position"] as const;
+type FixtureField = (typeof FIXTURE_FIELDS)[number];
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="text-destructive mt-1 text-xs">{message}</p>;
+}
 
 export default function CompetitionTeamPage() {
   const params = useParams();
-  const teamId = Number(params.teamId);
+  const versionCode = params.versionCode as string;
+  const teamId = params.teamId as string;
   const [showAccessCodes, setShowAccessCodes] = useState(false);
-  const [editingFixture, setEditingFixture] = useState<Fixture | null>(null);
+  const [editingFixture, setEditingFixture] = useState<FixtureView | null>(
+    null,
+  );
   const [showFixtureForm, setShowFixtureForm] = useState(false);
   const [showEliminateConfirm, setShowEliminateConfirm] = useState(false);
-  const [form, setForm] = useState<AddFixtureRequest>(EMPTY_FIXTURE_FORM);
+  const [form, setForm] = useState<FixtureForm>(EMPTY_FIXTURE_FORM);
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<FixtureField, string>>
+  >({});
 
   const { useTeam, updateTeam, isUpdatingTeam } = useTeamsQuery();
-  const { data: team, isLoading } = useTeam(teamId);
+  const { data: team, isLoading } = useTeam(versionCode, teamId);
 
   const handleEliminate = async () => {
     await updateTeam({ teamId, data: { status: "ELIMINATED" } });
     setShowEliminateConfirm(false);
   };
   const {
+    useFixtures,
     addFixture,
     updateFixture,
     deleteFixture,
@@ -70,33 +96,53 @@ export default function CompetitionTeamPage() {
     isRecordingOutcome,
   } = useFixturesQuery();
 
-  const fixtures = team?.fixtures ?? [];
+  const { data: fixtures = [] } = useFixtures(teamId);
 
   const openNewFixture = () => {
     setEditingFixture(null);
-    setForm({ ...EMPTY_FIXTURE_FORM, ordinal: fixtures.length });
+    setFieldErrors({});
+    setForm({ ...EMPTY_FIXTURE_FORM, position: fixtures.length });
     setShowFixtureForm(true);
   };
 
-  const openEditFixture = (fixture: Fixture) => {
+  const openEditFixture = (fixture: FixtureView) => {
     setEditingFixture(fixture);
+    setFieldErrors({});
     setForm({
       roundName: fixture.roundName,
-      scheduledAt: fixture.scheduledAt,
-      timezone: fixture.timezone,
-      venue: fixture.venue,
-      ordinal: fixture.ordinal,
+      kickoffAt: fixture.kickoffAt,
+      timezone: fixture.timezone || DEFAULT_FIXTURE_TIMEZONE,
+      venue: fixture.venue ?? "",
+      position: fixture.position,
     });
     setShowFixtureForm(true);
   };
 
   const handleSaveFixture = async () => {
-    if (editingFixture) {
-      await updateFixture({ fixtureId: editingFixture.id, teamId, data: form });
-    } else {
-      await addFixture({ teamId, data: form });
+    setFieldErrors({});
+    try {
+      if (editingFixture) {
+        // `version` guards the edit; a stale one reloads the list (409 STALE).
+        await updateFixture({
+          fixtureId: editingFixture.id,
+          teamId,
+          data: { version: editingFixture.version, ...form },
+        });
+      } else {
+        await addFixture({
+          teamId,
+          data: { ...form, venue: form.venue || null },
+        });
+      }
+      setShowFixtureForm(false);
+    } catch (error) {
+      // The hook toasts the problem's detail; field messages sit by each input.
+      setFieldErrors(
+        Object.fromEntries(
+          FIXTURE_FIELDS.map((f) => [f, fieldMessage(error, f)]),
+        ),
+      );
     }
-    setShowFixtureForm(false);
   };
 
   if (isLoading || !team) {
@@ -124,7 +170,7 @@ export default function CompetitionTeamPage() {
               {team.coordinatorContact ? ` · ${team.coordinatorContact}` : ""}
             </p>
             <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
-              Seats: {team.memberCount}/{team.seatCapacity} · Status:{" "}
+              Seats: {team.members}/{team.seatCapacity ?? "∞"} · Status:{" "}
               <Badge variant={TEAM_STATUS_BADGE[team.status] ?? "secondary"}>
                 {team.status}
               </Badge>
@@ -210,21 +256,25 @@ export default function CompetitionTeamPage() {
                 onChange={(e) =>
                   setForm({ ...form, roundName: e.target.value })
                 }
+                aria-invalid={!!fieldErrors.roundName}
               />
+              <FieldError message={fieldErrors.roundName} />
             </div>
             <div>
               <Label htmlFor="tf-when">Date & time</Label>
               <Input
                 id="tf-when"
                 type="datetime-local"
-                value={form.scheduledAt?.slice(0, 16) ?? ""}
+                value={form.kickoffAt?.slice(0, 16) ?? ""}
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    scheduledAt: new Date(e.target.value).toISOString(),
+                    kickoffAt: new Date(e.target.value).toISOString(),
                   })
                 }
+                aria-invalid={!!fieldErrors.kickoffAt}
               />
+              <FieldError message={fieldErrors.kickoffAt} />
             </div>
             <div>
               <Label htmlFor="tf-venue">Venue</Label>
@@ -232,19 +282,23 @@ export default function CompetitionTeamPage() {
                 id="tf-venue"
                 value={form.venue}
                 onChange={(e) => setForm({ ...form, venue: e.target.value })}
+                aria-invalid={!!fieldErrors.venue}
               />
+              <FieldError message={fieldErrors.venue} />
             </div>
             <div>
               <Label htmlFor="tf-ordinal">Order</Label>
               <Input
                 id="tf-ordinal"
                 type="number"
-                value={form.ordinal}
+                value={form.position}
                 onChange={(e) =>
-                  setForm({ ...form, ordinal: Number(e.target.value) || 0 })
+                  setForm({ ...form, position: Number(e.target.value) || 0 })
                 }
                 className="w-20"
+                aria-invalid={!!fieldErrors.position}
               />
+              <FieldError message={fieldErrors.position} />
             </div>
             <LoadingButton
               onClick={handleSaveFixture}
@@ -263,7 +317,7 @@ export default function CompetitionTeamPage() {
             </p>
           )}
           {[...fixtures]
-            .sort((a, b) => a.ordinal - b.ordinal)
+            .sort((a, b) => a.position - b.position)
             .map((fixture) => (
               <div
                 key={fixture.id}
@@ -274,20 +328,28 @@ export default function CompetitionTeamPage() {
                     {fixture.roundName}
                   </p>
                   <p className="text-muted-foreground text-xs">
-                    {fixture.whenLabel} · {fixture.venue || "No venue"}
+                    {formatKickoff(fixture)} · {fixture.venue || "No venue"}
                   </p>
                 </div>
-                <Badge variant="secondary">{fixture.outcome}</Badge>
+                <Badge
+                  variant={
+                    fixture.status === "CANCELLED" ? "destructive" : "secondary"
+                  }
+                >
+                  {fixture.status === "CANCELLED"
+                    ? "Cancelled"
+                    : fixture.outcome}
+                </Badge>
                 <select
                   value={fixture.outcome}
-                  disabled={isRecordingOutcome}
+                  disabled={
+                    isRecordingOutcome || fixture.status === "CANCELLED"
+                  }
                   onChange={(e) =>
                     recordOutcome({
                       fixtureId: fixture.id,
                       teamId,
-                      data: {
-                        outcome: e.target.value as Fixture["outcome"],
-                      },
+                      outcome: e.target.value as FixtureOutcome,
                     })
                   }
                   className="border-border rounded-md border bg-transparent px-2 py-1 text-xs"

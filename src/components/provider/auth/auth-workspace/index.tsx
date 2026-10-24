@@ -42,19 +42,18 @@ function ProviderAuthPageContent({
     email,
     passwordResetSuccess,
     isCheckingAuth,
-    profileStep,
-    handleEmailSubmit,
+    handleLookup,
     handleBackToEmail,
     handleForgotPassword,
-    handleProfileIncomplete,
     handleBackToSignIn,
     handleBackToCheckEmail,
   } = useProviderAuth();
+  const role = audience === "curator" ? "CURATOR" : "PROVIDER";
 
   let authContent: ReactNode;
   switch (step) {
     case "check-email":
-      authContent = <CheckEmail onEmailSubmit={handleEmailSubmit} />;
+      authContent = <CheckEmail role={role} onLookup={handleLookup} />;
       break;
     case "sign-in":
       authContent = (
@@ -68,13 +67,29 @@ function ProviderAuthPageContent({
           }
           onBack={handleBackToEmail}
           onForgotPassword={handleForgotPassword}
-          onProfileIncomplete={(step) => handleProfileIncomplete(step)}
         />
       );
       break;
     case "reset-password":
       authContent = (
-        <VerifyPasswordReset email={email} onBack={handleBackToSignIn} />
+        <VerifyPasswordReset
+          email={email}
+          role={role}
+          purpose="RECOVERY"
+          onBack={handleBackToSignIn}
+        />
+      );
+      break;
+    case "claim":
+      // An account created for this email (a curator's Studios invite, or
+      // the seeded curator): claim it with a code, then choose a password.
+      authContent = (
+        <VerifyPasswordReset
+          email={email}
+          role={role}
+          purpose="CLAIM"
+          onBack={handleBackToCheckEmail}
+        />
       );
       break;
     default:
@@ -82,13 +97,7 @@ function ProviderAuthPageContent({
         authContent = <CuratorNoAccount onBack={handleBackToCheckEmail} />;
         break;
       }
-      authContent = (
-        <SignUp
-          email={email}
-          onBack={handleBackToCheckEmail}
-          profileStep={profileStep}
-        />
-      );
+      authContent = <SignUp email={email} onBack={handleBackToCheckEmail} />;
   }
 
   return (

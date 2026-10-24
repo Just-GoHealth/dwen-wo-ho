@@ -122,7 +122,7 @@ export function NotificationFilterTabs({
           </TooltipProvider>
         )}
 
-        {hasNotifications && (
+        {hasNotifications && clearAllNotifications && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

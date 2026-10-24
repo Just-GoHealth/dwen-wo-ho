@@ -6,17 +6,19 @@ import { LoadingButton } from "@/components/ui/loading-button";
 import { Spinner } from "@/components/ui/spinner";
 import { SignUpVerificationProps } from "@/lib/types/components/provider/auth";
 import { SIGN_UP_TEXTS } from "@/lib/constants/components/provider/auth/signup";
+import { ApiErrorNote } from "@/components/shared/api-error-note";
 import { useSignUpVerification } from "@/hooks/components/provider/auth/signup/sign-up-verification/use-sign-up-verification";
 
 const SignUpVerification = (props: SignUpVerificationProps) => {
   const { email } = props;
   const {
     seconds,
-    verifyEmailMutation,
+    isVerifying,
+    isResending,
+    apiError,
     handleOTPComplete,
     handleResendCode,
     otpInputRef,
-    resendSignupVerificationMutation,
   } = useSignUpVerification(props);
 
   return (
@@ -36,7 +38,7 @@ const SignUpVerification = (props: SignUpVerificationProps) => {
 
       {/* OTP Input Section */}
       <div className="space-y-8 text-center">
-        {verifyEmailMutation.isPending ? (
+        {isVerifying ? (
           <div className="flex flex-col items-center gap-4 py-8">
             <Spinner className="text-primary size-10" />
             <p className="text-muted-foreground animate-pulse font-medium">
@@ -79,7 +81,7 @@ const SignUpVerification = (props: SignUpVerificationProps) => {
 
             <LoadingButton
               variant={seconds > 0 ? "outline" : "default"}
-              loading={resendSignupVerificationMutation.isPending}
+              loading={isResending}
               loadingText={SIGN_UP_TEXTS.verification.resending}
               disabled={seconds > 0}
               onClick={handleResendCode}
@@ -98,6 +100,7 @@ const SignUpVerification = (props: SignUpVerificationProps) => {
                 </span>
               )}
             </LoadingButton>
+            <ApiErrorNote error={apiError} secondsLeft={seconds} />
           </div>
         )}
       </div>

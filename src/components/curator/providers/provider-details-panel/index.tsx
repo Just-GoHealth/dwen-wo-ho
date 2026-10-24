@@ -17,14 +17,17 @@ import { activateOnKeyboard } from "@/lib/utils/shared/a11y";
 const ProviderDetailsPanel = ({
   isOpen,
   onClose,
+  providerId: providerIdProp,
   providerEmail,
   provider: providerProp,
   onShowApproveModal,
   onShowRejectModal,
   isModerating = false,
   currentAction = null,
-  moderatingProviderEmail = null,
+  moderatingProviderId = null,
 }: ProviderDetailsPanelProps) => {
+  // `providerEmail` is the pre-v2 prop name; it now carries the provider id too.
+  const providerId = providerIdProp ?? providerEmail ?? "";
   const {
     provider,
     isQueryLoading,
@@ -67,7 +70,7 @@ const ProviderDetailsPanel = ({
     applicationStatusConfig,
   } = useProviderDetails({
     isOpen,
-    providerEmail,
+    providerId,
     providerProp,
     onShowApproveModal,
     onShowRejectModal,
@@ -155,8 +158,8 @@ const ProviderDetailsPanel = ({
             handleApproveClick={handleApproveClick}
             handleRejectClick={handleRejectClick}
             isModerating={isModerating}
-            moderatingProviderEmail={moderatingProviderEmail}
-            providerEmail={providerEmail}
+            moderatingProviderId={moderatingProviderId}
+            providerId={providerId}
             currentAction={currentAction}
             onClose={onClose}
           />

@@ -1,77 +1,42 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { providerDashboardService } from "@/services/provider/dashboard";
+import { useQuery } from "@tanstack/react-query";
+import {
+  loadCampusDirectory,
+  loadProviderHome,
+} from "@/services/provider/dashboard";
+import { resultsApi } from "@/lib/v2/results";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
-import type { ProviderUpdateProfileRequest } from "@/lib/types/api/provider-dashboard";
 
-const PD = QUERY_KEYS.providerDashboard;
+const V2 = QUERY_KEYS.v2;
 
-export const useProviderDashboardInit = () =>
+/** Public campus directory (names, nicknames, logos), cached for a while. */
+export const useCampusDirectory = (enabled = true) =>
   useQuery({
-    queryKey: [PD, "init"],
-    queryFn: providerDashboardService.getDashboardInit,
-    staleTime: 2 * 60 * 1000,
+    queryKey: V2.campusDirectory,
+    queryFn: loadCampusDirectory,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    enabled,
+  });
+
+/** Campuses the provider serves, with their results (the home roll). */
+export const useProviderHome = (enabled = true) => {
+  const directory = useCampusDirectory(enabled);
+  return useQuery({
+    queryKey: V2.myCampuses,
+    queryFn: () => loadProviderHome(directory.data ?? {}),
+    enabled: enabled && !!directory.data,
+    staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
+};
 
-export const useProviderUrgentPatients = () =>
+/** Students needing attention, untreated and oldest first, across campuses. */
+export const useProviderUrgentResults = (enabled = true) =>
   useQuery({
-    queryKey: [PD, "patients", "urgent"],
-    queryFn: providerDashboardService.getUrgentPatients,
+    queryKey: V2.urgentResults,
+    queryFn: () => resultsApi.urgent(),
     staleTime: 60 * 1000,
+    enabled,
   });
-
-export const useUpdateProfileMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: ProviderUpdateProfileRequest) =>
-      providerDashboardService.updateProfile(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [PD, "profile"] });
-      queryClient.invalidateQueries({ queryKey: [PD, "init"] });
-      toast.success("Profile updated");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update profile");
-    },
-  });
-};
-
-export const useUploadAvatarMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (file: File) => providerDashboardService.uploadAvatar(file),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [PD, "profile"] });
-      queryClient.invalidateQueries({ queryKey: [PD, "init"] });
-      toast.success("Avatar updated");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to upload avatar");
-    },
-  });
-};
-
-export const useUpdatePhoneNumberMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: {
-      officePhoneNumber: string;
-      currentStatus: string;
-    }) =>
-      providerDashboardService.updatePhoneNumber({
-        officePhoneNumber: payload.officePhoneNumber,
-        status: payload.currentStatus,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [PD, "profile"] });
-      queryClient.invalidateQueries({ queryKey: [PD, "init"] });
-      toast.success("Phone number updated");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update phone number");
-    },
-  });
-};

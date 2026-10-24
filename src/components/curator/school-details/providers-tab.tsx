@@ -20,10 +20,9 @@ export const ProvidersTab = ({
     )
       .toLowerCase()
       .includes(query);
-    const emailMatch = provider.email?.toLowerCase().includes(query);
     const specialtyMatch = provider.specialty?.toLowerCase().includes(query);
 
-    return nameMatch || emailMatch || specialtyMatch;
+    return nameMatch || specialtyMatch;
   });
 
   return (
@@ -61,7 +60,7 @@ export const ProvidersTab = ({
           return (
             <button
               type="button"
-              key={provider.email}
+              key={provider.id}
               onClick={() => onProviderClick(provider)}
               className="group flex flex-col items-center text-center transition-all duration-200"
             >

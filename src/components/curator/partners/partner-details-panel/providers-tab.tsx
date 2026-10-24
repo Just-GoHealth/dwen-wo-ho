@@ -37,7 +37,7 @@ export const ProvidersTab = ({
           <div className="space-y-3">
             {associatedProviders.map((provider: AssociatedProvider) => (
               <Button
-                key={provider.email}
+                key={provider.id}
                 onClick={() => handleProviderClick(provider)}
                 className="bg-background border-border hover:border-primary/30 flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors"
               >
@@ -115,7 +115,7 @@ export const ProvidersTab = ({
           <div className="space-y-3">
             {filteredAvailableProviders.map((provider: AssociatedProvider) => (
               <div
-                key={provider.email}
+                key={provider.id}
                 className="bg-background border-border hover:border-primary/30 flex items-center justify-between rounded-lg border p-4 transition-colors"
               >
                 <div className="flex items-center gap-3">

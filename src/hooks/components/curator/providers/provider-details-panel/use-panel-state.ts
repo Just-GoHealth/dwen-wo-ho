@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useProvidersQuery } from "@/hooks/queries/use-provider";
 
 export const useProviderPanelState = (
-  providerEmail: string,
-  onShowApproveModal?: (email: string) => void,
-  onShowRejectModal?: (email: string) => void,
+  providerId: string,
+  onShowApproveModal?: (providerId: string) => void,
+  onShowRejectModal?: (providerId: string) => void,
 ) => {
   const { approveProvider, rejectProvider } = useProvidersQuery({
     enabled: false,
@@ -16,7 +16,7 @@ export const useProviderPanelState = (
 
   const handleApproveClick = () => {
     if (onShowApproveModal) {
-      onShowApproveModal(providerEmail);
+      onShowApproveModal(providerId);
     } else {
       setShowApproveModal(true);
     }
@@ -24,7 +24,7 @@ export const useProviderPanelState = (
 
   const handleRejectClick = () => {
     if (onShowRejectModal) {
-      onShowRejectModal(providerEmail);
+      onShowRejectModal(providerId);
     } else {
       setShowRejectModal(true);
     }
@@ -32,12 +32,12 @@ export const useProviderPanelState = (
 
   const handleApproveConfirm = () => {
     setShowApproveModal(false);
-    approveProvider(providerEmail);
+    approveProvider(providerId);
   };
 
   const handleRejectConfirm = () => {
     setShowRejectModal(false);
-    rejectProvider(providerEmail);
+    rejectProvider(providerId);
   };
 
   return {

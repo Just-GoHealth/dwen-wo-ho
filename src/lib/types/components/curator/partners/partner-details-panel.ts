@@ -37,6 +37,11 @@ export interface SchoolsTabProps {
   handleSchoolClick: (school: AssociatedSchool) => void;
   setSchoolToRemove: (school: AssociatedSchool) => void;
   setSchoolToAdd: (school: AssociatedSchool) => void;
+  /**
+   * False while v2 can't list a host's campuses.
+   * TODO(v2-backend): GET /hosts/{id}/campuses rows carry no campusId.
+   */
+  associationsAvailable?: boolean;
 }
 
 export interface ProvidersTabProps {

@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useCreativeStudiosFlowContext } from "@/hooks/components/curator/create/use-creative-studios-flow-context";
 import { useCreativeStudiosSubmit } from "@/hooks/components/curator/create/use-creative-studios-submit";
 
 export function useTagForm() {
-  const { tag, updateTag, submitTag } = useCreativeStudiosFlowContext();
+  const { tag, updateTag, submitTag, serverErrors } =
+    useCreativeStudiosFlowContext();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const tagRef = useRef<HTMLInputElement>(null);
 
@@ -67,9 +68,20 @@ export function useTagForm() {
   const { isSubmitting, handleSubmit } =
     useCreativeStudiosSubmit(submitWithValidation);
 
+  // Server field problems: NAME_TAKEN on `title`, VALIDATION on `options`.
+  const mergedErrors = useMemo(() => {
+    const fromServer: Record<string, string> = {};
+    if (serverErrors.title) fromServer.mainTitle = serverErrors.title;
+    const optionsError = Object.entries(serverErrors).find(([field]) =>
+      field.startsWith("options"),
+    )?.[1];
+    if (optionsError) fromServer.tag = optionsError;
+    return { ...fromServer, ...errors };
+  }, [errors, serverErrors]);
+
   return {
     tag,
-    errors,
+    errors: mergedErrors,
     tagRef,
     setMainTitle,
     addTag,

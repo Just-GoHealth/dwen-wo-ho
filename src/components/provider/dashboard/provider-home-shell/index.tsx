@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { Badge } from "@/components/ui/badge";
+import { TriageBadge } from "@just-gohealth/ui";
 import { NotificationBell } from "@/components/shared/notification-bell";
 import { ProviderGlassBar } from "@/components/provider/workspace/provider-glass-bar";
 import { ProviderIdentityTrigger } from "@/components/provider/workspace/provider-identity-trigger";
@@ -12,8 +12,7 @@ import { useProviderProfile } from "@/hooks/provider/profile/use-profile";
 import { triageFilterAtom } from "@/atoms/new-provider";
 import {
   TRIAGE_TIER_LABELS,
-  TRIAGE_CHIP_VARIANT,
-  TRIAGE_CHIP_VARIANT_LIT,
+  TRIAGE_TIER_LEVEL,
   type TriageTier,
 } from "@/lib/utils/shared/triage";
 import type { ProviderDashboardState } from "@/hooks/provider/dashboard/use-dashboard";
@@ -109,16 +108,11 @@ export function ProviderHomeShell({ dashboard }: ProviderHomeShellProps) {
                   }
                   className="transition-transform hover:-translate-y-0.5"
                 >
-                  <Badge
-                    variant={
-                      isOn
-                        ? TRIAGE_CHIP_VARIANT_LIT[tier]
-                        : TRIAGE_CHIP_VARIANT[tier]
-                    }
-                    className="cursor-pointer px-2 py-1 text-[10px] font-bold tracking-[.08em] sm:px-4 sm:py-1.5 sm:text-xs sm:tracking-[.14em]"
-                  >
-                    {TRIAGE_TIER_LABELS[tier]}
-                  </Badge>
+                  <TriageBadge
+                    level={TRIAGE_TIER_LEVEL[tier]}
+                    active={isOn}
+                    className="cursor-pointer px-2 py-1 text-[10px] font-bold tracking-[.08em] normal-case sm:px-4 sm:py-1.5 sm:text-xs sm:tracking-[.14em]"
+                  />
                 </button>
               );
             })}

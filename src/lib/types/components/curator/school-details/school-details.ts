@@ -53,6 +53,10 @@ export interface PatientsTabProps {
   schoolName?: string;
   compactTimeAgo: (date: string) => string;
   onViewPatient: (patientId: number | string) => void;
+  /** Results awaiting the curator's acceptance (C19). */
+  awaitingCount?: number;
+  onAcceptAll?: () => void;
+  isAcceptingAll?: boolean;
 }
 
 export type SchoolTab = "patients" | "icons" | "providers";
@@ -98,6 +102,9 @@ export interface SchoolDetailsTabContentProps {
   compactTimeAgo: (date: string) => string;
   appliedSearchQuery: string;
   onViewPatient: (patientId: string | number) => void;
+  awaitingCount?: number;
+  onAcceptAll?: () => void;
+  isAcceptingAll?: boolean;
   schoolIcons: SchoolIcon[];
   onIconClick: (icon: SchoolIcon) => void;
   onAddFirstIcon: () => void;

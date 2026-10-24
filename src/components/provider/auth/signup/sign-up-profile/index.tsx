@@ -10,6 +10,7 @@ const SignUpProfile = ({
   currentStep,
   profileData,
   onFieldChange,
+  fieldError,
 }: SignUpProfileContentProps) => {
   let stepContent: ReactNode = null;
   switch (currentStep) {
@@ -28,6 +29,7 @@ const SignUpProfile = ({
           phoneNumber={profileData.phoneNumber}
           bio={profileData.bio}
           onChange={(field, value) => onFieldChange(field, value)}
+          fieldError={fieldError}
         />
       );
       break;

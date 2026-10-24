@@ -15,7 +15,6 @@ import { useTheme } from "next-themes";
 import { Loader2 } from "lucide-react";
 
 const SignUpContent = (props: ProviderSignUpProps) => {
-  const { specialty, profileImage } = props;
   const {
     currentStep,
     agreedToTerms,
@@ -24,27 +23,17 @@ const SignUpContent = (props: ProviderSignUpProps) => {
     setIsFormValid,
     signUpData,
     handleCreateAccountNext,
-    handleVerificationNext,
+    handleVerified,
     handleBack,
     getCurrentStepLabel,
-    isResumeLocked,
-    isCheckingGuard,
-    profileStep,
   } = useProviderSignUp(props);
   const { theme } = useTheme();
   const mounted = useHydrated();
 
   const profileFlow = useSignUpProfile({
-    email: signUpData.email,
-    fullName: signUpData.fullName,
-    title: signUpData.title,
-    password: signUpData.password,
-    specialty,
-    profileImage,
-    onBack: isResumeLocked ? undefined : () => handleBack(),
-    startStep: profileStep ?? 0,
-    isResumeLocked,
+    enabled: currentStep === "profile",
   });
+  const isCheckingGuard = currentStep === "profile" && profileFlow.isLoading;
 
   let stepContent: ReactNode = null;
   switch (currentStep) {
@@ -66,7 +55,7 @@ const SignUpContent = (props: ProviderSignUpProps) => {
       stepContent = (
         <SignUpVerification
           email={signUpData.email}
-          onNext={handleVerificationNext}
+          onVerified={handleVerified}
         />
       );
       break;
@@ -77,6 +66,7 @@ const SignUpContent = (props: ProviderSignUpProps) => {
           currentStep={profileFlow.currentStep}
           profileData={profileFlow.profileData}
           onFieldChange={profileFlow.handleChange}
+          fieldError={profileFlow.fieldError}
         />
       );
       break;
@@ -131,7 +121,7 @@ const SignUpContent = (props: ProviderSignUpProps) => {
             mode="main"
             mainStep={currentStep}
             onBack={handleBack}
-            backDisabled={isResumeLocked && currentStep !== "create"}
+            backDisabled={false}
             stepLabel={getCurrentStepLabel()}
             showNext={currentStep === "create"}
             nextDisabled={!agreedToTerms || !isFormValid}

@@ -15,7 +15,7 @@ const PhotoStep = ({ profilePhoto, onChange }: PhotoStepProps) => {
     setIsPhotoModalOpen,
     imageSrc,
     fileInputRef,
-    addPhotoMutation,
+    isUploading,
     onCropComplete,
     handlePhotoUpload,
     handleCancel,
@@ -104,7 +104,7 @@ const PhotoStep = ({ profilePhoto, onChange }: PhotoStepProps) => {
       <Input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         onChange={handlePhotoUpload}
         className="hidden"
       />
@@ -116,7 +116,7 @@ const PhotoStep = ({ profilePhoto, onChange }: PhotoStepProps) => {
         onCropComplete={onCropComplete}
         onSave={handleAddPhoto}
         onCancel={handleCancel}
-        isSaving={addPhotoMutation.isPending}
+        isSaving={isUploading}
       />
     </>
   );

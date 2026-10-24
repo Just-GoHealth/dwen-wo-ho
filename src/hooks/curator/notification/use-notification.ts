@@ -2,7 +2,10 @@
 
 import { useAtom, useSetAtom } from "jotai";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { unifiedNotificationsService } from "@/services/shared/unified-notifications";
+import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
 
 import { useRouter } from "next/navigation";
 
@@ -17,10 +20,8 @@ import { CuratorNotification } from "@/lib/types/entities/notification";
 import type { Route } from "next";
 
 import {
-  useClearNotificationsMutation,
   useMarkNotificationReadMutation,
   useMarkAllNotificationsReadMutation,
-  useDeleteNotificationMutation,
 } from "@/hooks/queries/use-notifications-mutations";
 
 export const useCuratorNotification = () => {
@@ -32,13 +33,20 @@ export const useCuratorNotification = () => {
 
   const router = useRouter();
 
-  const clearMutation = useClearNotificationsMutation();
-
   const markReadMutation = useMarkNotificationReadMutation();
 
   const markAllReadMutation = useMarkAllNotificationsReadMutation();
 
-  const deleteMutation = useDeleteNotificationMutation();
+  // v2 `/me/notifications`; refetched by the SSE `notification` event.
+  const { data: fetched } = useQuery({
+    queryKey: [QUERY_KEYS.curator, "notifications"],
+    queryFn: unifiedNotificationsService.getNotifications,
+    staleTime: 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (fetched?.data?.items) setNotifications(fetched.data.items);
+  }, [fetched, setNotifications]);
 
   const openSheet = useCallback(() => setIsOpen(true), [setIsOpen]);
 
@@ -124,11 +132,11 @@ export const useCuratorNotification = () => {
     [setNotifications, setIsOpen, router],
   );
 
+  // TODO(v2-backend): v2 has no clear-all endpoint (v1 DELETE /curator/notifications);
+  // this only empties the list on this device until the next fetch.
   const clearNotifications = useCallback(() => {
     setNotifications([]);
-
-    clearMutation.mutate();
-  }, [setNotifications, clearMutation]);
+  }, [setNotifications]);
 
   const dismissNotification = useCallback(
     (id: string | number) => {
@@ -156,14 +164,14 @@ export const useCuratorNotification = () => {
     markAllReadMutation.mutate();
   }, [setNotifications, markAllReadMutation]);
 
+  // TODO(v2-backend): v2 has no delete-one endpoint (v1 DELETE /curator/notifications/{id});
+  // the sheet hides the delete action, so this only dismisses locally.
   const deleteNotification = useCallback(
     (id: string | number) => {
       setNotifications((prev) => prev.filter((n) => n.id !== id));
-
-      deleteMutation.mutate(id);
     },
 
-    [setNotifications, deleteMutation],
+    [setNotifications],
   );
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -196,7 +204,7 @@ export const useCuratorNotification = () => {
     // Loading states for UI feedback
     isMarkingRead: markReadMutation.isPending,
     isMarkingAllRead: markAllReadMutation.isPending,
-    isDeleting: deleteMutation.isPending,
-    isClearing: clearMutation.isPending,
+    isDeleting: false,
+    isClearing: false,
   };
 };

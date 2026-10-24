@@ -69,8 +69,8 @@ export function CuratorProviderDetailsScreen() {
       />
 
       <ProviderDetailsHeader
-        status={provider.status || "PENDING"}
-        statusColor={getStatusColor(provider.status || "PENDING")}
+        status={provider.applicationStatus || "PENDING"}
+        statusColor={getStatusColor(provider.applicationStatus || "PENDING")}
         onBackClick={() => router.push(ROUTES.curator.providers)}
       />
 
@@ -87,7 +87,7 @@ export function CuratorProviderDetailsScreen() {
 
         <ProviderSpecialtiesCard specialties={provider.specialties || []} />
 
-        {provider.status === "PENDING" ? (
+        {provider.applicationStatus === "PENDING" ? (
           <ProviderActionButtons
             onApprove={handleApprove}
             onReject={handleReject}
@@ -95,7 +95,7 @@ export function CuratorProviderDetailsScreen() {
           />
         ) : (
           <ProviderStatusDisplay
-            status={provider.status || "PENDING"}
+            status={provider.applicationStatus || "PENDING"}
             updatedAt={provider.updatedAt}
           />
         )}

@@ -2,7 +2,6 @@
 
 import { usePartnerDetails } from "@/hooks/components/curator/partners/use-partner-details";
 import ProviderDetailsPanel from "@/components/curator/providers/provider-details-panel";
-import SchoolEditPanel from "@/components/curator/schools/school-edit-panel";
 import { PartnerDetailsPanelProps } from "@/lib/types/components/shared/overlays";
 
 // Sub-components
@@ -45,18 +44,13 @@ const PartnerDetailsPanel = ({
     isRemovingProvider,
     showProviderModal,
     setShowProviderModal,
-    selectedProviderEmail,
-    showSchoolModal,
-    setShowSchoolModal,
-    selectedSchool,
-    setSelectedSchool,
+    selectedProviderId,
     filteredAvailableSchools,
     filteredAvailableProviders,
     handleAddSchool,
     handleRemoveSchool,
     handleAddProvider,
     handleRemoveProvider,
-    loadPartnerDetails,
     handleSchoolClick,
     handleProviderClick,
     tabs,
@@ -90,6 +84,7 @@ const PartnerDetailsPanel = ({
                 handleSchoolClick={handleSchoolClick}
                 setSchoolToRemove={setSchoolToRemove}
                 setSchoolToAdd={setSchoolToAdd}
+                associationsAvailable={false}
               />
             )}
 
@@ -133,24 +128,7 @@ const PartnerDetailsPanel = ({
         <ProviderDetailsPanel
           isOpen={showProviderModal}
           onClose={() => setShowProviderModal(false)}
-          providerEmail={selectedProviderEmail}
-        />
-      )}
-
-      {/* School Edit Modal (used for viewing details) */}
-      {showSchoolModal && selectedSchool && (
-        <SchoolEditPanel
-          isOpen={showSchoolModal}
-          onClose={() => {
-            setShowSchoolModal(false);
-            setSelectedSchool(null);
-          }}
-          school={selectedSchool}
-          onSchoolUpdated={async () => {
-            await loadPartnerDetails();
-            setShowSchoolModal(false);
-            setSelectedSchool(null);
-          }}
+          providerId={selectedProviderId}
         />
       )}
     </>

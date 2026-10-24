@@ -11,6 +11,7 @@ import { NEW_PASSWORD_TEXTS } from "@/lib/constants/components/provider/auth/aut
 import { useTheme } from "next-themes";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import NewPasswordForm from "../new-password-form";
+import { ApiErrorNote } from "@/components/shared/api-error-note";
 import { useNewPassword } from "@/hooks/components/provider/auth/new-password/use-new-password";
 
 const NewPasswordContent = () => {
@@ -27,6 +28,7 @@ const NewPasswordContent = () => {
     onSubmit,
     handleBack,
     isSubmitting,
+    apiError,
   } = useNewPassword();
   const { theme } = useTheme();
   const mounted = useHydrated();
@@ -57,6 +59,10 @@ const NewPasswordContent = () => {
           errors={errors}
           onSubmit={onSubmit}
           isSubmitting={isSubmitting}
+        />
+        <ApiErrorNote
+          error={apiError}
+          className="mx-auto mt-4 w-full max-w-lg px-8"
         />
       </div>
 

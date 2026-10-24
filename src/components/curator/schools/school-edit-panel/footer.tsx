@@ -9,7 +9,7 @@ export const SchoolEditFooter = ({
   hasChanges,
 }: SchoolEditPanelFooterProps) => {
   return (
-    <div className="border-border bg-muted/40 flex items-center justify-between border-t px-8 py-6">
+    <div className="border-border bg-muted/40 flex flex-col-reverse gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-6">
       <Button
         type="button"
         onClick={handleDisable}
@@ -17,7 +17,7 @@ export const SchoolEditFooter = ({
         className="text-destructive hover:text-destructive hover:bg-destructive/10 flex items-center gap-2 px-6 font-medium"
       >
         <Ban className="h-4 w-4" />
-        Disable School
+        Archive School
       </Button>
       <LoadingButton
         type="submit"

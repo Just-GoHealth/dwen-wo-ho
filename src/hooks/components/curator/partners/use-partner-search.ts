@@ -30,7 +30,7 @@ export const usePartnerSearch = ({
         formatProviderName(provider.providerName, provider.providerTitle)
           .toLowerCase()
           .includes(query) ||
-        provider.email.toLowerCase().includes(query) ||
+        provider.email?.toLowerCase().includes(query) ||
         provider.specialty?.toLowerCase().includes(query),
     );
   }, [availableProviders, providerSearchQuery]);

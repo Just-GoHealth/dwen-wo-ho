@@ -2,57 +2,37 @@
 
 import { useMemo } from "react";
 import { useProvidersQuery } from "@/hooks/queries/use-provider";
-import { Provider, ProviderDetails } from "@/lib/types/entities/provider";
+import { ProviderDetails } from "@/lib/types/entities/provider";
 import {
   formatProviderName,
   getProviderTitle,
 } from "@/lib/utils/shared/provider-name";
 
 export const useProviderPanelData = (
-  providerEmail: string,
+  providerId: string,
   providerProp: ProviderDetails | undefined,
 ) => {
   const { useProvider, invalidateProvider } = useProvidersQuery({
     enabled: false,
   });
 
+  // GET /providers/{id}: the full profile (adapted to ProviderDetails).
   const { data: providerData, isLoading: isQueryLoading } =
-    useProvider(providerEmail);
+    useProvider(providerId);
 
   const provider: ProviderDetails | null = useMemo(() => {
-    if (!providerData && !providerProp) return null;
-    const data = providerData || providerProp!;
-
+    const data = providerData ?? providerProp;
+    if (!data) return null;
+    const name = data.providerName || data.fullName || "";
     return {
-      id: data.id || data.email,
-      email: data.email,
-      fullName:
-        (data as ProviderDetails).fullName ||
-        formatProviderName(
-          (data as Provider).providerName || data.email,
-          data.providerTitle,
-        ),
-      providerTitle:
-        getProviderTitle(
-          (data as Provider).providerName || "",
-          data.providerTitle,
-        ) || undefined,
-      professionalTitle: (data as Provider).specialty || "",
-      profilePhotoURL: (data as Provider).profilePhotoURL || undefined,
-      profileImage: (data as Provider).profilePhotoURL || undefined,
-      status: data.status || data.bio || undefined,
-      officePhoneNumber: data.officePhoneNumber || undefined,
-      specialties: (data as Provider).specialty
-        ? [(data as Provider).specialty as string]
-        : undefined,
-      createdAt: (data as Provider).applicationDate,
-      updatedAt:
-        (data as Provider).lastActive || (data as Provider).applicationDate,
-      applicationStatus: (data as Provider).applicationStatus,
-      applicationDate: (data as Provider).applicationDate,
-      schools: data.schools,
-      partners: data.partners,
-    };
+      ...data,
+      fullName: data.fullName || formatProviderName(name, data.providerTitle),
+      providerTitle: getProviderTitle(name, data.providerTitle) || undefined,
+      professionalTitle: data.specialty || "",
+      profileImage: data.profilePhotoURL || undefined,
+      specialties:
+        data.specialties ?? (data.specialty ? [data.specialty] : undefined),
+    } as ProviderDetails;
   }, [providerData, providerProp]);
 
   return { provider, isQueryLoading, invalidateProvider };

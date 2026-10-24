@@ -12,7 +12,7 @@ import {
   SchoolAccessCodesSheet,
   SchoolProvidersSheet,
 } from "@/components/curator/school-details";
-import type { Team } from "@/lib/types/api/competitions";
+import type { TeamView } from "@/lib/v2/curator/nsmq";
 import { useCurrentSchoolTeam } from "@/hooks/curator/competitions/use-current-school-team";
 import { Button } from "@/components/ui/button";
 import { FilterTabBar } from "@/components/shared/filter-tab-bar/index";
@@ -56,6 +56,9 @@ export function SchoolDetailsPageContent({
     toggleFilter,
     removeFilter,
     clearFilters,
+    awaitingCount,
+    acceptAllResults,
+    isAcceptingAll,
   } = details;
 
   const [triageFilter, setTriageFilter] = useState<TriageTier | "all">("all");
@@ -65,7 +68,7 @@ export function SchoolDetailsPageContent({
   // Set the moment "Join a competition" registers this school — lets the
   // rest of this page light up (Next Contest, Access Codes) without
   // waiting on the team-lookup query to refetch first.
-  const [justRegisteredTeam, setJustRegisteredTeam] = useState<Team | null>(
+  const [justRegisteredTeam, setJustRegisteredTeam] = useState<TeamView | null>(
     null,
   );
   const effectiveTeam = team ?? justRegisteredTeam;
@@ -157,6 +160,9 @@ export function SchoolDetailsPageContent({
                 ) as Route,
               )
             }
+            awaitingCount={awaitingCount}
+            onAcceptAll={() => acceptAllResults()}
+            isAcceptingAll={isAcceptingAll}
             schoolIcons={schoolIcons}
             onIconClick={(icon) => {
               setEditingIcon(icon);
@@ -180,8 +186,8 @@ export function SchoolDetailsPageContent({
         fixturePill={
           // an eliminated team is a terminal state for that competition
           // (the backend refuses to untag a team once students have
-          // joined - see DELETE .../teams/campus/{campusId}'s own
-          // description) - there's nothing left to schedule, so this
+          // joined - DELETE /versions/{code}/teams/{campusId} answers
+          // 409 TEAM_HAS_MEMBERS) - there's nothing left to schedule, so this
           // falls back to the same "join a competition" prompt as a
           // school with no team at all, which lets it register for a
           // different contest (re-entering the same code it was
@@ -190,7 +196,6 @@ export function SchoolDetailsPageContent({
           effectiveTeam && effectiveTeam.status !== "ELIMINATED" ? (
             <NextFixturePill
               teamId={effectiveTeam.id}
-              fixtures={effectiveTeam.fixtures}
               campusName={effectiveTeam.campusName}
               status={effectiveTeam.status}
             />

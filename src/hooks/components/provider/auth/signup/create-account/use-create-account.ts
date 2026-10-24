@@ -16,18 +16,8 @@ import {
 } from "@/lib/constants/components/provider/auth/signup";
 import { ROUTES } from "@/lib/constants/infra/routes";
 import { toTitleCase } from "@/lib/utils/shared/string-case";
-import { getCleanErrorMessage } from "@/lib/utils/auth/error";
 import { toast } from "sonner";
-
-function isExistingAccountError(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes("already exists") ||
-    normalized.includes("already registered") ||
-    normalized.includes("already verified") ||
-    normalized.includes("user exists")
-  );
-}
+import { useApiError } from "@/hooks/shared/use-api-error";
 
 export const useCreateAccount = ({
   email: propEmail,
@@ -41,7 +31,8 @@ export const useCreateAccount = ({
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isTitleSelectOpen, setIsTitleSelectOpen] = useState<boolean>(false);
 
-  const { signupMutation } = useAuthQuery();
+  const { providerSignUpMutation: signupMutation } = useAuthQuery();
+  const apiError = useApiError();
 
   const {
     register,
@@ -49,6 +40,7 @@ export const useCreateAccount = ({
     errors,
     watch,
     setValue,
+    setError,
     formState: { isValid },
   } = useSelectedValuesFromReactHookForm<ProviderSignUpFormData>(
     ProviderSignUpSchema,
@@ -81,35 +73,42 @@ export const useCreateAccount = ({
       return;
     }
 
+    apiError.clear();
+    const formattedFullName = toTitleCase(values.fullName);
     try {
-      const formattedFullName = toTitleCase(values.fullName);
-
+      // 202: a DRAFT provider exists and the SIGN_UP code is on its way.
       await signupMutation.mutateAsync({
         email: values.email,
         password: values.password,
+        title: values.title,
         fullName: formattedFullName,
-        professionalTitle: values.title,
       });
 
       onNext({
         email: values.email,
         fullName: formattedFullName,
         title: values.title,
-        password: values.password,
       });
     } catch (error: unknown) {
-      const errorMsg =
-        getCleanErrorMessage(error) || SIGN_UP_TEXTS.errors.general;
+      const described = apiError.capture(error);
 
-      if (isExistingAccountError(errorMsg)) {
-        toast.error(SIGN_UP_TEXTS.errors.accountExists);
+      if (described.code === "CONTACT_IN_USE") {
+        toast.error(described.message);
         router.push(
           `${ROUTES.provider.signIn}&email=${encodeURIComponent(values.email)}` as Route,
         );
         return;
       }
 
-      toast.error(errorMsg);
+      let shownBesideField = false;
+      for (const field of ["title", "fullName", "password"] as const) {
+        const message = described.fieldError(field);
+        if (message) {
+          setError(field, { message });
+          shownBesideField = true;
+        }
+      }
+      if (!shownBesideField) toast.error(described.message);
     }
   };
 
@@ -155,5 +154,6 @@ export const useCreateAccount = ({
     title,
     fullName,
     password,
+    apiError,
   };
 };

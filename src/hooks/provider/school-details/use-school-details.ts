@@ -1,105 +1,135 @@
 "use client";
 
-import { useCallback } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { patientsService } from "@/services/shared/patients";
-import useUserQuery from "@/hooks/queries/use-user-profile";
-import useSchoolsQuery from "@/hooks/queries/use-schools";
-import usePatientResultQuery from "@/hooks/queries/use-patient-result";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { LockInStudent } from "@/lib/types/entities/lockin";
+import { resultsApi } from "@/lib/v2/results";
+import { nsmqApi } from "@/lib/v2/nsmq";
+import { ApiError } from "@/lib/v2/http";
+import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
+import { useCampusDirectory } from "@/hooks/queries/use-provider-dashboard";
+import { describeApiError } from "@/lib/utils/shared/api-error";
+import type { Period, ResultFilters } from "@/lib/v2/types";
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
+const V2 = QUERY_KEYS.v2;
 
+const isNotFound = (error: unknown) =>
+  error instanceof ApiError && error.code === "NOT_FOUND";
+
+const noRetryOn4xx = (count: number, error: unknown) =>
+  !(error instanceof ApiError && error.status < 500) && count < 2;
+
+/**
+ * One campus: results (with filters), the summary's period counts, and the
+ * NSMQ care cases. A campus the provider can't see answers 404 — "not
+ * available to you" (not attached, or still pending), not an error.
+ */
 export function useProviderSchoolDetails() {
   const params = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const schoolId = params.schoolId as string;
-  const { getProfileQuery } = useUserQuery();
-  const { useSchool, useSchoolStudents } = useSchoolsQuery();
-  const { createPatientResult } = usePatientResultQuery();
+  const [period, setPeriod] = useState<Period | undefined>(undefined);
+  const [activeOnly, setActiveOnly] = useState(true);
+  const filters: ResultFilters = {
+    period,
+    active: activeOnly ? true : undefined,
+  };
 
-  // Check access
-  const providerSchools = getProfileQuery.data?.schools || [];
-  const schoolsArray = Array.isArray(providerSchools) ? providerSchools : [];
-  const hasAccess = schoolsArray.some(
-    (s: { id: string | number }) => String(s.id) === String(schoolId),
-  );
+  const { data: directory } = useCampusDirectory();
+  const campus = directory?.[schoolId];
 
-  const isReady = !!schoolId && !!getProfileQuery.data;
-
-  // School details query
-  const schoolQuery = useSchool(schoolId);
-
-  // Students query
-  const studentsQuery = useSchoolStudents(schoolId, {
-    enabled: isReady && hasAccess,
+  const resultsQuery = useQuery({
+    queryKey: [...V2.campusResults(schoolId), filters],
+    queryFn: () => resultsApi.list(schoolId, { ...filters, size: 100 }),
+    enabled: !!schoolId,
+    retry: noRetryOn4xx,
   });
 
-  // Redirect if no access
-  if (isReady && !hasAccess) {
-    router.replace("/provider/schools");
-  }
+  const summaryQuery = useQuery({
+    queryKey: [...V2.campusSummary(schoolId), filters],
+    queryFn: () => resultsApi.summary(schoolId, filters),
+    enabled: !!schoolId && !isNotFound(resultsQuery.error),
+    retry: noRetryOn4xx,
+  });
 
-  const handleStudentClick = useCallback(
-    async (student: LockInStudent) => {
-      if (student.patientResultId) {
-        router.push(`/provider/patients/${student.patientResultId}`);
-        return;
-      }
+  const careCasesQuery = useQuery({
+    queryKey: V2.careCases(schoolId),
+    queryFn: () => nsmqApi.careCases(schoolId),
+    enabled: !!schoolId && !isNotFound(resultsQuery.error),
+    retry: noRetryOn4xx,
+  });
 
-      // Check if result already exists (e.g. created by another provider)
-      try {
-        const results = await patientsService.getSchoolResults(schoolId);
-        const existingResult = results.find(
-          (r) => r.patientName === student.studentName,
-        );
-        if (existingResult) {
-          router.push(`/provider/patients/${existingResult.id}`);
-          return;
-        }
-      } catch (error) {
-        console.error("Failed to check existing results:", error);
-      }
-
-      if (student.lockinId) {
-        try {
-          const response = await createPatientResult({
-            lockinId: student.lockinId,
-            schoolId: Number(schoolId),
-          });
-
-          if (response) {
-            // Patient results query will be invalidated by createPatientResult mutation success handler
-            // We can refetch/wait for invalidation or just manually check again
-            const updatedResults =
-              await patientsService.getSchoolResults(schoolId);
-            const result = updatedResults.find(
-              (r) => r.patientName === student.studentName,
-            );
-            if (result) {
-              router.push(`/provider/patients/${result.id}`);
-            } else {
-              toast.error("Result created but not found. Please refresh.");
-            }
-          }
-        } catch (error) {
-          console.error("Failed to create patient result:", error);
-        }
-      } else {
-        toast.error("Unable to open patient. Lock-in ID not found.");
-      }
+  const clearMutation = useMutation({
+    mutationFn: ({ caseId, note }: { caseId: string; note: string }) =>
+      nsmqApi.clear(caseId, note),
+    onSuccess: (_, { caseId }) => {
+      toast.success("911 cleared");
+      void queryClient.invalidateQueries({ queryKey: V2.careCases(schoolId) });
+      void queryClient.invalidateQueries({ queryKey: V2.clearances(caseId) });
     },
-    [schoolId, router, createPatientResult],
-  );
+  });
+
+  const clearCase = async (caseId: string, note: string) => {
+    try {
+      await clearMutation.mutateAsync({ caseId, note });
+      return null;
+    } catch (error) {
+      const described = describeApiError(error);
+      // Only the campus's NSMQ counsellor may clear a 911.
+      if (described.code === "FORBIDDEN") {
+        return {
+          ...described,
+          message: "Only this campus's NSMQ counsellor can clear a 911.",
+        };
+      }
+      return described;
+    }
+  };
 
   return {
     router,
-    school: schoolQuery.data ?? null,
-    students: studentsQuery.data ?? [],
-    isLoading: schoolQuery.isLoading,
-    studentsLoading: studentsQuery.isLoading,
-    accessDenied: isReady && !hasAccess,
-    handleStudentClick,
+    schoolId,
+    school: campus
+      ? {
+          name: campus.fullName,
+          nickname: campus.nicknames[0],
+          logo: campus.logo?.url,
+          type: campus.type,
+        }
+      : null,
+    results: resultsQuery.data?.items ?? [],
+    total: resultsQuery.data?.total ?? 0,
+    summary: summaryQuery.data ?? null,
+    careCases: careCasesQuery.data ?? [],
+    isLoading: resultsQuery.isLoading,
+    notAvailable: isNotFound(resultsQuery.error),
+    loadError:
+      resultsQuery.error && !isNotFound(resultsQuery.error)
+        ? describeApiError(resultsQuery.error)
+        : null,
+    period,
+    setPeriod,
+    activeOnly,
+    setActiveOnly,
+    clearCase,
+    isClearing: clearMutation.isPending,
   };
 }
+
+/** Run detail (tag and reason are visible to providers) and a case's clearances. */
+export const useStaffRun = (runId: string | null) =>
+  useQuery({
+    queryKey: V2.run(runId ?? ""),
+    queryFn: () => nsmqApi.run(runId as string),
+    enabled: !!runId,
+    retry: noRetryOn4xx,
+  });
+
+export const useClearances = (caseId: string | null) =>
+  useQuery({
+    queryKey: V2.clearances(caseId ?? ""),
+    queryFn: () => nsmqApi.clearances(caseId as string),
+    enabled: !!caseId,
+  });

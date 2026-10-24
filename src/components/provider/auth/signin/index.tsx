@@ -8,6 +8,7 @@ import { ProviderSignInProps } from "@/lib/types/components/provider/auth";
 import { SIGN_IN_TEXTS } from "@/lib/constants/components/provider/auth/auth-copy";
 
 const SignInContent = (props: ProviderSignInProps) => {
+  const audience = props.audience ?? "provider";
   const {
     register,
     onSubmit,
@@ -15,12 +16,18 @@ const SignInContent = (props: ProviderSignInProps) => {
     isLoading,
     isRecovering,
     handleRecoverAccount,
-  } = useProviderSignIn(props);
+    apiError,
+    secondsLeft,
+  } = useProviderSignIn({
+    email: props.email,
+    role: audience === "curator" ? "CURATOR" : "PROVIDER",
+    onForgotPassword: props.onForgotPassword,
+  });
 
   return (
     <div className="flex h-full min-h-screen flex-col">
       <BaseSignInForm
-        audience={props.audience ?? "provider"}
+        audience={audience}
         email={props.email}
         register={register}
         errors={errors}
@@ -31,6 +38,8 @@ const SignInContent = (props: ProviderSignInProps) => {
         isLoading={isLoading}
         isRecovering={isRecovering}
         successMessage={props.successMessage}
+        apiError={apiError}
+        secondsLeft={secondsLeft}
       />
 
       <LoadingOverlay

@@ -33,20 +33,20 @@ const SpecialtyStep = (props: SpecialtyStepProps) => {
                 className="bg-muted h-14 w-full animate-pulse rounded-xl"
               />
             ))
-          : specialties.map((specialty) => (
+          : specialties.map((category) => (
               <Button
-                key={specialty}
-                onClick={() => handleSpecialtySelect(specialty)}
+                key={category.id}
+                onClick={() => handleSpecialtySelect(category.id)}
                 variant={
-                  selectedSpecialty === specialty ? "default" : "outline"
+                  selectedSpecialty === category.id ? "default" : "outline"
                 }
                 className={`h-auto rounded-xl px-4 py-3 text-base font-medium transition-all duration-200 sm:px-6 sm:py-4 sm:text-lg ${
-                  selectedSpecialty === specialty
+                  selectedSpecialty === category.id
                     ? "scale-[1.02] shadow-md"
                     : "hover:bg-muted/50 hover:border-primary/50 text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {specialty}
+                {category.name}
               </Button>
             ))}
       </div>

@@ -101,6 +101,18 @@ export const VERIFY_PASSWORD_RESET_TEXTS = {
   },
 };
 
+/** Resend, recovery and claim always answer 202, account or not. */
+export const CODE_SENT_TEXT = "If that account exists, we've sent a code.";
+
+export const CLAIM_TEXTS = {
+  title: "Set up your account",
+  subtitle:
+    "Your profile was created for you by JustGo Health. Enter the 6-digit code we emailed to",
+  alreadyClaimed: "This account is already set up. Sign in instead.",
+  newPasswordTitle: "Choose your password",
+  newPasswordSubtitle: "You'll use it to sign in from now on",
+};
+
 export const PROVIDER_PROFILE_SUB_STEPS = [
   { label: SIGN_UP_TEXTS.profile.steps.photo, index: 0 },
   { label: SIGN_UP_TEXTS.profile.steps.bio, index: 1 },

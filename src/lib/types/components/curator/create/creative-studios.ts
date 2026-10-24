@@ -118,6 +118,9 @@ export interface CreativeStudiosFlowContextValue {
   programme: ProgrammeDraft;
   tag: TagDraft;
   preview: PreviewPanelProps;
+  /** Field problems from the last failed create, keyed by request field (fullName, nicknames, title...). */
+  serverErrors: Record<string, string>;
+  clearServerError: (field: string) => void;
   updateCampus: (partial: Partial<CampusDraft>) => void;
   updateProvider: (partial: Partial<ProviderDraft>) => void;
   updateProgramme: (partial: Partial<ProgrammeDraft>) => void;

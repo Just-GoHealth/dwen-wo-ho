@@ -1,7 +1,6 @@
 import { describe, expect, it, afterEach, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { proxy } from "@/proxy";
-import { API_BASE_URL } from "@/configs/config";
+import { isApiPath, proxy } from "@/proxy";
 
 function cspOf(path = "/provider"): Map<string, string> {
   const res = proxy(new NextRequest(`http://localhost${path}`));
@@ -47,12 +46,24 @@ describe("proxy (CSP)", () => {
     expect(csp.get("form-action")).toBe("'self'");
   });
 
-  it("allows the API origin over https and websockets", () => {
+  it("keeps the API and SSE stream same-origin (connect-src 'self')", () => {
     const connectSrc = cspOf().get("connect-src") ?? "";
-    const apiOrigin = new URL(API_BASE_URL).origin;
 
-    expect(connectSrc).toContain(apiOrigin);
-    expect(connectSrc).toContain(apiOrigin.replace(/^http/, "ws"));
+    expect(connectSrc).toContain("'self'");
+    expect(connectSrc).not.toContain("ws");
+  });
+
+  it("passes proxied API paths through without a CSP", () => {
+    for (const path of ["/auth/me", "/me/stream", "/results/abc"]) {
+      const res = proxy(new NextRequest(`http://localhost${path}`));
+      expect(res.headers.get("Content-Security-Policy")).toBeNull();
+    }
+  });
+
+  it("does not treat app pages as API paths", () => {
+    expect(isApiPath("/provider/patients/1")).toBe(false);
+    expect(isApiPath("/curator/providers")).toBe(false);
+    expect(isApiPath("/providers/me")).toBe(true);
   });
 
   it("allows unsafe-eval only in development", () => {

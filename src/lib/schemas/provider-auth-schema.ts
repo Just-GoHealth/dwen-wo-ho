@@ -17,25 +17,48 @@ export const ProviderSignUpSchema = z.object({
   email: z
     .email({ message: "Please enter a valid email" })
     .min(1, "Please enter your email address"),
-  title: z.string().min(1, { message: "Please select your title" }),
+  title: z
+    .string()
+    .min(1, { message: "Please select your title" })
+    .max(30, { message: "Use 30 characters or fewer" }),
   fullName: z
     .string()
     .trim()
-    .min(3, { message: "Please enter your full name" }),
+    .min(3, { message: "Please enter your full name" })
+    .max(100, { message: "Use 100 characters or fewer" }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
+    .min(6, {
+      message:
+        "Use 6 to 72 characters, with at least one letter and one number",
+    })
+    .refine((v) => /\p{L}/u.test(v) && /\d/.test(v), {
+      message:
+        "Use 6 to 72 characters, with at least one letter and one number",
+    }),
 });
 
 export type ProviderEmailFormData = z.output<typeof ProviderEmailSchema>;
 export type ProviderLoginFormData = z.output<typeof ProviderLoginSchema>;
 export type ProviderSignUpFormData = z.output<typeof ProviderSignUpSchema>;
 
+/** Backend rule: 6+ chars, a letter and a digit, at most 72 UTF-8 bytes. */
+export const PASSWORD_RULE_MESSAGE =
+  "Use 6 to 72 characters, with at least one letter and one number";
+
+const V2PasswordSchema = z
+  .string()
+  .min(6, { message: PASSWORD_RULE_MESSAGE })
+  .refine((v) => /\p{L}/u.test(v) && /\d/.test(v), {
+    message: PASSWORD_RULE_MESSAGE,
+  })
+  .refine((v) => new TextEncoder().encode(v).length <= 72, {
+    message: PASSWORD_RULE_MESSAGE,
+  });
+
 export const ProviderPasswordSchema = z
   .object({
-    password: z
-      .string()
-      .min(6, { message: "Password must be at least 6 characters" }),
+    password: V2PasswordSchema,
     confirmPassword: z
       .string()
       .min(6, { message: "Please confirm your password" }),
@@ -73,10 +96,10 @@ const GhanaPhoneNumberSchema = z
 
 export const ProviderProfileBioStepSchema = z.object({
   phoneNumber: GhanaPhoneNumberSchema,
+  // Optional in v2 (the slogan doesn't count towards the application).
   bio: z
     .string()
     .trim()
-    .min(1, { message: "My Slogan must be at least 1 character" })
     .max(140, { message: "My Slogan must be 140 characters or less" }),
 });
 

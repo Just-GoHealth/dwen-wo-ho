@@ -5,14 +5,17 @@ import { CalendarClock, Power, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Button } from "@/components/ui/button";
-import useFixturesQuery from "@/hooks/curator/competitions/use-fixtures";
+import useFixturesQuery, {
+  DEFAULT_FIXTURE_TIMEZONE,
+  formatKickoff,
+  nextFixture,
+} from "@/hooks/curator/competitions/use-fixtures";
 import useTeamsQuery from "@/hooks/curator/competitions/use-teams";
-import type { Fixture, TeamStatus } from "@/lib/types/api/competitions";
+import type { TeamStatus, UUID } from "@/lib/v2/curator/types";
 import { cn } from "@/lib/utils";
 
 interface NextFixturePillProps {
-  teamId: number;
-  fixtures: Fixture[];
+  teamId: UUID;
   campusName: string;
   status: TeamStatus;
 }
@@ -82,11 +85,6 @@ function relativeLabel(date: Date): string {
   return `In ${Math.round(diff / 7)} weeks`;
 }
 
-function soonestFixture(fixtures: Fixture[]): Fixture | null {
-  if (fixtures.length === 0) return null;
-  return [...fixtures].sort((a, b) => a.ordinal - b.ordinal)[0];
-}
-
 /**
  * Compact "next contest" pill + editor — matches the mock's `.m-class`
  * pill and `#nqBack`/`.nq` "Next Contest" popover in
@@ -98,33 +96,38 @@ function soonestFixture(fixtures: Fixture[]): Fixture | null {
  */
 export function NextFixturePill({
   teamId,
-  fixtures,
   campusName,
   status,
 }: NextFixturePillProps) {
   const [open, setOpen] = useState(false);
   const [confirmingEliminate, setConfirmingEliminate] = useState(false);
-  const next = soonestFixture(fixtures);
+  const {
+    useFixtures,
+    addFixture,
+    updateFixture,
+    isAddingFixture,
+    isUpdatingFixture,
+  } = useFixturesQuery();
+  const { data: fixtures = [] } = useFixtures(teamId);
+  const next = nextFixture(fixtures);
 
   const [draftDate, setDraftDate] = useState<Date>(() => new Date());
   const [openPicker, setOpenPicker] = useState<"month" | "day" | "time" | null>(
     null,
   );
 
-  const { addFixture, updateFixture, isAddingFixture, isUpdatingFixture } =
-    useFixturesQuery();
   const { updateTeam, isUpdatingTeam } = useTeamsQuery();
   const isBusy = isAddingFixture || isUpdatingFixture;
 
   useEffect(() => {
     if (open) {
-      setDraftDate(next ? new Date(next.scheduledAt) : new Date());
+      setDraftDate(next ? new Date(next.kickoffAt) : new Date());
       setOpenPicker(null);
       setConfirmingEliminate(false);
     }
   }, [open, next]);
 
-  const originalTime = next ? new Date(next.scheduledAt).getTime() : null;
+  const originalTime = next ? new Date(next.kickoffAt).getTime() : null;
   // No existing fixture means anything picked is unsaved by definition.
   const isDirty = originalTime === null || draftDate.getTime() !== originalTime;
 
@@ -150,20 +153,26 @@ export function NextFixturePill({
   };
 
   const handleSave = async () => {
-    const data = {
-      roundName: next?.roundName || "NSMQ",
-      scheduledAt: draftDate.toISOString(),
-      // Display-only (renders whenLabel, e.g. "Today · 3pm") — not the
-      // curator's own browser timezone, which could be anywhere. Every
-      // school here is in Ghana.
-      timezone: next?.timezone || "Africa/Accra",
-      venue: next?.venue ?? "",
-      ordinal: next?.ordinal ?? fixtures.length,
-    };
+    const kickoffAt = draftDate.toISOString();
     if (next) {
-      await updateFixture({ fixtureId: next.id, teamId, data });
+      // Only the kickoff moves; `version` guards against a stale edit (409 STALE).
+      await updateFixture({
+        fixtureId: next.id,
+        teamId,
+        data: { version: next.version, kickoffAt },
+      });
     } else {
-      await addFixture({ teamId, data });
+      await addFixture({
+        teamId,
+        data: {
+          roundName: "NSMQ",
+          kickoffAt,
+          // Display zone, not the curator's browser zone: every school is in Ghana.
+          timezone: DEFAULT_FIXTURE_TIMEZONE,
+          venue: null,
+          position: fixtures.length,
+        },
+      });
     }
   };
 
@@ -194,7 +203,7 @@ export function NextFixturePill({
           <span>{next?.roundName || "No contest set"}</span>
           {next && (
             <span className="text-muted-foreground/80 font-bold normal-case">
-              {next.whenLabel}
+              {formatKickoff(next)}
             </span>
           )}
         </span>

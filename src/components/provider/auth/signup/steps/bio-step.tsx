@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useBioStep } from "@/hooks/components/provider/auth/signup/bio-step/use-bio-step";
 
 const BioStep = (props: BioStepProps) => {
-  const { phoneNumber, bio } = props;
+  const { phoneNumber, bio, fieldError } = props;
   const { handlePhoneChange, handleBioChange, handleBioBlur } =
     useBioStep(props);
 
@@ -52,6 +52,11 @@ const BioStep = (props: BioStepProps) => {
               </div> */}
             </div>
           </div>
+          {fieldError?.("phone") && (
+            <p className="text-destructive text-sm font-medium">
+              {fieldError("phone")}
+            </p>
+          )}
           <p className="text-muted-foreground text-sm">
             {SIGN_UP_TEXTS.bioStep.privateInfo}
           </p>
@@ -59,10 +64,7 @@ const BioStep = (props: BioStepProps) => {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <Label className="shrink-0">
-              {SIGN_UP_TEXTS.bioStep.status}
-              <span className="text-destructive">*</span>
-            </Label>
+            <Label className="shrink-0">{SIGN_UP_TEXTS.bioStep.status}</Label>
             <span
               className={`shrink-0 rounded-md px-1.5 py-1 text-[10px] font-medium whitespace-nowrap sm:px-2 sm:text-xs ${
                 140 - bio.length < 10
@@ -80,9 +82,13 @@ const BioStep = (props: BioStepProps) => {
               onBlur={handleBioBlur}
               placeholder={SIGN_UP_TEXTS.bioStep.bioPlaceholder}
               maxLength={140}
-              minLength={10}
               className="border-input bg-background focus-visible:ring-primary/50 min-h-40 resize-none p-4 shadow-sm transition-all duration-200"
             />
+            {fieldError?.("slogan") && (
+              <p className="text-destructive mt-2 text-sm font-medium">
+                {fieldError("slogan")}
+              </p>
+            )}
             <p className="text-muted-foreground mt-2 text-sm">
               {SIGN_UP_TEXTS.bioStep.bioDescription}
             </p>

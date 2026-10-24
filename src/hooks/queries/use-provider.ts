@@ -2,31 +2,25 @@
 import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { curatorProvidersService } from "@/services/curator/providers";
+import {
+  curatorProvidersService,
+  fromProviderProfile,
+  fromProviderSummary,
+} from "@/services/curator/providers";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
-import type { ProviderActivityParams } from "@/lib/types/api/providers";
+import { hasCode, toastCuratorError } from "@/lib/v2/curator/errors";
 
-export const useProviderActivityQuery = (params?: ProviderActivityParams) =>
+// Provider app (activity log, schools summary): still v1, owned by the
+// provider migration.
+// Single provider query (by UUID) — hoisted; closes over no component state.
+const useProvider = (providerId: string) =>
   useQuery({
-    queryKey: [QUERY_KEYS.providers, "activity", params],
-    queryFn: () => curatorProvidersService.getActivity(params),
-    staleTime: 60 * 1000,
-  });
-
-export const useProviderSchoolsSummary = () =>
-  useQuery({
-    queryKey: [QUERY_KEYS.providerSchoolsSummary],
-    queryFn: curatorProvidersService.getSchoolsSummary,
-    staleTime: 3 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
-
-// Single provider query — hoisted; closes over no component state.
-const useProvider = (email: string) =>
-  useQuery({
-    queryKey: [QUERY_KEYS.providers, email],
-    queryFn: () => curatorProvidersService.getProvider(email),
-    enabled: !!email,
+    queryKey: [QUERY_KEYS.providers, providerId],
+    queryFn: async () =>
+      fromProviderProfile(
+        await curatorProvidersService.getProvider(providerId),
+      ),
+    enabled: !!providerId,
     staleTime: 3 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -41,75 +35,63 @@ export const useProvidersQuery = (options?: { enabled?: boolean }) => {
     error,
   } = useQuery({
     queryKey: [QUERY_KEYS.providers],
-    queryFn: curatorProvidersService.getProviders,
+    queryFn: async () =>
+      (await curatorProvidersService.getProviders()).map(fromProviderSummary),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     enabled: options?.enabled ?? true,
   });
 
-  // Approve provider mutation
-  const approveProviderMutation = useMutation({
-    mutationFn: curatorProvidersService.approveProvider,
-    onSuccess: (data, email) => {
-      // Invalidate providers queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.providers] });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.providers, email],
-      });
-
-      toast.success("Provider approved successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to approve provider");
-    },
-  });
-
-  // Reject provider mutation
-  const rejectProviderMutation = useMutation({
-    mutationFn: curatorProvidersService.rejectProvider,
-    onSuccess: (data, email) => {
-      // Invalidate providers queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.providers] });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.providers, email],
-      });
-
-      toast.success("Provider rejected successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to reject provider");
-    },
-  });
-
   const invalidateProvider = useCallback(
-    async (email: string) => {
+    async (providerId: string) => {
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.providers] });
       await queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.providers, email],
+        queryKey: [QUERY_KEYS.providers, providerId],
       });
     },
     [queryClient],
   );
+
+  // A request someone else already decided: reload so the card shows the outcome.
+  const onDecisionError = (error: unknown, providerId: string) => {
+    if (hasCode(error, "REQUEST_DECIDED")) void invalidateProvider(providerId);
+    toastCuratorError(error, { fallback: "Failed to update the application" });
+  };
+
+  // Approve: approves the provider's pending application in Just In.
+  const approveProviderMutation = useMutation({
+    mutationFn: curatorProvidersService.approveProvider,
+    onSuccess: (_, providerId) => {
+      void invalidateProvider(providerId);
+      toast.success("Provider approved successfully");
+    },
+    onError: onDecisionError,
+  });
+
+  // Reject: declines the pending application (they may resubmit).
+  const rejectProviderMutation = useMutation({
+    mutationFn: curatorProvidersService.rejectProvider,
+    onSuccess: (_, providerId) => {
+      void invalidateProvider(providerId);
+      toast.success("Provider rejected successfully");
+    },
+    onError: onDecisionError,
+  });
 
   const addSchoolMutation = useMutation({
     mutationFn: ({
       providerId,
       schoolId,
     }: {
-      providerId: string | number;
-      schoolId: string | number;
+      providerId: string;
+      schoolId: string;
     }) => curatorProvidersService.addSchoolToProvider(providerId, schoolId),
     onSuccess: (_, { providerId }) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.providers] });
-      if (typeof providerId === "string") {
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.providers, providerId],
-        });
-      }
+      void invalidateProvider(providerId);
       toast.success("School added to provider successfully");
     },
-    onError: (error: Error) =>
-      toast.error(error.message || "Failed to add school"),
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to add school" }),
   });
 
   const removeSchoolMutation = useMutation({
@@ -117,24 +99,18 @@ export const useProvidersQuery = (options?: { enabled?: boolean }) => {
       providerId,
       schoolId,
     }: {
-      providerId: string | number;
-      schoolId: string | number;
+      providerId: string;
+      schoolId: string;
     }) =>
       curatorProvidersService.removeSchoolFromProvider(providerId, schoolId),
     onSuccess: (_, { providerId }) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.providers] });
-      if (typeof providerId === "string") {
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.providers, providerId],
-        });
-      }
+      void invalidateProvider(providerId);
       toast.success("School removed from provider successfully");
     },
-    onError: (error: Error) =>
-      toast.error(error.message || "Failed to remove school"),
+    onError: (error) =>
+      toastCuratorError(error, { fallback: "Failed to remove school" }),
   });
 
-  // Return all queries and mutations
   return {
     // Queries
     providers,
@@ -143,20 +119,25 @@ export const useProvidersQuery = (options?: { enabled?: boolean }) => {
     error,
     // Single provider query helper
     useProvider,
-    // Mutations
-    approveProvider: (email: string, options?: { onSettled?: () => void }) => {
-      approveProviderMutation.mutate(email, {
+    // Mutations (keyed by provider id)
+    approveProvider: (
+      providerId: string,
+      options?: { onSettled?: () => void },
+    ) => {
+      approveProviderMutation.mutate(providerId, {
         onSettled: options?.onSettled,
       });
     },
-    rejectProvider: (email: string, options?: { onSettled?: () => void }) => {
-      rejectProviderMutation.mutate(email, {
+    rejectProvider: (
+      providerId: string,
+      options?: { onSettled?: () => void },
+    ) => {
+      rejectProviderMutation.mutate(providerId, {
         onSettled: options?.onSettled,
       });
     },
     isModerating:
       approveProviderMutation.isPending || rejectProviderMutation.isPending,
-    // New
     addSchoolToProvider: addSchoolMutation.mutateAsync,
     isAddingSchool: addSchoolMutation.isPending,
     removeSchoolFromProvider: removeSchoolMutation.mutateAsync,

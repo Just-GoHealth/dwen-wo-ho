@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Route } from "next";
 import { Star, Users, KeyRound, CalendarClock } from "lucide-react";
@@ -11,37 +11,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { LoadingButton } from "@/components/ui/loading-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { currentCompetitionCodeAtom } from "@/atoms/competitions";
 import useVersionsQuery from "@/hooks/curator/competitions/use-versions";
-import useSchoolsQuery from "@/hooks/queries/use-schools";
+import { formatKickoff } from "@/hooks/curator/competitions/use-fixtures";
 import { DYNAMIC_ROUTES } from "@/lib/constants/infra/routes";
 import { QUERY_KEYS } from "@/lib/constants/infra/query-keys";
-import { parseApiError } from "@/lib/utils/shared/api-error";
-import type { ImportFixtureRow, Team } from "@/lib/types/api/competitions";
+import { campusesCurator } from "@/lib/v2/curator/campuses";
+import type { ImportRow, TeamView } from "@/lib/v2/curator/nsmq";
+
+// The tag picker lists campuses straight from v2 (one page of the largest size).
+const CAMPUS_PICKER_SIZE = 100;
+
+/** `<input type="date">` value for an ISO instant. */
+const toDateInput = (iso: string | null | undefined) => iso?.slice(0, 10) ?? "";
 
 export default function CompetitionVersionPage() {
   const params = useParams();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const versionCode = params.versionCode as string;
   const setCurrentCode = useSetAtom(currentCompetitionCodeAtom);
 
-  // The team list here already has each team's full object (fixtures
-  // included) — seed the team-detail page's own cache entry with it before
-  // navigating, instead of refetching data we already have in hand.
-  const openTeam = (team: Team) => {
-    queryClient.setQueryData(
-      [QUERY_KEYS.competitionTeam, "single", String(team.id)],
-      team,
-    );
+  // The team page reads its team from this same version's team list, which
+  // is already cached here, so navigating doesn't refetch it.
+  const openTeam = (team: TeamView) => {
     router.push(
       DYNAMIC_ROUTES.curator.teamDetails(versionCode, team.id) as Route,
     );
   };
 
   const {
+    useVersion,
     useVersionTeams,
     setPeriod,
     isSettingPeriod,
@@ -52,15 +54,18 @@ export default function CompetitionVersionPage() {
     importFixtures,
     isImportingFixtures,
   } = useVersionsQuery();
+  const { data: version } = useVersion(versionCode);
   const { data: teams, isLoading } = useVersionTeams(versionCode);
-  const { useSchools } = useSchoolsQuery();
-  const { data: schools = [] } = useSchools();
+  const { data: campusPage } = useQuery({
+    queryKey: [QUERY_KEYS.campuses, "picker", CAMPUS_PICKER_SIZE],
+    queryFn: () => campusesCurator.list({ size: CAMPUS_PICKER_SIZE }),
+    staleTime: 5 * 60 * 1000,
+  });
+  const schools = campusPage?.items ?? [];
 
-  const registeredCampusIds = new Set(
-    (teams ?? []).map((t) => String(t.campusId)),
-  );
+  const registeredCampusIds = new Set((teams ?? []).map((t) => t.campusId));
   const unregisteredSchools = schools.filter(
-    (s) => !registeredCampusIds.has(String(s.id)),
+    (s) => !registeredCampusIds.has(s.id),
   );
 
   const [selectedSchoolIds, setSelectedSchoolIds] = useState<Set<string>>(
@@ -70,7 +75,6 @@ export default function CompetitionVersionPage() {
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [fixturesJson, setFixturesJson] = useState("");
-  const [replaceExisting, setReplaceExisting] = useState(false);
   const [showImport, setShowImport] = useState(false);
 
   const toggleSchool = (id: string) => {
@@ -84,58 +88,70 @@ export default function CompetitionVersionPage() {
 
   const handleTagSelected = async () => {
     if (selectedSchoolIds.size === 0) return;
-    await tagSchools({
-      code: versionCode,
-      data: { campusIds: Array.from(selectedSchoolIds) },
-    });
-    setSelectedSchoolIds(new Set());
+    try {
+      await tagSchools({
+        code: versionCode,
+        campusIds: Array.from(selectedSchoolIds),
+      });
+      setSelectedSchoolIds(new Set());
+    } catch {
+      // Toasted by the hook.
+    }
   };
 
   const handleRegisterSelected = async () => {
     const [campusId] = Array.from(selectedSchoolIds);
     if (!campusId) return;
+    // A school that's already a team resolves to that team (no error), so a
+    // stale selection never leaves the curator stuck.
     try {
-      await registerTeam({ code: versionCode, data: { campusId } });
-    } catch (error) {
-      // this school already has a team here (e.g. the teams list was
-      // stale when this button became selectable) - nothing to do, it's
-      // already registered, so just proceed as if this had succeeded
-      // instead of leaving the curator stuck on a selection that can
-      // never submit. Refresh the list so the stale entry stops showing
-      // as selectable.
-      if (parseApiError(error).code !== "TEAM_ALREADY_EXISTS") throw error;
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.competitionTeam, versionCode],
-      });
+      await registerTeam({ code: versionCode, campusId });
+      setSelectedSchoolIds(new Set());
+    } catch {
+      // Toasted by the hook.
     }
-    setSelectedSchoolIds(new Set());
+  };
+
+  const openPeriodForm = () => {
+    setStartsAt(toDateInput(version?.startsAt));
+    setEndsAt(toDateInput(version?.endsAt));
+    setShowPeriodForm((v) => !v);
   };
 
   const handleSetPeriod = async () => {
-    await setPeriod({
-      code: versionCode,
-      data: {
-        startsAt: startsAt ? new Date(startsAt).toISOString() : null,
-        endsAt: endsAt ? new Date(endsAt).toISOString() : null,
-      },
-    });
-    setShowPeriodForm(false);
+    // A PATCH leaves omitted fields as they are, so a cleared date is not sent.
+    // TODO(v2-backend): no way to clear startsAt/endsAt once set (null means "unchanged").
+    try {
+      await setPeriod({
+        code: versionCode,
+        startsAt: startsAt ? new Date(startsAt).toISOString() : undefined,
+        endsAt: endsAt ? new Date(endsAt).toISOString() : undefined,
+      });
+      setShowPeriodForm(false);
+    } catch {
+      // Toasted by the hook (409 STALE reloads the version first).
+    }
   };
 
   const handleImportFixtures = async () => {
-    let fixtures: ImportFixtureRow[];
+    let rows: ImportRow[];
     try {
-      fixtures = JSON.parse(fixturesJson);
+      rows = JSON.parse(fixturesJson);
     } catch {
       toast.error("That isn't valid JSON");
       return;
     }
-    await importFixtures({
-      code: versionCode,
-      data: { replaceExisting, fixtures },
-    });
-    setFixturesJson("");
-    setShowImport(false);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      toast.error("Paste a JSON array with at least one fixture");
+      return;
+    }
+    try {
+      await importFixtures({ code: versionCode, rows });
+      setFixturesJson("");
+      setShowImport(false);
+    } catch {
+      // All or nothing: the hook toasts the first bad row's message.
+    }
   };
 
   return (
@@ -147,8 +163,14 @@ export default function CompetitionVersionPage() {
               Competition
             </p>
             <h1 className="text-foreground text-2xl font-extrabold tracking-tight">
-              {versionCode}
+              {version?.label ?? versionCode}
             </h1>
+            {version && (
+              <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
+                {version.code}
+                <Badge variant="secondary">{version.status}</Badge>
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -160,11 +182,7 @@ export default function CompetitionVersionPage() {
               <Star className="size-4" />
               Set as current competition
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowPeriodForm((v) => !v)}
-            >
+            <Button type="button" variant="outline" onClick={openPeriodForm}>
               <CalendarClock className="mr-1.5 size-4" />
               Set season
             </Button>
@@ -224,19 +242,13 @@ export default function CompetitionVersionPage() {
                 value={fixturesJson}
                 onChange={(e) => setFixturesJson(e.target.value)}
                 rows={6}
-                placeholder='[{"campusId":52,"roundName":"Quarter-final","scheduledAt":"2026-09-01T12:00:00Z","venue":"..."}]'
+                placeholder='[{"campusId":"<campus uuid>","roundName":"Quarter-final","kickoffAt":"2026-09-01T12:00:00Z","timezone":"Africa/Accra","venue":"..."}]'
                 className="border-border bg-card mt-1 w-full rounded-lg border p-2 font-mono text-xs"
               />
-              <label className="mt-2 flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={replaceExisting}
-                  onCheckedChange={(c) => setReplaceExisting(c === true)}
-                />
-                Replace existing fixtures for these campuses
-              </label>
+              {/* TODO(v2-backend): no "replace existing fixtures" option; imports only add. */}
               <p className="text-muted-foreground mt-1 text-xs">
-                A campus with no team here is skipped and reported, not dropped
-                silently.
+                All or nothing: if any row names a campus that isn&apos;t taking
+                part, nothing is imported and that row is reported.
               </p>
               <LoadingButton
                 onClick={handleImportFixtures}
@@ -281,12 +293,23 @@ export default function CompetitionVersionPage() {
                 <div className="text-muted-foreground mt-2 flex items-center gap-4 text-xs font-bold">
                   <span className="flex items-center gap-1">
                     <Users className="size-3.5" />
-                    {team.memberCount}
+                    {team.members}
+                    {team.seatCapacity != null && `/${team.seatCapacity}`}
                   </span>
+                  {/* TODO(v2-backend): TeamView has no issued/redeemed code counts. */}
                   <span className="flex items-center gap-1">
                     <KeyRound className="size-3.5" />
-                    {team.redeemedCodes}/{team.issuedCodes} redeemed
+                    {team.status}
                   </span>
+                  {team.nextKickoff && (
+                    <span className="flex items-center gap-1">
+                      <CalendarClock className="size-3.5" />
+                      {formatKickoff({
+                        kickoffAt: team.nextKickoff,
+                        timezone: null,
+                      })}
+                    </span>
+                  )}
                 </div>
               </button>
             ))}
@@ -306,15 +329,15 @@ export default function CompetitionVersionPage() {
               <div className="border-border max-h-72 overflow-y-auto rounded-xl border">
                 {unregisteredSchools.map((school) => (
                   <label
-                    key={String(school.id)}
+                    key={school.id}
                     className="border-border/60 hover:bg-muted/40 flex items-center gap-3 border-b p-3 last:border-b-0"
                   >
                     <Checkbox
-                      checked={selectedSchoolIds.has(String(school.id))}
-                      onCheckedChange={() => toggleSchool(String(school.id))}
+                      checked={selectedSchoolIds.has(school.id)}
+                      onCheckedChange={() => toggleSchool(school.id)}
                     />
                     <span className="text-foreground text-sm font-bold">
-                      {school.name}
+                      {school.fullName}
                     </span>
                   </label>
                 ))}

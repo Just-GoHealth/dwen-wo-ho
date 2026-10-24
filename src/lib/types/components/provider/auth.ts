@@ -1,5 +1,8 @@
+import type { LookupResponse, Me, Role } from "@/lib/v2/types";
+
 export interface CheckEmailProps {
-  onEmailSubmit: (email: string, emailExists: boolean) => void;
+  role: Role;
+  onLookup: (email: string, result: LookupResponse) => void;
 }
 
 export interface ProviderSignInProps {
@@ -8,11 +11,13 @@ export interface ProviderSignInProps {
   email: string;
   onBack: () => void;
   onForgotPassword?: () => void;
-  onProfileIncomplete?: (step: number) => void;
 }
 
+/** One OTP screen for both account recovery and claiming an account. */
 export interface VerifyPasswordResetProps {
   email: string;
+  role: Role;
+  purpose: "RECOVERY" | "CLAIM";
   onBack?: () => void;
 }
 
@@ -20,12 +25,9 @@ export interface ProviderSignUpProps {
   email?: string;
   fullName?: string;
   title?: string;
-  specialty?: string;
-  profileImage?: string;
   onBack?: () => void;
-  profileStep: number | null;
-  isResumeLocked?: boolean;
-  isCheckingGuard?: boolean;
+  /** Open straight on profile setup (signed in, `next: PROFILE_SETUP`). */
+  startOnProfile?: boolean;
 }
 
 export interface CreateAccountProps {
@@ -34,30 +36,13 @@ export interface CreateAccountProps {
   title?: string;
   agreedToTerms: boolean;
   onAgreedToTermsChange: (agreed: boolean) => void;
-  onNext: (data: {
-    email: string;
-    fullName: string;
-    title: string;
-    password?: string;
-  }) => void;
+  onNext: (data: { email: string; fullName: string; title: string }) => void;
   onValidityChange?: (isValid: boolean) => void;
 }
 
 export interface SignUpVerificationProps {
   email: string;
-  onNext: () => void;
-}
-
-export interface SignUpProfileProps {
-  email: string;
-  fullName: string;
-  title: string;
-  specialty?: string;
-  profileImage?: string;
-  onBack?: () => void;
-  startStep?: number;
-  password?: string;
-  isResumeLocked?: boolean;
+  onVerified: (me: Me) => void;
 }
 
 export interface SignUpProfileContentProps {
@@ -67,12 +52,16 @@ export interface SignUpProfileContentProps {
     property: keyof ProviderProfileData,
     value: string | null,
   ) => void;
+  fieldError?: (field: string) => string | undefined;
 }
 
 export interface ProviderProfileData {
+  /** Preview URL of the uploaded photo (the upload itself already happened). */
   photo: string | null;
   phoneNumber: string;
+  /** Slogan ("When it comes to mental health, I believe…"); optional. */
   bio: string;
+  /** Role category id (`roleCategoryIds[0]`). */
   specialty: string;
 }
 
@@ -87,6 +76,7 @@ export interface BioStepProps {
   phoneNumber: string;
   bio: string;
   onChange: (field: "phoneNumber" | "bio", value: string) => void;
+  fieldError?: (field: string) => string | undefined;
 }
 
 export interface PhotoStepProps {

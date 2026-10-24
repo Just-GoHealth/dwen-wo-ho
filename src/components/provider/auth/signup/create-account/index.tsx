@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants/infra/routes";
 import { useCreateAccount } from "@/hooks/components/provider/auth/signup/create-account/use-create-account";
 import { Label } from "@/components/ui/label";
+import { ApiErrorNote } from "@/components/shared/api-error-note";
 import PasswordStrengthIndicator from "@/components/shared/password-strength-indicator/index";
 
 const CreateAccount = (props: CreateAccountProps) => {
@@ -37,6 +38,7 @@ const CreateAccount = (props: CreateAccountProps) => {
     title,
     fullName,
     password,
+    apiError,
   } = useCreateAccount(props);
 
   return (
@@ -176,6 +178,11 @@ const CreateAccount = (props: CreateAccountProps) => {
             )}
           </div>
         </div>
+
+        <ApiErrorNote
+          error={apiError.error}
+          secondsLeft={apiError.secondsLeft}
+        />
 
         {/* Terms & Conditions */}
         <div className="mt-4 flex items-center justify-center space-x-3">

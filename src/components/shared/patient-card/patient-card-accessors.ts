@@ -33,9 +33,8 @@ const defaultPatientCaseAccessors = {
   getSchoolNickname: (p: PatientCase) => p.schoolNickname,
   getSchoolName: (p: PatientCase) => p.schoolName,
   getAvatarUrl: (p: PatientCase) => p.avatarUrl,
-  // PatientCase has no nsmqTag yet (backend hasn't wired it to the
-  // provider list endpoint) - always falls through to deriveTriageTier
-  getNsmqTag: () => undefined,
+  // derived from the v2 ResultItem's urgent/attention flags
+  getNsmqTag: (p: PatientCase) => p.nsmqTag,
 };
 
 function isPatientCase(patient: PatientCardPatient): patient is PatientCase {

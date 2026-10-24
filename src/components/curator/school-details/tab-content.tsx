@@ -16,6 +16,9 @@ export function SchoolDetailsTabContent({
   compactTimeAgo,
   appliedSearchQuery,
   onViewPatient,
+  awaitingCount,
+  onAcceptAll,
+  isAcceptingAll,
   schoolIcons,
   onIconClick,
   onAddFirstIcon,
@@ -34,6 +37,9 @@ export function SchoolDetailsTabContent({
           compactTimeAgo={compactTimeAgo}
           searchQuery={appliedSearchQuery}
           onViewPatient={onViewPatient}
+          awaitingCount={awaitingCount}
+          onAcceptAll={onAcceptAll}
+          isAcceptingAll={isAcceptingAll}
         />
       )}
 

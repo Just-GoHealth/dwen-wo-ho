@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import useSchoolsQuery from "@/hooks/queries/use-schools";
+import { useCampusOptions } from "@/hooks/curator/providers/use-campus-options";
 import { useProvidersQuery } from "@/hooks/queries/use-provider";
 import usePartnerQuery from "@/hooks/queries/use-partner";
 import { FiUsers } from "react-icons/fi";
@@ -26,11 +26,12 @@ export const usePartnerDetails = ({
   partnerProp: Partner | null | undefined;
   isOpen: boolean;
 }) => {
-  const { useSchools } = useSchoolsQuery();
-  const { data: allSchools = [] } = useSchools();
-  const { providers } = useProvidersQuery();
-  const providersList =
-    providers?.data && Array.isArray(providers.data) ? providers.data : [];
+  const { data: allSchools = [] } = useCampusOptions({ enabled: isOpen });
+  // Only approved providers can join a host (422 PROVIDER_NOT_APPROVED).
+  const { providers } = useProvidersQuery({ enabled: isOpen });
+  const providersList = (providers ?? []).filter(
+    (p) => p.applicationStatus === "APPROVED",
+  );
 
   const {
     addSchool,

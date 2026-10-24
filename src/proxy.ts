@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { API_BASE_URL } from "@/configs/config";
+import { API_PROXY_PREFIXES } from "@/lib/v2/api-paths";
+
+const API_PREFIX_PATTERN = new RegExp(
+  `^/(${API_PROXY_PREFIXES.join("|")})(/|$)`,
+);
+
+/** True for paths next.config rewrites straight to the backend. */
+export const isApiPath = (pathname: string): boolean =>
+  API_PREFIX_PATTERN.test(pathname);
 
 /**
  * Strict, nonce-based Content-Security-Policy (SEC-01).
@@ -12,8 +20,6 @@ import { API_BASE_URL } from "@/configs/config";
  */
 const buildCsp = (nonce: string): string => {
   const isDev = process.env.NODE_ENV === "development";
-  const apiOrigin = new URL(API_BASE_URL).origin;
-  const apiWsOrigin = apiOrigin.replace(/^http/, "ws");
 
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
@@ -30,10 +36,10 @@ const buildCsp = (nonce: string): string => {
     // Unsplash, Microlink, emoji sprites); images can't execute script.
     "img-src": ["'self'", "data:", "blob:", "https:"],
     "font-src": ["'self'", "data:"],
+    // The v2 API and its SSE stream (/me/stream) are proxied same-origin by
+    // the next.config rewrites, so 'self' covers both; no cross-origin API.
     "connect-src": [
       "'self'",
-      apiOrigin,
-      apiWsOrigin,
       // useOnlineStatus connectivity probe.
       "https://ipify.org",
       ...(isDev ? ["ws:"] : []),
@@ -53,6 +59,12 @@ const buildCsp = (nonce: string): string => {
 };
 
 export function proxy(request: NextRequest) {
+  // API calls (JSON and the SSE stream) pass straight through to the rewrite
+  // untouched: no CSP to stamp, and nothing may buffer text/event-stream.
+  if (isApiPath(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = buildCsp(nonce);
 
