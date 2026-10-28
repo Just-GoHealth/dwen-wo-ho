@@ -5,6 +5,7 @@
   "packageManager": "pnpm@11.5.2",
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:mock": "node scripts/dev-mock.mjs",
     "build": "next build",
     "postbuild": "next-sitemap",
     "start": "next start",
@@ -94,6 +95,7 @@
     "eslint-config-next": "15.3.4",
     "fallow": "^2.91.0",
     "happy-dom": "^20.10.2",
+    "msw": "^3.0.3",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "shadcn": "^3.8.4",
